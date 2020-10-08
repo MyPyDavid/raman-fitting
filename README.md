@@ -12,3 +12,4 @@ scipy >= 1.4.1
 
 ### Example plot
 
+https://github.com/MyPyDavid/raman-fitting/wiki
