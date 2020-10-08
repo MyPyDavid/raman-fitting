@@ -5,10 +5,7 @@ First, it will try to extract a sample ID and position number from the filenames
 There are several models, each with a different number of peaks, used for fitting. Export is done with plots and excel files for the spectral data and fitting parameters for further analysis.
 
 ### Dependencies
-python >= 3.7
-
-lmfit >= 1.0.0 
-
-pandas >= 1.0.5   
-
+python >= 3.7  
+lmfit >= 1.0.0  
+pandas >= 1.0.5  
 scipy >= 1.4.1
