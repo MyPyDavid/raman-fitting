@@ -6,6 +6,9 @@ There are several models, each with a different number of peaks, used for fittin
 
 ### Dependencies
 python >= 3.7
+
 lmfit >= 1.0.0 
+
 pandas >= 1.0.5   
+
 scipy >= 1.4.1
