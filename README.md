@@ -9,3 +9,6 @@ python >= 3.7
 lmfit >= 1.0.0  
 pandas >= 1.0.5  
 scipy >= 1.4.1
+
+### Example plot
+
