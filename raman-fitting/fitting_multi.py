@@ -45,7 +45,7 @@ def multi_fit(x,y,peak_model = peak_model, export_info = info_spec_1st, PreFit =
 
 start_fitting(fitting_specs)
 def run_multi_fitting(peak_model,*args,**kwargs):
-    
+    # TODO fix multiprocessing fitting run
     for peak_model in model_options:
         FittingComps, FittingParams, FitReport = Fit_1stOrder_Carbon(x,y,peak_model = peak_model, 
                                                           export_info = info_spec_1st, PreFit = False, raw_data_col = spec_1st.sIDmean_col)
@@ -58,24 +58,10 @@ if __name__ == '__main__':
     with Pool(cpu_count()-2) as pool:
          try:
              results = run_multi_fitting(peak_model,)
-             pool.map(run_multi_fitting(peak_model,), par_files_run)
+             pool.map(run_multi_fitting(peak_model), par_files_run)
          except Exception as e:
-             print('FileHelper module not found:',e)
-             logger.error('Classifier multiprocessing error: {0}'.format(e))
-             results = pool.map(EC_classifier_multi_core.EC_PAR_file_check, par_files_run)
-        
-        
-    
-    with Pool(5) as p:
-        print(p.map(f, [1, 2, 3]))
-        
-        
+             print('run_multi_fitting error:',e)
+             logger.error('run_multi_fitting error: {0}'.format(e))
             
-        with multiprocessing.Pool(os.cpu_count()-2) as pool:
-            try:
-                results = pool.map(EC_classifier_multi_core.EC_PAR_file_check, par_files_run)
-            except Exception as e:
-                print('FileHelper module not found:',e)
-                logger.error('Classifier multiprocessing error: {0}'.format(e))
-                results = pool.map(EC_classifier_multi_core.EC_PAR_file_check, par_files_run)
-        out = pd.DataFrame(results)
+        
+        
