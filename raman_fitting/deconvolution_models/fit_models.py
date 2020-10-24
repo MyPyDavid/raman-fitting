@@ -3,23 +3,20 @@
 """
 Created on Wed Jan 29 14:51:17 2020
 
-@author: zmg
+@author: DW
 """
 
 from collections import OrderedDict,namedtuple
 
 import datetime
 import pandas as pd
-import lmfit
 from lmfit.models import VoigtModel,LorentzianModel, GaussianModel
 
 
 def Fit_model_options():
- 
-    '4peaks'
-    '5peaks'
-    '6peaks'
-    '6peaks, Si_substrate'
+    peak_options = ['4peaks','5peaks','6peaks']
+    _extra = ['Si_substrate']
+    
     
 def PeakTypeChooser(PeakType,prefix_set):
     if 'Lorentzian' in PeakType:
@@ -36,7 +33,7 @@ def make_model_hints(mod,hints):
    return mod
 
 
-
+# ====== FIRST ORDER PEAKS ======= #
 
 '''
 Notes:
@@ -186,6 +183,17 @@ class Si_substrate_peak():
             settings.update({'gamma' : {'value' : 1,'min' : 1E-05, 'max' : 70, 'vary' : GammaVary}})
         return settings
 
+
+# ====== FIRST ORDER PEAKS ======= #
+
+
+
+
+
+
+
+# ====== MODEL CHOICE ======= #
+
 def test_for_Si_substrate(model):
     '''make test fit for only slice 900-1000
     if amplitude of Si_substrate peak > 1 than set true to include in model otherwise false'''
@@ -301,7 +309,10 @@ class ModelChoices:
                 v1 = v1._replace(**{'FitParameters' : fitpars_1st})
                 results_1st[k1] = v1
         return results_1st,results_2nd
-        
+
+# ====== MODEL CHOICE ======= #
+
+
 
 def NormalizeFit(norm_cleaner,plotprint = False):
     x,y = norm_cleaner.spec.ramanshift, norm_cleaner.blcorr_desp_intensity
@@ -400,7 +411,7 @@ def Fit_1stOrder_Carbon(x,y,peak_model = '6peaks', export_info = pd.DataFrame(),
     '''make export stuff'''
     return FittingComps, FittingParams, out.fit_report(show_correl=False)
 
-
+# ====== SECOND ORDER PEAKS ======= #
 class D4D4_peak():
     '''2nd order D4 peak '''
 #        D2D2_mod = VoigtModel(prefix='D2D2_')
@@ -470,6 +481,8 @@ class D2D2_peak():
         if GammaVary:
             settings.update({'gamma' : {'value' : 1,'min' : 1E-05, 'max' : 70, 'vary' : GammaVary}})
         return settings
+# ====== SECOND ORDER PEAKS ======= #
+
 
 # === Adding extra peak at 2450 and run FIT again ===
 # 2D graphite 

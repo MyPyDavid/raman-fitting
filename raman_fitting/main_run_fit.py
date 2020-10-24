@@ -10,30 +10,32 @@ from collections import namedtuple
 from operator import itemgetter
 from pathlib import Path
 
-
 import numpy as np
 import hashlib
 
 
 import pandas as pd
-
 ## for in spec analyzer
-import matplotlib.pyplot as plt
 from scipy import signal
 from scipy.stats import linregress
 
+from config import config
 
 ##
 
 if __name__ == "__main__":
-    sys.path.append(str(Path(__file__).parent.parent))
-    from FileHelper.FindFolders import FindExpFolder
-    from FileHelper.FindSampleID import SampleIDstr,GetSampleID
-    from FileHelper.PostChar import SampleSelection, Characterization_TypeSetting
-    from RAMANpy.indexer import OrganizeRamanFiles
-    from RAMANpy.fit_models import NormalizeFit, start_fitting
+    try:
+        sys.path.append(str(Path(__file__).parent.parent))
+        from FileHelper.FindFolders import FindExpFolder
+        from FileHelper.FindSampleID import SampleIDstr,GetSampleID
+        from FileHelper.PostChar import SampleSelection, Characterization_TypeSetting
+    except:
+        pass
+        
+    from indexer.indexer import OrganizeRamanFiles
+    from fit_models import NormalizeFit, start_fitting
 #    from RAMANpy.fit_models import FittingLoop_1stOrder, FittingLoop_2ndOrder
-    from RAMANpy.plotting import raw_data_export, fit_spectrum_plot
+    from plotting import raw_data_export, fit_spectrum_plot
     
 else:
     sys.path.append(str(Path(__file__).parent.parent))
