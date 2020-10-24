@@ -6,13 +6,6 @@ Created on Wed Jan 29 14:51:17 2020
 @author: zmg
 """
 
-'''
-
-Für D1: 1340-1350
-Für D3: 1495-1515
-Für G: 1580-1590
-D5 und D2 weiß ich nicht
-'''
 from collections import OrderedDict,namedtuple
 
 import datetime
@@ -21,9 +14,8 @@ import lmfit
 from lmfit.models import VoigtModel,LorentzianModel, GaussianModel
 
 
-
 def Fit_model_options():
-    
+ 
     '4peaks'
     '5peaks'
     '6peaks'
@@ -44,6 +36,15 @@ def make_model_hints(mod,hints):
    return mod
 
 
+
+
+'''
+Notes:
+Für D1: 1340-1350
+Für D3: 1495-1515
+Für G: 1580-1590
+D5 und D2 weiß ich nicht
+'''
 
 class G_peak():
     '''Graphite belongs to the P63/mmc (D46h) space group. If considering only a graphene plane, at 
@@ -301,38 +302,6 @@ class ModelChoices:
                 results_1st[k1] = v1
         return results_1st,results_2nd
         
-#    try:
-#            FitPars['L_eq_I'] = 8.8*FitPars_2nd['I_D1D1']/FitPars['I_D']
-#        except:
-#            FitPars['L_eq_I'] = 0
-#        try:
-#            FitPars['L_eq'] = 8.8*FitPars_2nd['D1D1_amplitude']/FitPars['D_amplitude']
-#        except:
-#            FitPars['L_eq'] = 0
-#%%
-#                    {'ID/(IG+ID2)' : fit_params_od['D_height']/fit_params_od['G_height']}
-#        ratioID_IG,ratioID3_IG = I_D/I_G,I_D3/I_G
-#        AD_AG, AD2_AG = outPars['D_amplitude']/outPars['G_amplitude'],outPars['D2_amplitude']/outPars['G_amplitude']
-#        AD3_AG, AD4_AG = outPars['D3_amplitude']/outPars['G_amplitude'],outPars['D4_amplitude']/outPars['G_amplitude']
-    
-#        RatioPars = {'ID/IG' : ratioID_IG,'L_a_I' : 4.4*ratioID_IG, 'L_a' : 4.4*(AD_AG**-1), 'AD/AG' : AD_AG, 'AD2/AG' : AD2_AG,
-#                 'AD3/AG' : AD3_AG, 'AD4/AG' : AD4_AG,'ID3/IG' : ratioID3_IG,
-#                 'ChiSqr': out.chisqr,'RedChiSqr' : out.redchi,'ResMean' : out.residual.mean(),
-#                  'I_D' : I_D,  'I_D3' : I_D3,'I_D4' : I_D4,'I_G' : I_G, 'FitModel' : str(mod)}
-#    D_mod = D_peak().mod
-#    D2_mod = D2_peak().model_hints
-#    test_Si_substrate
-#    mod = G_peak().mod+D_peak().mod
-#    if FitModel_1st == '4peaks':
-#        mod = G_mod + D_mod + D3_mod + D4_mod 
-#    if '5peaks' in FitModel_1st:
-#        mod = G_mod + D_mod + D2_mod + D3_mod + D4_mod 
-#        if 'Si_substrate' in FitModel_1st:
-#            mod += Si_substrate_mod
-#    if '6peaks' in FitModel_1st:
-#        mod = G_mod + D_mod + D2_mod + D3_mod + D4_mod + D5_mod
-#        if 'Si_substrate' in FitModel_1st:
-#            mod += Si_substrate_mod
 
 def NormalizeFit(norm_cleaner,plotprint = False):
     x,y = norm_cleaner.spec.ramanshift, norm_cleaner.blcorr_desp_intensity
@@ -430,28 +399,7 @@ def Fit_1stOrder_Carbon(x,y,peak_model = '6peaks', export_info = pd.DataFrame(),
     FittingComps = pd.DataFrame(fit_comps_out)
     '''make export stuff'''
     return FittingComps, FittingParams, out.fit_report(show_correl=False)
-#    FitData = pd.DataFrame({'RamanShift' :x,'G_peak' : comps['G_'],'D_peak' : comps['D_'],'D4_peak' : comps['D4_'],
-#                  'D3_peak' : comps['D3_'], 'I_data' : out.data,'I_model4Voigt' : out.best_fit, 'residuals' : out.residual})
-##    pd.DataFrame([(i,a.value) for i,a in fit_params.items()])
-    # TODO test if parameters hit bounds
-#        print('%s\n'%out.message,out.fit_report(min_correl=0.90))
-#    [i.prefix for i in Model.components]
-#    FWHM = {'D_fwhm' : out.params['D_fwhm'].value, 'D4_fwhm' : out.params['D4_fwhm'].value,'D3_fwhm' : out.params['D3_fwhm'].value,'G_fwhm' : out.params['G_fwhm'].value,'SampleID' : FileName.split('_')[0]}
-#    HEIGHT = {'D_height' : out.params['D_height'].value, 'D4_height' : out.params['D4_height'].value,'D3_height' : out.params['D3_height'].value,'G_height' : out.params['G_height'].value}
-#    outPars = out.best_values
-#    outPars.update(FWHM)
-#    outPars.update(HEIGHT)
-#    I_D = FitData.loc[ np.isclose(outPars['D_center'],FitData['RamanShift'],rtol=0.003),'D_peak'].mean()
-#    I_D3 = FitData.loc[ np.isclose(outPars['D3_center'],FitData['RamanShift'],rtol=0.003),'D3_peak'].mean()
-#    I_D4 = FitData.loc[ np.isclose(outPars['D4_center'],FitData['RamanShift'],rtol=0.003),'D4_peak'].mean()
-#    I_G = FitData.loc[ np.isclose(outPars['G_center'],FitData['RamanShift'],rtol=0.003),'G_peak'].mean()
-    
-    #%%
-#    return out,comps,FitPars,FitData,pre_fit
-#if normalization:
-#             settings = {'center' : {'value' : 1350,'min' : 1300, 'max' : 1400},
-#                    'sigma' : {'value' : 90, 'min' : 1E-05},
-#                    'amplitude' : {'value' : 10E5, 'min' : 1E2}}
+
 
 class D4D4_peak():
     '''2nd order D4 peak '''
@@ -578,49 +526,3 @@ def Fit_2ndOrder_Carbon(x,y,peak_model = '2ndOrder_4peaks', export_info = pd.Dat
     FittingComps = pd.DataFrame(fit_comps_out)
     '''make export stuff'''
     return FittingComps, FittingParams, out.fit_report(show_correl=False)
-
-#def Fit_VoigtModel_PyrCarbon_2ndOrder(self,SampleID):
-#    # TESTING ====
-##        a = SpectrumAnalyzer(w,i,'%s_mean'%sID,2100,3500)
-##        x,y,FileName,blcor,SampleID = a.w1,a.i1_blcor,a.FileName,a.blcor,'TE3'
-#    x,y,FileName,blcor = self.w1,self.i1_blcor,self.FileName,self.blcor
-##        N2_bg = SpectrumAnalyzer(self.Rash,self.Int,self.Filename,2100,3000).subtract_bg()
-##        x,y,FileName,blcor = N2_bg.w1,N2_bg.i1_blcor,self.FileName,N2_bg.blcor
-##        self.w,self.i_blcor,self.blcor,self.w1,self.i1_blcor
-##        D1D1_mod = VoigtModel(prefix='D1D1')
-## === TWO Fitting loops ====
-##        mod = D1D1mod + D2D2_mod 
-##        init =  mod.eval(pars, x=x)
-##        out = mod.fit(y,pars,x=x,method='leastsq')
-##        comps = out.eval_components(x=x)
-#    Model = G_peak().mod + D_peak().mod + D2_peak().mod + D3_peak().mod + D4_peak().mod + D5_peak().mod
-#    mod_3peaks = D1D1_mod + D2D2_mod + D4D4_mod + GD1_mod
-#    init_3peaks =  mod_3peaks.eval(pars, x=x)
-#    out_3peaks = mod_3peaks.fit(y,pars,x=x,method='leastsq')
-#    comps_3peaks = out_3peaks.eval_components(x=x)
-##       ====
-##        print('3peaks: %s, 2 peaks : %s'%(out_3peaks.redchi,out.redchi))
-##        if out_3peaks.redchi < out.redchi:
-##        else: outFinal,compsFinal,initFinal = out,comps,init
-##  --- No checking which Fit is best, just go for the 3 peaks model --- #
-#    outFinal,compsFinal,initFinal = out_3peaks,comps_3peaks,init_3peaks
-##       ----
-##        All parameters for Output ====
-##        print('%s\n'%outFinal.message,outFinal.fit_report(min_correl=0.90))
-#    FWHM = {'D1D1_fwhm' : outFinal.params['D1D1_fwhm'].value,'D2D2_fwhm' : outFinal.params['D2D2_fwhm'].value,
-#            'D4D4_fwhm' : outFinal.params['D4D4_fwhm'].value, 'GD1_fwhm' : outFinal.params['GD1_fwhm'].value,
-#            'SampleID' : SampleID}
-#    outPars = outFinal.best_values
-#    outPars.update(FWHM)
-#    FitData = pd.DataFrame({'RamanShift' :x,'D2D2_peak' : compsFinal['D2D2_'],'D1D1_peak' : compsFinal['D1D1_'],
-#                            'D4D4_peak' : compsFinal['D4D4_'],'GD1_peak' : compsFinal['GD1_'],
-#                            'I_data' : outFinal.data,'I_model4Voigt' : outFinal.best_fit})
-#    I_D1D1 = FitData.loc[ np.isclose(outPars['D1D1_center'],FitData['RamanShift'],rtol=0.003),'D1D1_peak'].mean()
-#    I_D2D2 = FitData.loc[ np.isclose(outPars['D2D2_center'],FitData['RamanShift'],rtol=0.003),'D2D2_peak'].mean()
-#    I_D4D4 = FitData.loc[ np.isclose(outPars['D4D4_center'],FitData['RamanShift'],rtol=0.003),'D4D4_peak'].mean()
-#    I_GD1 = FitData.loc[ np.isclose(outPars['GD1_center'],FitData['RamanShift'],rtol=0.003),'GD1_peak'].mean()
-#   
-#    outPars.update(RatioPars)
-##    plot_components,plot_Annotation = True,True
-#    FitPars = pd.DataFrame(outPars,index=[FileName])
-#    return outFinal,compsFinal,FitPars,FitData,initFinal
