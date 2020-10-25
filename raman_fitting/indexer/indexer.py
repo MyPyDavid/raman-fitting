@@ -13,8 +13,11 @@ from collections import namedtuple
 
 import pandas as pd
 
-from raman_fitting.config import config
-from raman_fitting import __version__ as _version
+from config import config
+# TODO check local imports
+
+#print('name: ',__name__,'file:\n',__file__)
+#_version = __version__  
 
 import logging
 import typing as t
