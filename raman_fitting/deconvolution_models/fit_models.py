@@ -12,6 +12,7 @@ import datetime
 import pandas as pd
 from lmfit.models import VoigtModel,LorentzianModel, GaussianModel
 
+# TODO split this module into the 1st and 2nd order related peaks
 
 def Fit_model_options():
     peak_options = ['4peaks','5peaks','6peaks']
