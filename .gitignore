@@ -107,6 +107,7 @@ venv.bak/
 .idea/
 
 # datafiles
+/results/*
 /*.csv
 /*.zip
 /*.txt
