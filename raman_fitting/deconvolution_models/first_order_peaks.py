@@ -1,5 +1,5 @@
 
-from fit_models import PeakTypeChooser,make_model_hints
+from .fit_models import PeakTypeChooser,make_model_hints
 
 
 
@@ -151,4 +151,4 @@ class Si_substrate_peak():
         return settings
 
 def test_for_Si_substrate(model):
-    '''make test fit for only slice 900-1000
+    '''make test fit for only slice 900-1000'''

@@ -1,5 +1,5 @@
 
-from fit_models import PeakTypeChooser,make_model_hints
+from .fit_models import PeakTypeChooser,make_model_hints
 
 
 

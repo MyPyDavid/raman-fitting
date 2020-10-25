@@ -10,44 +10,26 @@ from collections import namedtuple
 from operator import itemgetter
 from pathlib import Path
 
-import numpy as np
-import hashlib
-
-
-import pandas as pd
-## for in spec analyzer
-from scipy import signal
-from scipy.stats import linregress
-
-from config import config
-
-##
-
-if __name__ == "__main__":
-    try:
-        sys.path.append(str(Path(__file__).parent.parent))
-        from FileHelper.FindFolders import FindExpFolder
-        from FileHelper.FindSampleID import SampleIDstr,GetSampleID
-        from FileHelper.PostChar import SampleSelection, Characterization_TypeSetting
-    except:
-        pass
-        
-    from indexer.indexer import OrganizeRamanFiles
-    from fit_models import NormalizeFit, start_fitting
-#    from RAMANpy.fit_models import FittingLoop_1stOrder, FittingLoop_2ndOrder
-    from plotting import raw_data_export, fit_spectrum_plot
-    
-else:
-    sys.path.append(str(Path(__file__).parent.parent))
-    from FileHelper.FindFolders import FindExpFolder
-    from FileHelper.FindSampleID import SampleIDstr,GetSampleID
-    from FileHelper.PostChar import SampleSelection, Characterization_TypeSetting
-#from ..FileHelper import FindExpFolder,SampleIDstr,FindSampleID
-
-#from indexer import *
 from functools import reduce
 from itertools import chain
 from operator import add
+
+import numpy as np
+import hashlib
+
+import pandas as pd
+from scipy import signal
+from scipy.stats import linregress
+
+
+from config import config
+
+from deconvolution_models import first_order_peaks,second_order_peaks, fit_models
+
+from indexer.indexer import OrganizeRamanFiles
+from plotting import raw_data_export, fit_spectrum_plot
+
+
 def namedtuplemerge(*args):
     cls = namedtuple('_'.join(arg.__class__.__name__ for arg in args), reduce(add, (arg._fields for arg in args)))
     return cls(*chain(*args))
@@ -70,8 +52,9 @@ class RamanLoop():
             return sGrp_grp.groupby(grp_cols),grp_cols
         
     def add_make_destdirs(sGr, sGrp_grp):
-        DestDir = sGrp_grp.DestDir.unique()[0]
-        DestGrpDir = DestDir.joinpath(sGr)
+#        DestDir = sGrp_grp.DestDir.unique()[0]
+        DestGrpDir = Path(sGrp_grp.DestDir.unique()[0])
+#        DestDir.joinpath(sGr)
         DestFitPlots, DestFitComps = DestGrpDir.joinpath('Fitting_Plots'), DestGrpDir.joinpath('Fitting_Components')
 #        DestFitPlots.mkdir(parents=True,exist_ok=True)
         DestFitComps.mkdir(parents=True,exist_ok=True)
@@ -152,8 +135,11 @@ class RamanLoop():
                 sample_spectra = RamanLoop.test_spectra_lengths(sample_spectra)
                 speclst = PrepareMean_Fit.subtract_baseline(sample_spectra)
                 fitting_specs = PrepareMean_Fit.calc_mean_from_spclst(speclst) # TODO return mean of spectra 
+                
                 raw_data_export(fitting_specs) # TODO RAW data export and plotting
-                results_1st,results_2nd = start_fitting(fitting_specs)
+                
+                results_1st,results_2nd = fit_models.start_fitting(fitting_specs)
+                
                 pars1,pars2 = export_fitting_plotting_peak(results_1st,results_2nd )
                 FitParams1.append(pars1), FitParams2.append(pars2)
             index = export_FitParams_Grp(FitParams1, FitParams2, export_info_out, grpnm,sID)
@@ -547,7 +533,7 @@ def index_selection(RamanIndex_all,**kwargs):
 #%%
 if __name__ == "__main__":
 
-    runq = input('run raman?')
+    runq = input('run raman? (enter y for standard run):\n')
     if 'y' in runq:
 
         RamanIndex_all = OrganizeRamanFiles().index
