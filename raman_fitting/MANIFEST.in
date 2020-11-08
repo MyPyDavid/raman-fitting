@@ -5,9 +5,8 @@ include *.pkl
 recursive-include ./raman_fitting/*
 
 include raman_fitting/datafiles/*.txt
-#include regression_model/datasets/test.csv
-#include regression_model/trained_models/*.pkl
-include ramnan_files/VERSION
+
+include raman_files/VERSION
 
 include ./requirements.txt
 exclude *.log
