@@ -16,12 +16,3 @@ RESULTS_DIR = PACKAGE_ROOT / "results"
 
 # index
 INDEX_FILE = RESULTS_DIR / 'index.csv'
-
-# data
-TESTING_DATA_FILE = "test.csv"
-TRAINING_DATA_FILE = "train.csv"
-TARGET = "SalePrice"
-
-
-# variables
-FEATURES = []
