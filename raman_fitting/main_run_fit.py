@@ -103,7 +103,7 @@ class RamanLoop():
         FitParams1, FitParams2 = [], []
         for grpnm, sGrp_grp in RamanIndex.groupby(GrpNames.sGrp_cols[0]):
             all_index = []
-            for nm, sID_grp in RamanIndex.groupby(list(GrpNames.sGrp_cols[1:])):
+            for nm, sID_grp in sGrp_grp.groupby(list(GrpNames.sGrp_cols[1:])):
                 sGr, (sID, sDate) = grpnm, nm
                 
                 sGr_out = dict(zip(GrpNames.sGrp_cols,(grpnm,)+nm))
