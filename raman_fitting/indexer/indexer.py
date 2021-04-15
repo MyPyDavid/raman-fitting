@@ -56,7 +56,8 @@ class OrganizeRamanFiles:
     file_stat_cols = ['FileCreationDate', 'FileCreation','FileModDate', 'FileMod', 'FileHash']
     
     
-    def __init__(self):
+    def __init__(self, reload_index = True):
+        self._reload_index = True
         OrganizeRamanFiles.choose_dirs(self)
         OrganizeRamanFiles.load_index(self)
         
@@ -68,13 +69,11 @@ class OrganizeRamanFiles:
 #        self.ExpDB = FileHelper.FindExpFolder(exp_method).DestDir.joinpath('RAMAN_DB.hdf5')
     
     def choose_dirs(self):
-        try:
-            DestDir = FindExpFolder('RAMAN').DestDir
-#            RamanDestDir = FindExpFolder('RAMAN').DestDir
-            RamanDataDir = FindExpFolder('RAMAN').DataDir
-        except:
-            DestDir = config.RESULTS_DIR
-            RamanDataDir = config.DATASET_DIR
+        DestDir = config.RESULTS_DIR
+        RamanDataDir = config.DATASET_DIR
+        
+        assert RamanDataDir.is_dir()
+        
         self.DestDir, self.RamanDataDir = DestDir, RamanDataDir
     
 #    def index(self):
@@ -164,14 +163,22 @@ class OrganizeRamanFiles:
             _logger.info(f'Succesfully Exported Raman Index file to {config.INDEX_FILE}, with len({len(self.index)})')
     
     def load_index(self):
-        try:
-            _index_load = pd.read_csv(config.INDEX_FILE)
-            _logger.info(f'Succesfully imported Raman Index file from {config.INDEX_FILE}, with len({len(_index_load)})')
-            self.index = _index_load
-        except:
-            _logger.error(f'Error in load_index from {config.INDEX_FILE}, restarting make_index ... )')
+        if not self._reload_index:
+            try:
+                _index_load = pd.read_csv(config.INDEX_FILE)
+                _logger.info(f'Succesfully imported Raman Index file from {config.INDEX_FILE}, with len({len(_index_load)})')
+                self.index = _index_load
+            except:
+                _logger.error(f'Error in load_index from {config.INDEX_FILE}, restarting make_index ... )')
+                self.reload_index = True
+        self.reload_index()
+                
+    def reload_index(self):
+        if self._reload_index:
+            _logger.info(f'{self.__class__.__name__} starting reload index )')
             self.make_index()
             self.export_index()
+            
 #            _index_load = self.index
 #        return _index_load
 
