@@ -24,12 +24,21 @@ from scipy.stats import linregress
 
 #from .raman_fitting 
 
-from config import config
+# from config import config
 
-from deconvolution_models import first_order_peaks,second_order_peaks, fit_models
+if __name__ == "__main__":
 
-from indexer.indexer import OrganizeRamanFiles
-from plotting import raw_data_export, fit_spectrum_plot
+    from deconvolution_models import fit_models
+    from indexer.indexer import OrganizeRamanFiles
+    from plotting import raw_data_export, fit_spectrum_plot
+
+
+else:
+    from raman_fitting.deconvolution_models import fit_models
+    from raman_fitting.indexer.indexer import OrganizeRamanFiles
+    from raman_fitting.plotting import raw_data_export, fit_spectrum_plot
+
+
 
 
 def namedtuplemerge(*args):

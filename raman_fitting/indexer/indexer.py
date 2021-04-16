@@ -13,7 +13,7 @@ from collections import namedtuple
 
 import pandas as pd
 
-from config import config
+
 # TODO check local imports
 
 #print('name: ',__name__,'file:\n',__file__)
@@ -43,6 +43,9 @@ else:
 #        config.RESULTS_DIR
         # TODO !! fix and add local import for FindExpFolder, SampleIDstr and GetSampleID
         pass
+
+print('test name ',__name__)
+from config import config
 
 __all__= ['OrganizeRamanFiles']
 

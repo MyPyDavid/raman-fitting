@@ -8,7 +8,7 @@ import logging
 
 from raman_fitting.config import config
 from raman_fitting.config import logging_config
-
+from raman_fitting import main_run_fit, indexer
 
 VERSION_PATH = config.PACKAGE_ROOT / 'VERSION'
 
@@ -21,3 +21,5 @@ logger.propagate = False
 
 with open(VERSION_PATH, 'r') as version_file:
     __version__ = version_file.read().strip()
+
+

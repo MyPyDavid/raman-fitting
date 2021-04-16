@@ -17,10 +17,7 @@ AUTHOR = 'David W'
 REQUIRES_PYTHON = '>=3.6.0'
 
 
-# What packages are required for this module to be executed?
-def list_reqs(fname='requirements.txt'):
-    with open(fname) as fd:
-        return fd.read().splitlines()
+
 
 
 # The rest you shouldn't have to touch too much :)
@@ -30,6 +27,12 @@ def list_reqs(fname='requirements.txt'):
 # Trove Classifier for that!
 
 here = os.path.abspath(os.path.dirname(__file__))
+
+# What packages are required for this module to be executed?
+def list_reqs(fname=Path(here).joinpath('requirements.txt')):
+    with open(fname) as fd:
+        return fd.read().splitlines()
+
 
 # Import the README and use it as the long-description.
 # Note: this will only work if 'README.md' is present in your MANIFEST.in file!
