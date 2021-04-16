@@ -1,0 +1,10 @@
+pandas >= 1.0.0
+scipy >= 1.5.2
+lmfit >= 1.0.0
+
+# matplotlib version limit because of: MatplotlibDeprecationWarning: savefig() got unexpected 
+# keyword argument "box_extra_artists" which is no longer supported as of 3.3 and will become an 
+# error two minor releases later
+matplotlib >= 3.1.2
+numpy >= 1.19.2 
+openpyxl >= 3.0.1 
