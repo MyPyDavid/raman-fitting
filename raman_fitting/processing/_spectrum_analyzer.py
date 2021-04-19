@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 29 14:52:33 2020
 
-@author: zmg
-"""
 
-#%%
 class SpectrumAnalyzer:
 
     def __init__(self,RaSh,Int,FileName,freqMin = 800,freqMax = 2000,Noise_filter = False,

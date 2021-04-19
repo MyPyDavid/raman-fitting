@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 29 14:55:26 2020
 
-@author: zmg
-"""
+
+# WARNING this module is under construction and not used
 
 class RamanPostProcessing:
     def __init__(self,SampleGrp = 'DW'):
@@ -146,7 +144,37 @@ class RamanPostProcessing:
             plt.close()
         return print('PostProcessed XD' )
     
-    
+
+def run_selection():
+    run = input('Want to start the fitting run?')
+    sys.path.append(Path(__file__).parent.parent)
+    try:
+        FindExpText = str(inspect.getsource(FileHelper.FindExpFolder)).encode('utf-8')
+#    pytext =
+        pytext = FileHelper.FileOperations.mylocal_read_text(Path(__file__)) + str(FindExpText)
+    except Exception as e:
+        pytext = 'test'
+        
+    FileHash = hashlib.md5(str(pytext).encode('utf-8')).hexdigest()
+    force_reindex = 0
+    print('Hash:', FileHash)
+    if 'y' in run or run == 'yes':
+        PostProcess = False
+        orgRFs = OrganizeRAMANFiles().ovv()
+      
+        recent_groups =[i for i in run.split() if i in orgRFs.SampleGroup.unique()]  
+
+        print(f'Running groups: {recent_groups}')
+        org_recent = orgRFs.loc[orgRFs.SampleGroup.str.contains(('|'.join)(recent_groups))]
+        if run == 'yall':
+            org_recent = orgRFs
+        FitRAMAN().plot_RAMAN(org_recent)
+
+        if PostProcess == True:
+            RamanPostProcessing('DW').PostPlot()
+    elif 'index'in run:
+        orgRFs = OrganizeRAMANFiles().ovv()
+        print(orgRFs.SampleGroup.unique())  
     
  
 #            ovv.plot(x=,y='',kind='scatter')
