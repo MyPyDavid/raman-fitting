@@ -110,7 +110,7 @@ venv.bak/
 /results/*
 /*.csv
 /*.zip
-/*.txt
+#/*.txt
 /*.xlsx
 
 # all logs

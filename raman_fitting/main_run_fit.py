@@ -36,9 +36,15 @@ if __name__ == "__main__":
     from export.plotting import raw_data_export, fit_spectrum_plot
 
 else:
+    
     from raman_fitting.deconvolution_models import fit_models
     from raman_fitting.indexer.indexer import OrganizeRamanFiles
-    from raman_fitting.plotting import raw_data_export, fit_spectrum_plot
+    
+    from raman_fitting.processing.cleaner import SpectrumCleaner
+    from raman_fitting.processing.prepare_mean_spectrum import PrepareMean_Fit
+    from raman_fitting.processing.spectrum_template import Spectrum
+    
+    from raman_fitting.export.plotting import raw_data_export, fit_spectrum_plot
 
 
 
