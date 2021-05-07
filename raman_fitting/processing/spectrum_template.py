@@ -1,9 +1,39 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 from collections import namedtuple
+# from . import SpectrumCleaner
+# from .utils.file_reader import FileReader
 
-class Spectrum():
+
+def SpectrumWindows():
+    windows = {
+        'full' : (200,3600), 
+        'full_1st_2nd' : (800,3500), 
+        'low' : (150,850),
+        '1st_order' : (900,2000), 
+        'mid' : (1850,2150), 
+        '2nd_order' : (2000,3380),
+        'normalization' : (1500,1675)
+        }
+    return windows
+
+def SpectrumWindowLimits():
+    windows = {
+        'full' :  (20,-20), 
+        'full_1st_2nd' :  (20,-20), 
+        'low' : (10,-10),
+        '1st_order' :  (20,-20), 
+        'mid' : (10,-10), 
+        '2nd_order' : (5,-5),
+        'normalization' : (10,-10)
+        }
+    return windows
+
+ 
+
+SpecTemplate = namedtuple('Spectrum', 'ramanshift intensity label')
+
+class SpectrumTemplate():
     
     def __init__(self, spec_name = 'spectrum_info'):
         self.spec_name = spec_name
@@ -28,3 +58,9 @@ class Spectrum():
     def set_template(self):
         # name = 'spectrum_info'
         self.template = namedtuple(self.spec_name, self.grp_names.all)
+        
+
+
+    
+    
+    

@@ -33,7 +33,7 @@ logger.addHandler(ch)
 
 # This code is written for Python 3.
 if sys.version_info[0] != 3:
-    logger.error("pyGAPS requires Python 3.")
+    logger.error("raman_fitting requires Python 3.")
     sys.exit(1)
 
 # Let users know if they're missing any hard dependencies
@@ -60,7 +60,7 @@ del hard_dependencies, soft_dependencies, dependency, missing_dependencies
 
 
 
-from raman_fitting import main_run_fit, indexer
+# from raman_fitting import main_run_fit, indexer
 
 
 
