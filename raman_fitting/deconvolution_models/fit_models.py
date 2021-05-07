@@ -121,7 +121,7 @@ class InitializeModels():
                             '3peaks' : 'G+D+D3',
                             '4peaks' : 'G+D+D3+D4',
                             '5peaks' : 'G+D+D2+D3+D4',
-                            '6peaks' : 'G+D+D2+D3+D4'}
+                            '6peaks' : 'G+D+D2+D3+D4+D5'}
     
     _standard_2nd_order = {'2nd_4peaks' : 'D4D4+D1D1+GD1+D2D2'}
 
