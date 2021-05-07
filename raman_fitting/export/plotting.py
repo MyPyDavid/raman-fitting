@@ -45,8 +45,8 @@ def raw_data_spectra_plot(fitting_specs):
                 ax_wn = ax[plotting_info(spec.windowname)]    
 #                spec.windowname
                 _legend = True if 'full' == spec.windowname else False
-                spec.mean_spec.plot(y = spec.sID_rawcols ,ax= ax_wn, alpha = 0.5, legend = _legend)
-                spec.mean_spec.plot(y = spec.sIDmean_col ,ax= ax_wn, c= 'k', alpha = 0.7, lw=3, legend = _legend)
+                spec.mean_spec.plot(x='ramanshift', y = spec.sID_rawcols ,ax= ax_wn, alpha = 0.5, legend = _legend)
+                spec.mean_spec.plot(x='ramanshift', y = spec.sIDmean_col ,ax= ax_wn, c= 'k', alpha = 0.7, lw=3, legend = _legend)
     
                 ax_wn.set_title(spec.windowname)
 #                _legend = True if 'full' in spec.windowname else False
@@ -67,31 +67,40 @@ def raw_data_spectra_export(fitting_specs):
     try:
         for spec in fitting_specs:
 #            spec.windowname, spec.sIDmean_col
-            wnxl_outpath_info = spec.mean_info.DestRaw.unique()[0].joinpath(f'info_{spec.sIDmean_col}_{spec.windowname}.xlsx')
             wnxl_outpath_spectra = spec.mean_info.DestRaw.unique()[0].joinpath(f'spectra_{spec.sIDmean_col}_{spec.windowname}.xlsx')
-            spec.mean_info.to_excel(wnxl_outpath_info)
             spec.mean_spec.to_excel(wnxl_outpath_spectra)
+       
+        _0_spec = fitting_specs[0]
+        wnxl_outpath_info = _0_spec.mean_info.DestRaw.unique()[0].joinpath(f'info_{_0_spec.sIDmean_col}.xlsx')
+        _0_spec.mean_info.to_excel(wnxl_outpath_info)
+        
 #            ax_wn = ax[plotting_info(spec.windowname)]
     except Exception as e:
         print('no extra Raw Data plots: {0}'.format(e))    
     
-#
+
+def _testing():
+    peak1,res1_peak_spec,res2_peak_spec= modname_1,fitres_1,fitres_2,
+    peak1,res1_peak_spec = '1st_6peaks+Si', self._1st['1st_6peaks+Si']
+    
 def fit_spectrum_plot(peak1,res1_peak_spec,res2_peak_spec, plot_Annotation = True, plot_Residuals = True):
     
     #%%
-    sID = res1_peak_spec.extrainfo.SampleID.unique()[0]
-    SampleBgmean_col = f'int_{sID}_mean'
+    sID = res1_peak_spec.extrainfo['SampleID']
+    SampleBgmean_col = res1_peak_spec.raw_data_col
          
 #    sID, DestPlotDir, SampleBgmean_col, FitData, FitModPeaks, FitData_2nd,comps, comps_2nd,out, out_2nd, 
     FitData_1st = res1_peak_spec.FitComponents
-    Model_peak_col_1st = res1_peak_spec.peak_model
-    Model_data_col_1st = f'Model_{Model_peak_col_1st}' 
-    compscols_1st = [i for i in FitData_1st.columns if i.endswith('_')]
+    Model_peak_col_1st = res1_peak_spec.model_name
+    Model_data_col_1st = res1_peak_spec.model_name
+    # f'Model_{Model_peak_col_1st}' 
+    compscols_1st = [i for i in FitData_1st.columns if i.endswith('_') and not i.startswith('Si')]
 #    FitReport_1st = res1_peak_spec.FitReport
     
     FitData_2nd = res2_peak_spec.FitComponents
-    Model_peak_col_2nd = res2_peak_spec.peak_model
-    Model_data_col_2nd = f'Model_{Model_peak_col_2nd}' 
+    Model_peak_col_2nd = res2_peak_spec.model_name
+    Model_data_col_2nd = res2_peak_spec.model_name
+    # f'Model_{Model_peak_col_2nd}' 
     compscols_2nd = [i for i in FitData_2nd.columns if i.endswith('_')]
     
     FitPars, FitPars_2nd = res1_peak_spec.FitParameters, res2_peak_spec.FitParameters
@@ -149,9 +158,10 @@ def fit_spectrum_plot(peak1,res1_peak_spec,res2_peak_spec, plot_Annotation = Tru
     if 'peaks' in peak1:
 #        ax.plot(FitData_1st['RamanShift'], FitData_1st['D2_'], color='magenta',ls='--',lw=4,label='D2')
 #        ax.annotate('D2:\n %.0f'%FitPars['D2_center'],xy=(FitPars['D2_center']*0.97,0.8*FitPars['I_D2']),xycoords='data')
-        if 'Si_substrate' in peak1:
-            ax.plot(FitData_1st['RamanShift'], FitData_1st['Si_substrate_'], 'b--',lw=4,label='Si_substrate')
-            ax.annotate('Si_substrate:\n %.0f'%FitPars['Si_substrate_center'],xy=(FitPars['Si_substrate_center']*0.97,0.8*FitPars['I_Si_substrate']),xycoords='data')
+        if peak1.endswith('+Si'):
+            ax.plot(FitData_1st['RamanShift'], FitData_1st['Si1_'], 'b--',lw=4,label='Si_substrate')
+            if FitPars['Si1_fwhm'].iloc[0] > 1:
+                ax.annotate('Si_substrate:\n %.0f'%FitPars['Si1_center'],xy=(FitPars['Si1_center']*0.97,0.8*FitPars['Si1_height']),xycoords='data')
 #        if '6peaks' in FitModPeaks:
 #            ax.plot(FitData_1st['RamanShift'], FitData_1st['D5_'],  color='darkorange',ls='--',lw=4,label='D5')
 #            ax.annotate('D5:\n %.0f'%FitPars['D5_center'],xy=(FitPars['D5_center']*0.97,0.8*FitPars['I_D5']),xycoords='data')
@@ -178,8 +188,8 @@ def fit_spectrum_plot(peak1,res1_peak_spec,res2_peak_spec, plot_Annotation = Tru
     ax.legend(loc=1), ax.set_xlabel('Raman shift (cm$^{-1}$)'),ax.set_ylabel('normalized I / a.u.')
     ax2nd.legend(loc=1), ax2nd.set_xlabel('Raman shift (cm$^{-1}$)'),ax2nd.set_ylabel('normalized I / a.u.')
 #                plt.show()
-    peak_destdir = res1_peak_spec.extrainfo.DestFittingComps.unique()[0].joinpath(f'{Model_data_col_1st}_{sID}')
+    
 #    plt.show()
-    plt.savefig(peak_destdir.with_suffix('.png'),dpi=100,box_extra_artists=(Report1,Report2), bbox_inches='tight')
+    plt.savefig(res1_peak_spec.extrainfo['DestFittingModel'].with_suffix('.png'),dpi=100,box_extra_artists=(Report1,Report2), bbox_inches='tight')
     plt.close()
-    return peak_destdir
+    #%%

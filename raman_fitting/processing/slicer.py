@@ -4,6 +4,7 @@
 
 from collections import namedtuple
 
+# from raman_fitting.processing.spectrum_constructor import SpectrumData
 
 class SpectraInfo():
        '''takes namedtuple with spectra'''
@@ -24,30 +25,34 @@ class SpectraInfo():
        def spec_slice(spec,windowname):
            ind = SpectraInfo.ramanshift_slice_indx(spec.ramanshift, windowname)
            
-           SpecSlice_template = namedtuple('SpectrumSliced',spec._fields+('windowname',))
+           
+           _arrays = {i:getattr(spec, i) for i in spec._fields if 'array' in str(type(getattr(spec, i))) }
+           
+           if type(spec).__name__ == 'SpectrumData':
+               _info = spec.info
+           
+           elif type(spec).__name__ == 'spectrum_normalized':
+               _info = {i:getattr(spec, i) for i in spec._fields if not 'array' in str(type(getattr(spec, i))) }
+               # _info = {}
+           
+           
+           SpecSlice_template = namedtuple('SpectrumSliced',tuple(_arrays.keys())+('windowname',)+tuple(_info.keys()))
            spec_length = spec.spectrum_length
-           array_test = [(n,i) for n,i in zip(spec._fields,spec) if 'array' in str(type(i)) and len(i) == spec_length]
-           array_cols = [i[0] for i in array_test] # arrays = [i[1] for i in array_test]
-           spec_info = dict([(i,getattr(spec,i)) for i in spec._fields if i not in array_cols])
-           spec_array_sliced = dict([(i[0],i[1][ind]) for i in array_test])
-           SpecSlice = SpecSlice_template(**{**spec_info,**spec_array_sliced, **{'windowname' : windowname}})
+           # 'array' in str(type(i)) and
+           
+           
+           # _arrays = {k : val for k,val in _arrays.items() if len(val) == spec_length}
+           _spec_array_sliced = {k : val[ind] for k,val in _arrays.items() if len(val) == spec_length}
+           # array_test = [(i,getattr(spec,i)) for i in spec._fields if len(getattr(spec,i)) == spec_length]
+           # array_cols = [i[0] for i in array_test] # arrays = [i[1] for i in array_test]
+           
+           # spec_info = dict([(i,getattr(spec,i)) for i in spec._fields if i not in array_cols])
+           # spec_array_sliced = dict([(i[0],i[1][ind]) for i in array_test])
+           SpecSlice = SpecSlice_template(**{**_info,**_spec_array_sliced, **{'windowname' : windowname}})
            return SpecSlice
            
        
        def clean_spec_cols():
            return ('Zt', 'Zt_threshold','int_despike','int_filter_despike')
        
-       def check_input_return_intensity(test):
-           type_test = str(type(test))
-           if '__main__' in type_test:
-               if 'intensity' in test._fields:
-                   int_used = test.intensity
-           elif 'numpy.ndarray' in type_test:
-               int_used = test
-           elif 'dict' in type_test:
-               int_used = test.get([i for i in test.keys() if 'intensity' in i][0])
-   #             = test
-           else:
-               print(f'Despike input error {type_test}')
-               int_used = test
-           return int_used
+       
