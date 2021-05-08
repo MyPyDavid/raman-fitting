@@ -107,7 +107,14 @@ venv.bak/
 .idea/
 
 # datafiles and results
+<<<<<<< HEAD
 **/results/*
+=======
+results/*/*.xlsx
+results/*/*/*.xlsx
+results/*/*/*.png
+results/*.db
+>>>>>>> 77369426103c6ed93dee0474c73050e25abe5e30
 /*.csv
 /*.zip
 #/*.txt
