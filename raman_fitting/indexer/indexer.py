@@ -13,12 +13,6 @@ from collections import namedtuple
 
 import pandas as pd
 
-
-# TODO check local imports
-
-#print('name: ',__name__,'file:\n',__file__)
-#_version = __version__  
-
 import logging
 import typing as t
 
@@ -27,24 +21,10 @@ _logger = logging.getLogger(__name__)
 
 
 if __name__ == "__main__":
-    try:
-        sys.path.append(str(Path(__file__).parent.parent))
-        from FileHelper.FindFolders import FindExpFolder
-        from FileHelper.FindSampleID import SampleIDstr,GetSampleID
-    except:
-        pass
-else:
-    try:
-        sys.path.append(str(Path(__file__).parent.parent))
-        from FileHelper.FindFolders import FindExpFolder
-        from FileHelper.FindSampleID import SampleIDstr,GetSampleID
-    except:
-        pass
 #        config.RESULTS_DIR
         # TODO !! fix and add local import for FindExpFolder, SampleIDstr and GetSampleID
         pass
 
-print('test name ',__name__)
 from config import config
 
 __all__= ['OrganizeRamanFiles']
@@ -120,7 +100,7 @@ class OrganizeRamanFiles:
 #                split = split + [0]
             elif len(split) >= 3:
                 sID = [SampleIDstr('_'.join(split[0:-1])).SampleID]
-                position = int(''.join(((filter(str.isdigit,split[-1])))))
+                position = int(''.join(filter(str.isdigit,split[-1])))
 #                split =[split_Nr0] + [position]
             elif  len(split) == 0:
                 sID = SampleIDstr(split).SampleID
@@ -131,9 +111,8 @@ class OrganizeRamanFiles:
                      sID = [ramanfile_stem]
                      position = 0
                  else:
-                     position = int(''.join(((filter(str.isdigit,split[-1])))))
-            if not type(sID) == type(''):
-                sID = GetSampleID.match_SampleID(sID[0],include_extra=True)
+                     position = int(''.join(filter(str.isdigit,split[-1])))
+
         sGrpID = ''.join([i for i in sID[0:3] if i.isalpha()])
         if 'Raman Data for fitting David' in ramanfilepath.parts:
             sGrpID = 'SH'    
@@ -182,8 +161,20 @@ class OrganizeRamanFiles:
             self.make_index()
             self.export_index()
             
-#            _index_load = self.index
-#        return _index_load
+class SampleIDstr:
+    """Tools to find the SampleID in a string"""
+    
+    _std_names = [('David','DW'), ('stephen','SP'), 
+                  ('Alish','AS'), ('Aish','AS')]
+    
+    def __init__(self,string):
+        self.SampleID = self.Name_to_SampleID_Name(string)
+       
+    def Name_to_SampleID_Name(self,string):
+        for i,sID in self._std_names:
+            if i in string:
+                string = string.replace(i,sID)
+        return string
 
  
 if __name__ == "__main__":

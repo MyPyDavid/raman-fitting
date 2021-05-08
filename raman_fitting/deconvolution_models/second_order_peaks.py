@@ -2,17 +2,14 @@
 
 
 if __name__ == '__main__':
-    
     from base_peak import BasePeak # for testing purposes
 
 else:
-    
     from .base_peak import BasePeak
 
 # ====== SECOND ORDER PEAKS ======= #
 class D4D4_peak(BasePeak):
     '''2nd order D4 peak '''
-#        D2D2_mod = VoigtModel(prefix='D2D2_')
 
     def __init__(self, peak_type = 'Lorentzian', peak_name ='D4D4', gammavary = False, normalization = False):
         # self.model = PeakTypeChooser(PeakType,prefix)

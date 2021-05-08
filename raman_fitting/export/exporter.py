@@ -8,8 +8,6 @@ Created on Thu May  6 09:14:56 2021
      
 import pandas as pd
 
-
-
 from .plotting import fit_spectrum_plot, raw_data_export
 
 
@@ -96,17 +94,3 @@ class Exporter():
         except Exception as e:
             print('Error export_xls_from_spec', e)
             
-def _old_export_FitParams_Grp(self,FitParams1, FitParams2, export_info_out, grpnm, sID):
-        pars1, pars2 = pd.concat(FitParams1,sort=False), pd.concat(FitParams2,sort=False)
-        DestGrpDir = export_info_out.get('DestGrpDir')
-        indexes = []
-        for pknm, pkgrp in pars1.groupby(pars1.index):
-            peak_destpath = DestGrpDir.joinpath(f'{grpnm}_FitParameters_Model_{pknm}')
-            pkgrp.dropna(axis=1).to_excel(peak_destpath.with_suffix('.xlsx'), index=False)
-            indexes.append((grpnm, sID, pknm, peak_destpath))
-    #    peak_destpath_extra = res_peak_spec.extrainfo.DestFittingComps.unique()[0].joinpath(f'Extra_{res_peak_spec.peak_model}_{sID}')
-        for pknm2, pkgrp2 in pars2.groupby(pars2.index):
-            peak_destpath = DestGrpDir.joinpath(f'{grpnm}_FitParameters_Model_{pknm2}')
-            pkgrp2.dropna(axis=1).to_excel(peak_destpath.with_suffix('.xlsx'), index=False)
-            indexes.append((grpnm, sID, pknm, peak_destpath))
-        return indexes       

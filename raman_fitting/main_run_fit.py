@@ -11,7 +11,7 @@ from operator import itemgetter
 from pathlib import Path
 
 from functools import reduce
-from itertools import chain
+from itertools import chain, starmap
 from operator import add
 
 import numpy as np
@@ -80,6 +80,7 @@ class RamanLoop():
         self.spectrum = SpectrumTemplate()
         self.index = RamanIndex
         self.run_mode = run_mode
+        self.export_collect = []
         
         self.run_delegator()
         
@@ -105,62 +106,91 @@ class RamanLoop():
         return export_info 
     
     def run_delegator(self):
-        
+        self.set_models()
         assert type(self.index) == type(pd.DataFrame())
         if self.run_mode == 'normal':
             if not self.index.empty:
-                self.run_index()
+                self._run_gen()
             else:
                 pass
                 # info raman loop finished because index is empty
         elif 'DEBUG' in self.run_mode:
             try:
-                self.run_index()
+                self._run_gen()
+                pass
             except Exception as e:
                 print('Error in DEBUG run: ', e)
             # TODO get testing from index and run
             pass
+        
         else:
             pass # warning run mode not understood
+        
     
     def set_models(self):
         self.InitModels  = InitializeModels()
     
-    def run_index(self):
-        self.set_models()
-        GrpNames = self.spectrum.grp_names
-#        info_cols = sGrp_cols+ sPos_cols + spectrum_cols + spectrum_info_cols
-        spec_template = self.spectrum.template
-        all_spectra = {}
-        all_index = []
-        FitParams1, FitParams2 = [], []
-        export_collect = []
-        for grpnm, sGrp_grp in self.index.groupby(GrpNames.sGrp_cols[0]): # Loop over SampleGroups 
-            all_index = []
-            for nm, sID_grp in sGrp_grp.groupby(list(GrpNames.sGrp_cols[1:])):# Loop over SampleIDs within SampleGroup
-                sGr, (sID, sDate) = grpnm, nm
+    def sample_group_gen(self):
+        for grpnm, sGrp_grp in self.index.groupby(self.spectrum.grp_names.sGrp_cols[0]): # Loop over SampleGroups 
+            yield grpnm, sGrp_grp
+            
+    def _sID_gen(self,grpnm, sGrp_grp):
+        for nm, sID_grp in sGrp_grp.groupby(list(self.spectrum.grp_names.sGrp_cols[1:])):# Loop over SampleIDs within SampleGroup
+                yield (grpnm, nm, sID_grp)
+    def _run_gen(self):
+        # sort of coordinator coroutine, can implement still deque
+        _mygen = self._generator()
+        while True:
+            try:
+                next(_mygen)
+           
+            except StopIteration:
+                print('StopIteration for mygen')
+                break
+            
+            finally:
+                Exporter(self.export_collect) # clean up and export
                 
-                sGr_out = dict(zip(GrpNames.sGrp_cols,(grpnm,)+nm))
-                export_info_out = self.add_make_destdirs(sGr,sID_grp)
-                sample_pos_grp,sPos_cols = self.test_positions(sID_grp,nm,list(GrpNames.sPos_cols))
-                
-                sample_spectra = []
-                for meannm, meangrp in sample_pos_grp:# Loop over individual Sample positions (files) from a SampleID
+            
+        
+    def _generator(self):
+        
+        _sgrpgen = self.sample_group_gen()
+        
+        for grpnm, sGrp_grp in _sgrpgen:
+            _sID_gen = self._sID_gen(grpnm, sGrp_grp)
+            try:
+                yield from starmap(self.process_sample, _sID_gen)
+            except GeneratorExit:
+                print('Generator closed')
+                return
+    
+    def coordinator(self):
+        pass
+    
+    def process_sample(self, *args):
+        grpnm, nm, sID_grp = args
+        sGr, (sID, sDate) = grpnm, nm 
+        sGr_out = dict(zip(self.spectrum.grp_names.sGrp_cols,(grpnm,)+nm))
+        export_info_out = self.add_make_destdirs(sGr,sID_grp)
+        sample_pos_grp,sPos_cols = self.test_positions(sID_grp,nm,list(self.spectrum.grp_names.sPos_cols))
+        
+        sample_spectra = []
+        for meannm, meangrp in sample_pos_grp:# Loop over individual Sample positions (files) from a SampleID
 #                    print(meannm)
 
-                    sPos_out = dict(zip(GrpNames.sPos_cols,meannm))
-                    _spectrum_position_info_kwargs =  {**sGr_out, **export_info_out, **sPos_out}
+            sPos_out = dict(zip(self.spectrum.grp_names.sPos_cols,meannm))
+            _spectrum_position_info_kwargs =  {**sGr_out, **export_info_out, **sPos_out}
 
-                    spectrum_data = SpectrumDataLoader(file = meannm[-1], run_kwargs = _spectrum_position_info_kwargs, ovv = meangrp)
-                    # spectrum_data.plot_raw()
-                    sample_spectra.append(spectrum_data)
+            spectrum_data = SpectrumDataLoader(file = meannm[-1], run_kwargs = _spectrum_position_info_kwargs, ovv = meangrp)
+            # spectrum_data.plot_raw()
+            sample_spectra.append(spectrum_data)
 
-                spectra_collection = SpectrumDataCollection(sample_spectra)
-                ft = Fitter(spectra_collection,RamanModels = self.InitModels)
-                rex = Exporter(ft)
-                export_collect.append(rex)
-            Exporter(export_collect)
-   
+        spectra_collection = SpectrumDataCollection(sample_spectra)
+        ft = Fitter(spectra_collection,RamanModels = self.InitModels)
+        rex = Exporter(ft)
+        self.export_collect.append(rex)
+        
 
              
     
@@ -185,7 +215,7 @@ def index_selection(RamanIndex_all,**kwargs):
 if __name__ == "__main__":
 
     # runq = input('run raman? (enter y for standard run):\n')
-    runq = 'y'
+    runq = 'test'
     if 'y' in runq:
 
         RamanIndex_all = OrganizeRamanFiles().index
