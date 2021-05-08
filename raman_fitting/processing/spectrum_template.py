@@ -29,7 +29,6 @@ def SpectrumWindowLimits():
         }
     return windows
 
- 
 
 SpecTemplate = namedtuple('Spectrum', 'ramanshift intensity label')
 

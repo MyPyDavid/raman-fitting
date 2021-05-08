@@ -9,13 +9,6 @@ else:
     from .base_peak import BasePeak
 
 
-'''
-Notes:
-Für D1: 1340-1350 Für D3: 1495-1515
-Für G: 1580-1590 D5 und D2 weiß ich nicht
-'''
-
-
 
 class G_peak(BasePeak):
     '''Graphite belongs to the P63/mmc (D46h) space group. If considering only a graphene plane, at 
@@ -24,6 +17,7 @@ class G_peak(BasePeak):
     G ; Ideal graphitic lattice (E2g-symmetry)
     G peak center stable over different laser wavelengths. Influenced by potential, HSO4 adsorption (or ionization of G- and G+),
     magnetic fields, pressure
+    Für G: 1580-1590 D5 und D2 weiß ich nicht
     '''
     
     def __init__(self, peak_type = 'Lorentzian', peak_name ='G', gammavary = False, normalization = False):
@@ -56,7 +50,9 @@ def _testing():
 class D_peak(BasePeak):
     ''' D or D1 ; Disordered graphitic lattice (graphene layer edges,A1gsymmetry)
     A defective graphite presents other bands that can be as intense as the G band at D=1350 and D'=1615 cm-1
-    These bands are activated by defects due to the breaking of the crystal symmetry that relax the Raman selection rules'''
+    These bands are activated by defects due to the breaking of the crystal symmetry that relax the Raman selection rules.
+    Für D1: 1340-1350 
+    '''
 
     def __init__(self, peak_type = 'Lorentzian', peak_name ='D', gammavary = False, normalization = False):
         # self.model = PeakTypeChooser(PeakType,prefix)
@@ -78,7 +74,8 @@ class D_peak(BasePeak):
 class D2_peak(BasePeak):
     '''D2 or D' ; Right next to the G peak, sometimes not obvious as G peak split.
     Disordered graphitic lattice (surface graphene layers,E2g-symmetry)
-    j.molstruc.2010.12.065'''
+    j.molstruc.2010.12.065
+    '''
 
     def __init__(self, peak_type = 'Lorentzian', peak_name ='D2', gammavary = False, normalization = False):
         # self.model = PeakTypeChooser(PeakType,prefix)
@@ -93,7 +90,9 @@ class D2_peak(BasePeak):
 
 class D3_peak(BasePeak):
     ''' D3 or D'' or A or Am ; Between the D and G peak, sometimes too broad.
-    For amorphous carbon (Gaussian[26]or Lorentzian[3,18,27]line shape)'''
+    For amorphous carbon (Gaussian[26]or Lorentzian[3,18,27]line shape).
+    Für D3: 1495-1515
+    '''
     
     def __init__(self, peak_type = 'Lorentzian', peak_name ='D3', gammavary = False, normalization = False):
         # self.model = PeakTypeChooser(PeakType,prefix)
@@ -110,7 +109,8 @@ class D4_peak(BasePeak):
     Disordered graphitic lattice (A1gsymmetry)[10],polyenes[3,27], ionic impurities
     D4 peak at 1212 cm−1
     Jurkiewicz, K., Pawlyta, M., Zygadło, D. et al. J Mater Sci (2018) 53: 3509. https://doi.org/10.1007/s10853-017-1753-7
-    Für D4: 1185-1210, but depends on if there is D5 or not'''
+    Für D4: 1185-1210, but depends on if there is D5 or not.
+    '''
 
     def __init__(self, peak_type = 'Lorentzian', peak_name ='D4', gammavary = False, normalization = False):
         # self.model = PeakTypeChooser(PeakType,prefix)

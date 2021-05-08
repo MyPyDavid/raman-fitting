@@ -293,48 +293,6 @@ class SpectrumDataCollection:
         
         # _clean_data = [spec.clean_data for spec in self._spectra]
   
-    def make_old_style_spectras(self):
-        
-        pass
-        
-        
-    
-  
-    def old_calc_mean_from_spclst(self):
-        speclst = self._spectra
-        spectras = pd.concat(speclst)
-        mean_spclst = namedtuple('MeanSpectras' , 'windowname sID_rawcols sIDmean_col mean_info mean_spec')
-        results_spclst = []
-        for wn,wgrp in spectras.groupby('windowname'):
-    #        pd.DataFrame(wgrp.index.names, wgrp.index.to_flat_index())
-#            wgrp.plot(x='ramanshift',y='intensity',title=wn)
-            mean_wn = pd.DataFrame()
-            mean_info = wgrp.index.to_frame().drop_duplicates()
-            mean_info = mean_info.set_index('FileStem')
-            sID = mean_info.SampleID.unique()[0]
-            sIDmean_col = f'int_{sID}_mean'
-            
-            for idx,idxgrp in wgrp.groupby(level='FileStem'):
-    #            idxgrp.plot(x='ramanshift',y='intensity_raw',title=f'{wn} {idx}')
-                pos_spectrum = idxgrp[['ramanshift','intensity']].rename(columns={'intensity' : f'intensity_{idx}'}).set_index('ramanshift')
-                if mean_wn.empty:
-                    mean_wn = pos_spectrum
-                else:
-    #                mean_wm.update(pos_spectrum)
-#                    print(wn,idx)
-                    mean_wn = pd.merge(mean_wn,pos_spectrum,on='ramanshift',how='left')
-            sID_rawcols = [i for i in mean_wn.columns if 'intensity' in i]
-            mean_spec = mean_wn.assign(**{sIDmean_col : mean_wn[sID_rawcols].mean(axis=1)})
-            diff_mean_info = []
-            for infFS,infFSgrp in mean_info.groupby(level='FileStem'):
-                diff_mean_spec = mean_spec[sIDmean_col] - mean_spec[f'intensity_{infFS}']
-                diff_mean_info.append(np.abs(diff_mean_spec).sum())
-            mean_info = mean_info.assign(**{f'diff_from_{sIDmean_col}' : diff_mean_info})
-            
-            prep_fit_spec = mean_spclst(wn,sID_rawcols, sIDmean_col,mean_info, mean_spec)
-            results_spclst.append(prep_fit_spec)
-        return results_spclst
-    
         
     def __repr__(self):
         return f'{self.info}'
