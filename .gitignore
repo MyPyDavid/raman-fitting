@@ -106,9 +106,8 @@ venv.bak/
 # pycharm
 .idea/
 
-# datafiles
-results/*.xlsx
-results/*.db
+# datafiles and results
+**/results/*
 /*.csv
 /*.zip
 #/*.txt
