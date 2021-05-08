@@ -56,7 +56,10 @@ class OrganizeRamanFiles:
         RamanDataDir = config.DATASET_DIR
         
         assert RamanDataDir.is_dir()
-        
+        # DestDir.
+        if not DestDir.is_dir():
+            DestDir.mkdir(exist_ok=True,parents=False)
+            
         self.DestDir, self.RamanDataDir = DestDir, RamanDataDir
     
 #    def index(self):
@@ -152,14 +155,18 @@ class OrganizeRamanFiles:
                 self.index = _index_load
             except:
                 _logger.error(f'Error in load_index from {config.INDEX_FILE}, restarting make_index ... )')
-                self.reload_index = True
+                self._reload_index = True
         self.reload_index()
                 
     def reload_index(self):
         if self._reload_index:
             _logger.info(f'{self.__class__.__name__} starting reload index )')
-            self.make_index()
-            self.export_index()
+            try:
+                self.make_index()
+                self.export_index()
+            except Exception as e:
+                _logger.error(f'{self.__class__.__name__} error reload index {e})')
+                
             
 class SampleIDstr:
     """Tools to find the SampleID in a string"""

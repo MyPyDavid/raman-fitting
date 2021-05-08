@@ -32,25 +32,17 @@ if __name__ == "__main__":
     from processing.spectrum_template import SpectrumTemplate
     from processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
     
-    from export.plotting import raw_data_export, fit_spectrum_plot
     from deconvolution_models.fit_models import InitializeModels, Fitter
-    from raman_fitting.export.exporter import Exporter
+    from export.exporter import Exporter
     from config import config
 
 else:
     
     from raman_fitting.indexer.indexer import OrganizeRamanFiles
     
-    # from raman_fitting.processing.cleaner import SpectrumCleaner
     from raman_fitting.processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
     
-    # from raman_fitting.export.plotting import raw_data_export, fit_spectrum_plot
 
-
-
-# def namedtuplemerge(*args):
-#     cls = namedtuple('_'.join(arg.__class__.__name__ for arg in args), reduce(add, (arg._fields for arg in args)))
-#     return cls(*chain(*args))
 
 #%%
 RamanDataDir = config.DATASET_DIR
@@ -150,8 +142,6 @@ class RamanLoop():
             
             finally:
                 Exporter(self.export_collect) # clean up and export
-                
-            
         
     def _generator(self):
         
@@ -216,26 +206,29 @@ if __name__ == "__main__":
 
     # runq = input('run raman? (enter y for standard run):\n')
     runq = 'test'
-    if 'y' in runq:
-
-        RamanIndex_all = OrganizeRamanFiles().index
-        RamanIndex = index_selection(RamanIndex_all,run= runq,groups=['DW'])
-        RL = RamanLoop(RamanIndex, run_mode ='normal')
-        # self = RL
-    elif 'test' in runq:
-        RamanIndex_all = OrganizeRamanFiles().index
-        RamanIndex = index_selection(RamanIndex_all,run= runq,groups=[])
-        RL = RamanLoop(RamanIndex, run_mode ='DEBUG')
-        self = RL
-        
-    elif runq == 'n':
+    
+    if runq == 'n':
         pass
+        
     else:
-        try:
-            if not RamanIndex.empty:
-                print('Raman Index ready')
-        except:
-            print('Raman re-indexing')
-            RamanIndex_all = OrganizeRamanFiles().index
+        ROrg = OrganizeRamanFiles()
+        if 'y' in runq:
+            RamanIndex_all = ROrg.index
+            RamanIndex = index_selection(RamanIndex_all,run= runq,groups=['DW'])
+            RL = RamanLoop(RamanIndex, run_mode ='normal')
+            # self = RL
+        elif 'test' in runq:
+            RamanIndex_all = ROrg.index
+            RamanIndex = index_selection(RamanIndex_all,run= runq,groups=[])
+            RL = RamanLoop(RamanIndex, run_mode ='DEBUG')
+            self = RL
             
-            RamanIndex = index_selection(RamanIndex_all,groups=[])
+        else:
+            try:
+                if not RamanIndex.empty:
+                    print('Raman Index ready')
+            except:
+                print('Raman re-indexing')
+                RamanIndex_all = ROrg.index
+                
+                RamanIndex = index_selection(RamanIndex_all,groups=[])
