@@ -79,9 +79,6 @@ def raw_data_spectra_export(fitting_specs):
         print('no extra Raw Data plots: {0}'.format(e))    
     
 
-def _testing():
-    peak1,res1_peak_spec,res2_peak_spec= modname_1,fitres_1,fitres_2,
-    peak1,res1_peak_spec = '1st_6peaks+Si', self._1st['1st_6peaks+Si']
     
 def fit_spectrum_plot(peak1,res1_peak_spec,res2_peak_spec, plot_Annotation = True, plot_Residuals = True):
     

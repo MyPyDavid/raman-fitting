@@ -16,112 +16,6 @@ from scipy.stats import linregress
 # from raman_fitting.processing.slicer import SpectraInfo
 from raman_fitting.processing.spectrum_template import SpectrumWindows, SpecTemplate, SpectrumWindowLimits
 
-# from .slicer import SpectraInfo
-
-# from .spectrum_constructor import SpectrumWindows, SpectrumDataLoader
-
-class old_SpectrumCleaner():
-    ''' Takes a Spectrum and cleans the data.
-        Input:  
-    
-    '''
-    
-    def __init__(self,spec):
-#        self.raw_intensity = spec.intensity
-        self.spec = spec
-#        self.int_savgol = SpectrumCleaner.filtered(spec.intensity)
-        # self.Despike_raw = Despike(spec.intensityw)
-        # self.despiked_raw_intensity = self.Despike_raw.despiked_int
-        # self.despiked_raw_df = self.Despike_raw.df
-        # self.blcorr_desp_intensity_raw,self.blc_dsp_int_raw_lin = SpectrumCleaner.subtract_baseline(self,  self.despiked_raw_intensity)
-#        breakpoint()
-        # self.despiked_df = self.Despike_filter.df
-        self.blcorr_desp_intensity,self.blc_dsp_int_linear = SpectrumCleaner.subtract_baseline(self,  self.despiked_intensity)
-        
-        self.df = SpectrumCleaner.pack_to_dataframe(self)
-        self.cleaned_spec = SpectrumCleaner.cleaned_out_spec(self)
-        
-    
-        
-    def apply_despike(self):
-        self.despiked = Despike(self.spec.intensity)
-        self.despiked_intensity = self.despiked.despiked_intensity
-    
-    
-    def filtered(intensity):
-#        fltrd_spec = self.raw_spec
-        int_savgol_fltr = signal.savgol_filter(intensity, 13, 3, mode='nearest')
-#        fltrd_spec._replace(intensity=int_savgol_fltr)
-        return int_savgol_fltr
-    
-    def pack_to_df_names():
-         return ('ramanshift', 'intensity_raw', 'intensity','int_raw_despike',
-                 'int_filter_despike', 'int_filter_despike_blcorr', 'int_raw_despike_blcorr')
-         
-    def pack_to_dataframe(self):
-        cols = [self.spec.ramanshift, self.spec.intensity_raw,  self.spec.intensity, 
-                self.despiked_raw_intensity, self.despiked_intensity, self.blcorr_desp_intensity, self.blcorr_desp_intensity_raw] 
-        names = SpectrumCleaner.pack_to_df_names()
-        return pd.DataFrame(dict(zip(names,cols)))
-    
-    def cleaned_out_spec(self):
-        cleanSpec_template = self.spec
-        cleanSpec = cleanSpec_template._replace(intensity = self.blcorr_desp_intensity, intensity_raw = self.blcorr_desp_intensity_raw)
-        return cleanSpec
-    
-    def plot(self):
-        self.df.plot(x='ramanshift',y=[i for i in list(self.pack_to_df_names()[1:]) if 'blcorr' in i])     
-        
-    def subtract_baseline(self, i_fltrd_dspkd_input):
-        rs = self.spec.ramanshift
-        windowname = self.spec.windowname
-#        self.spec = SpectraInfo.spec_slice(spec_raw,'1st_order')
-#        i_fltrd_dspkd_input = Despike(self.spec.intensity).despiked_int
-#        rs_min, rs_max = rs.min(), rs.max()
-        
-        if windowname == 'full':
-            indx = SpectraInfo.ramanshift_slice_indx(rs, '1st_order')
-            i_fltrd_dspkd_fit = i_fltrd_dspkd_input[indx]
-        else:
-            i_fltrd_dspkd_fit = i_fltrd_dspkd_input
-        
-        if windowname in ['1st_order','full', 'full_1st_2nd']:
-            bl_linear = linregress(rs[[0,-1]],[np.mean(i_fltrd_dspkd_fit[0:20]),np.mean(i_fltrd_dspkd_fit[-20::])])
-        elif windowname == '2nd_order':
-            bl_linear = linregress(rs[[0,-1]],[np.mean(i_fltrd_dspkd_fit[0:5]),np.mean(i_fltrd_dspkd_fit[-5::])])
-        else:
-            bl_linear = linregress(rs[[0,-1]],[np.mean(i_fltrd_dspkd_fit[0:10]),np.mean(i_fltrd_dspkd_fit[-10::])])
-        i_blcor = i_fltrd_dspkd_input - (bl_linear[0]*rs+bl_linear[1])
-#        blcor = pd.DataFrame({'Raman-shift' : w, 'I_bl_corrected' :i_blcor, 'I_raw_data' : i})
-        return i_blcor,bl_linear
-    
-    def normalization(FirstOrder_spec,spec_raw, method='simple'):
-        if 'simple' in method:
-            indx_norm = SpectraInfo.ramanshift_slice_indx(FirstOrder_spec.spec.ramanshift,'normalization')
-#            prep_norm_spec = SpectrumCleaner(SpectraInfo.spec_slice(spec,'normalization'))
-            normalization_intensity  = FirstOrder_spec.blcorr_desp_intensity[indx_norm].max()
-            
-        elif 'fit' in method:
-#            prep_norm_spec = SpectrumCleaner(SpectraInfo.spec_slice(FirstOrder_spec,'1st_order'))
-            normalization = NormalizeFit(FirstOrder_spec,plotprint = False)
-            normalization_intensity = normalization['IG']
-            
-        norm_dict = {'norm_factor' : 1/normalization_intensity, 
-                     'norm_method' : method, 'ramanshift' : spec_raw.ramanshift}
-        int_fields = [i for i in spec_raw._fields if 'intensity' in i]
-        extra_info_flds = [i for i in spec_raw._fields if i not in int_fields]
-        
-        _norm_int = {i : getattr(spec_raw, i)/normalization_intensity for i in int_fields}
-        norm_dict = {**norm_dict,**spec_raw.info, **_norm_int }
-        # [norm_dict.update({i : getattr(spec_raw,i)}) for i in extra_info_flds]
-        
-        norm_info = namedtuple('norm_info','norm_factor norm_method')
-        NormSpec = namedtuple('spectrum_normalized', SpectrumTemplate().template._fields + norm_info._fields)(**norm_dict)
-        return NormSpec
-    
-    def __repr__(self):
-        return f'{self.__class__.__name__}, {repr(self.spec)}'
-
 
 class SpectrumMethods:
     
@@ -132,8 +26,6 @@ class SpectrumMethods:
         self.intensity = intensity
         self.label = label
         self.kwargs = kwargs
-
-
 
 
 class SpectrumSplitter(SpectrumMethods):
@@ -203,13 +95,13 @@ class BaselineSubtractorNormalizer(SpectrumSplitter):
     def subtract_baseline_per_window(self, windowname, spec):
         rs = spec.ramanshift
         
-        if windowname.startswith('full'):
+        if windowname[0:4] in ('full', 'norm'):
             i_fltrd_dspkd_fit = self.windows_data.get('1st_order').intensity
         else:
             i_fltrd_dspkd_fit = spec.intensity
         
         _limits = self.windowlimits.get(windowname)
-        assert bool(_limits),f'no limits for {windowname}'
+        # assert bool(_limits),f'no limits for {windowname}'
         
         bl_linear = linregress(rs[[0,-1]],[np.mean(i_fltrd_dspkd_fit[0:_limits[0]]),np.mean(i_fltrd_dspkd_fit[_limits[1]::])])
         i_blcor = spec.intensity - (bl_linear[0]*rs+bl_linear[1])
@@ -226,7 +118,7 @@ class BaselineSubtractorNormalizer(SpectrumSplitter):
             normalization_intensity = normalization['IG']
             
         self.norm_factor = 1/normalization_intensity
-        norm_dict = {'norm_factor' : self.norm_factor, 'norm_method' : norm_method}
+        norm_dict = {'norm_factor' : self.norm_factor, 'norm_method' : norm_method,'norm_int' : normalization_intensity}
         self.norm_dict = norm_dict
     
     def set_normalized_data(self):
@@ -290,6 +182,7 @@ class Despiker(SpectrumMethods):
     '''
     A Despiking algorithm from reference literature: https://doi.org/10.1016/j.chemolab.2018.06.009.
     
+    
     Parameters
     ----------
     input_intensity : np.ndarray
@@ -297,12 +190,12 @@ class Despiker(SpectrumMethods):
     info : dict, optional
         Extra information from despiking settings are added to this dict.
     
-    
-    
+
     Attributes
     ---------
     despiked_intensity : np.ndarray
         The resulting array of the despiked intensity of same length as input_intensity.
+
     
     Notes
     --------

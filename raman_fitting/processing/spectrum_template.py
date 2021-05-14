@@ -12,7 +12,7 @@ def SpectrumWindows():
         'low' : (150,850),
         '1st_order' : (900,2000), 
         'mid' : (1850,2150), 
-        '2nd_order' : (2000,3380),
+        '2nd_order' : (2150,3380),
         'normalization' : (1500,1675)
         }
     return windows
@@ -24,7 +24,7 @@ def SpectrumWindowLimits():
         'low' : (10,-10),
         '1st_order' :  (20,-20), 
         'mid' : (10,-10), 
-        '2nd_order' : (5,-5),
+        '2nd_order' : (20,-20),
         'normalization' : (10,-10)
         }
     return windows

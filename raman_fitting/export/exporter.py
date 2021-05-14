@@ -55,9 +55,6 @@ class Exporter():
         pars_index = pd.DataFrame(*all_index,columns=list(GrpNames.sGrp_cols[0:2] +('PeakModel','DestPars')))
         pars_index.to_excel( export_info_out.get('DestGrpDir').joinpath(f'{sGr}_index.xlsx'))
         
-
-
-    
     def raw_export(self):
         raw_data_export(self.fitter.spectra_arg.fitting_spectra)
         

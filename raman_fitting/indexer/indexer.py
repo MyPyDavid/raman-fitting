@@ -25,7 +25,7 @@ if __name__ == "__main__":
         # TODO !! fix and add local import for FindExpFolder, SampleIDstr and GetSampleID
         pass
 
-from config import config
+# from ..config import config
 
 __all__= ['OrganizeRamanFiles']
 
@@ -33,18 +33,18 @@ __all__= ['OrganizeRamanFiles']
 
 
 class OrganizeRamanFiles:   
-    """Finds the RAMAN files in the top folder and creates an overview"""
+    """Finds the RAMAN files in the top folder from config and creates an overview"""
     
     file_sample_cols = ['FileStem','SampleID','SamplePos','SampleGroup', 'FilePath']
     file_stat_cols = ['FileCreationDate', 'FileCreation','FileModDate', 'FileMod', 'FileHash']
     
     
-    def __init__(self, reload_index = True):
-        self._reload_index = True
-        OrganizeRamanFiles.choose_dirs(self)
-        OrganizeRamanFiles.load_index(self)
+    def __init__(self, reload_index = True, run_mode = 'normal', costum_datadir = Path()):
+        self._reload_index = reload_index
+        self._run_mode = run_mode
+        self.choose_dirs()
+        self.load_index()
         
-
 #        OrganizeRamanFiles.index(self)
 #        self.raman_data_files = OrganizeRAMANFiles.find_files()
 #        self.ExpFiles = OrganizeRAMANFiles.find_files(FileHelper.FindExpFolder('RAMAN').DataDir)
@@ -52,32 +52,44 @@ class OrganizeRamanFiles:
 #        self.ExpDB = FileHelper.FindExpFolder(exp_method).DestDir.joinpath('RAMAN_DB.hdf5')
     
     def choose_dirs(self):
-        DestDir = config.RESULTS_DIR
-        RamanDataDir = config.DATASET_DIR
         
-        assert RamanDataDir.is_dir()
-        # DestDir.
+        if 'debug' in self._run_mode:
+            DestDir = config.PACKAGE_ROOT.parent.joinpath('tests/test_results')
+            RamanDataDir = config.PACKAGE_ROOT.parent.joinpath('tests/test_data')
+            IndexFile = DestDir.joinpath('test_index.csv')
+            
+        else:
+            DestDir = config.RESULTS_DIR
+            RamanDataDir = config.DATASET_DIR
+            IndexFile = config.INDEX_FILE
+        
+        if not RamanDataDir.is_dir():
+            raise FileNotFoundError('This path to directory does not exist')
+
         if not DestDir.is_dir():
             DestDir.mkdir(exist_ok=True,parents=False)
             
-        self.DestDir, self.RamanDataDir = DestDir, RamanDataDir
+        self.DestDir = DestDir
+        self.RamanDataDir = RamanDataDir
+        self.IndexFile = IndexFile
     
-#    def index(self):
-##        self.raman_files = self.find_files()
-#        self.index = self.make_index()
+    # def _set_debug_paths(self):
         
-#    @staticmethod
+        
     def find_files(self):
         RFs = list(self.RamanDataDir.rglob('*txt'))
         raman_files_raw = [i for i in RFs if not 'fail' in i.stem and not 'Labjournal' in str(i)]
         self.raman_files = raman_files_raw
-#        return raman_files_raw
-        
-#        RFs_stat = [(i.stat(), hashlib.md5(i.read_text(encoding='utf-8').encode('utf-8')).hexdigest()) for i in RFs_filter]
-#        RFs_stat_times = [(pd.to_datetime(i[0].st_ctime,unit='s'), pd.to_datetime(i[0].st_mtime,unit='s'),i[1]) for i in RFs_stat]
-#        RF_set_data = [(pd.read_csv(i.FilePath,sep='\t',names=['Frequency',i.FilePath]).set_index('Frequency')) for n,i in RF_set.iterrows()]
-#         c = pd.concat([i for i in RF_set_data],axis=1,sort=False)
-#        ramanfile_stem = 'MK207_2HT_N2_1'
+    
+    def _fsID(self,rf):
+        try:
+            _res = self.find_SampleID_position(rf)
+        except Exception as e:
+            _logger(f'Error fsid for {rf} \n{e}')
+            _res = ()
+            self._error_sids.append((rf,e))
+        return _res
+    
     @staticmethod
     def find_SampleID_position(ramanfilepath):
         ramanfile_stem  = ramanfilepath.stem
@@ -95,21 +107,26 @@ class OrganizeRamanFiles:
             sID = 'Si-ref'
         else:
             if len(split) == 1:
-                sID = [SampleIDstr(split[0]).SampleID]
+                sID = [SampleIDstr(split[0]).SampleID][0]
                 position = 0
             elif len(split) == 2:
                 sID = split[0]
-                position = int(''.join(i for i in split[1] if i.isnumeric()))   
+                _pos_strnum = ''.join(i for i in split[1] if i.isnumeric())
+                if _pos_strnum:
+                    position = int(_pos_strnum)   
+                else:
+                    position = split[1]
+                    
 #                split = split + [0]
             elif len(split) >= 3:
-                sID = [SampleIDstr('_'.join(split[0:-1])).SampleID]
+                sID = [SampleIDstr('_'.join(split[0:-1])).SampleID][0]
                 position = int(''.join(filter(str.isdigit,split[-1])))
 #                split =[split_Nr0] + [position]
             elif  len(split) == 0:
                 sID = SampleIDstr(split).SampleID
                 position = 0
             else:
-                 sID = [SampleIDstr(split[0]).SampleID]
+                 sID = [SampleIDstr(split[0]).SampleID][0]
                  if ''.join(((filter(str.isdigit,split[-1])))) == '':
                      sID = [ramanfile_stem]
                      position = 0
@@ -134,8 +151,9 @@ class OrganizeRamanFiles:
 
     def make_index(self):
     #    ridx = namedtuple('Raman_index_row', file_sample_cols+file_stat_cols)
-        OrganizeRamanFiles.find_files(self)
-        RF_indexed = [(self.find_SampleID_position(i)+self.get_file_stats(i)) for i in self.raman_files]
+        self.find_files()
+        self._error_sids = []
+        RF_indexed = [(self._fsID(i)+self.get_file_stats(i)) for i in self.raman_files]
         RF_index_raw = pd.DataFrame(RF_indexed,columns = self.file_sample_cols+self.file_stat_cols).drop_duplicates(subset=['FileHash'])
         
         RF_index_raw = RF_index_raw.assign(**{'DestDir' : [self.DestDir.joinpath(sGrp) for sGrp in RF_index_raw.SampleGroup.to_numpy()]})
@@ -144,13 +162,13 @@ class OrganizeRamanFiles:
     
     def export_index(self):
         if not self.index.empty:
-            self.index.to_csv(config.INDEX_FILE)
+            self.index.to_csv(self.IndexFile)
             _logger.info(f'Succesfully Exported Raman Index file to {config.INDEX_FILE}, with len({len(self.index)})')
     
     def load_index(self):
         if not self._reload_index:
             try:
-                _index_load = pd.read_csv(config.INDEX_FILE)
+                _index_load = pd.read_csv(self.IndexFile)
                 _logger.info(f'Succesfully imported Raman Index file from {config.INDEX_FILE}, with len({len(_index_load)})')
                 self.index = _index_load
             except:

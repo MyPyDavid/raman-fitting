@@ -14,6 +14,7 @@ from functools import reduce
 from itertools import chain, starmap
 from operator import add
 
+# import argparse
 import numpy as np
 import hashlib
 
@@ -37,42 +38,30 @@ if __name__ == "__main__":
     from config import config
 
 else:
+    pass
+    # from raman_fitting.indexer.indexer import OrganizeRamanFiles
     
-    from raman_fitting.indexer.indexer import OrganizeRamanFiles
-    
-    from raman_fitting.processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
+    # from raman_fitting.processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
     
 
 
 #%%
-RamanDataDir = config.DATASET_DIR
+# RamanDataDir = config.DATASET_DIR
 
 def _testing():
     rr = RamanLoop()
     
-    
-class RamanDB:
-    
-    
-    def __init__(self):
-        self.dbpath = config.RESULTS_DIR.joinpath('sqlite.db')
-    
-    def conn(self):
-        self.conn = sqlite3.connect(self.dbpath)
-        
-    
-
 class RamanLoop():
-    ''' takes an index of a pd.DataFrame as input,
-        runs the fitting loop over this index and exports
-        plots and files.
+    ''' 
+    Main processing loop over an index of Raman files 
+    plots and files.
     '''
     
     def __init__(self, RamanIndex = pd.DataFrame(), run_mode = 'normal' ):
         self.spectrum = SpectrumTemplate()
         self.index = RamanIndex
         self.run_mode = run_mode
-        self.export_collect = []
+        
         
         self.run_delegator()
         
@@ -99,14 +88,18 @@ class RamanLoop():
     
     def run_delegator(self):
         self.set_models()
-        assert type(self.index) == type(pd.DataFrame())
+        self._failed_samples = []
+        self.export_collect = []
+        
+        # assert type(self.index) == type(pd.DataFrame())
+        
         if self.run_mode == 'normal':
             if not self.index.empty:
                 self._run_gen()
             else:
                 pass
                 # info raman loop finished because index is empty
-        elif 'DEBUG' in self.run_mode:
+        elif 'debug' in self.run_mode:
             try:
                 self._run_gen()
                 pass
@@ -114,11 +107,9 @@ class RamanLoop():
                 print('Error in DEBUG run: ', e)
             # TODO get testing from index and run
             pass
-        
         else:
             pass # warning run mode not understood
         
-    
     def set_models(self):
         self.InitModels  = InitializeModels()
     
@@ -129,34 +120,39 @@ class RamanLoop():
     def _sID_gen(self,grpnm, sGrp_grp):
         for nm, sID_grp in sGrp_grp.groupby(list(self.spectrum.grp_names.sGrp_cols[1:])):# Loop over SampleIDs within SampleGroup
                 yield (grpnm, nm, sID_grp)
+    
     def _run_gen(self):
         # sort of coordinator coroutine, can implement still deque
         _mygen = self._generator()
         while True:
             try:
                 next(_mygen)
-           
             except StopIteration:
                 print('StopIteration for mygen')
                 break
-            
             finally:
                 Exporter(self.export_collect) # clean up and export
         
     def _generator(self):
         
         _sgrpgen = self.sample_group_gen()
-        
         for grpnm, sGrp_grp in _sgrpgen:
             _sID_gen = self._sID_gen(grpnm, sGrp_grp)
             try:
-                yield from starmap(self.process_sample, _sID_gen)
+                yield from starmap(self.process_sample_wrapper, _sID_gen)
+            
             except GeneratorExit:
                 print('Generator closed')
                 return
     
     def coordinator(self):
         pass
+    
+    def process_sample_wrapper(self, *args):
+        try:
+            self.process_sample(*args)
+        except Exception as e:
+            self._failed_samples.append((e,args))
     
     def process_sample(self, *args):
         grpnm, nm, sID_grp = args
@@ -181,8 +177,6 @@ class RamanLoop():
         rex = Exporter(ft)
         self.export_collect.append(rex)
         
-
-             
     
         
 def index_selection(RamanIndex_all,**kwargs):
@@ -201,26 +195,27 @@ def index_selection(RamanIndex_all,**kwargs):
             index_selection = index_selection.assign(**{'DestDir' : [Path(i).joinpath(grp.strftime('%Y-%m-%d')) for i in index_selection.DestDir.values]})
             
     return index_selection
+
 #%%
 if __name__ == "__main__":
 
     # runq = input('run raman? (enter y for standard run):\n')
-    runq = 'test'
+    runq = 'n'
     
     if runq == 'n':
         pass
         
     else:
-        ROrg = OrganizeRamanFiles()
+        ROrg = OrganizeRamanFiles(run_mode = runq)
         if 'y' in runq:
             RamanIndex_all = ROrg.index
             RamanIndex = index_selection(RamanIndex_all,run= runq,groups=['DW'])
             RL = RamanLoop(RamanIndex, run_mode ='normal')
             # self = RL
-        elif 'test' in runq:
+        elif 'debug' in runq:
             RamanIndex_all = ROrg.index
             RamanIndex = index_selection(RamanIndex_all,run= runq,groups=[])
-            RL = RamanLoop(RamanIndex, run_mode ='DEBUG')
+            RL = RamanLoop(RamanIndex, run_mode ='debug')
             self = RL
             
         else:

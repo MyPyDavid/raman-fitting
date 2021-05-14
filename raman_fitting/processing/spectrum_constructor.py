@@ -19,7 +19,7 @@ import pandas as pd
 
 from raman_fitting.processing.cleaner import Filter,Despiker, BaselineSubtractorNormalizer
 from raman_fitting.processing.spectrum_template import SpectrumWindows, SpecTemplate
-
+from raman_fitting.processing.parser import Parser
 
 def _testing():
     spectrum_data = SpectrumDataLoader(file = meannm[-1], run_kwargs = _spectrum_position_info_kwargs, ovv = meangrp)
@@ -28,6 +28,9 @@ def _testing():
     self._despike.input_intensity
     
     self = self._despike
+    
+    rr = RL.export_collect[0]
+    spec = rr.fitter.spectra_arg._spectra[0]
 
 @dataclass(order = True, frozen = False)
 class SpectrumDataLoader():
@@ -298,9 +301,3 @@ class SpectrumDataCollection:
         return f'{self.info}'
     
         
-def _testing():
-    sp = SpectrumData()
-    spcoll = SpectrumDataCollection(sample_spectra)
-    self = spcoll
-
-# class SpectrumData():

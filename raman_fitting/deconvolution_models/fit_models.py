@@ -14,14 +14,6 @@ import pandas as pd
 from raman_fitting.deconvolution_models.base_model import InitializeModels
 
 
-def _testing():
-    ft = Fitter(spectra_collection)
-    ft.fit_delegator()
-    self = ft
-    
-    self = prep
-
-
 class Fitter:
     
     fit_windows = ['1st_order', '2nd_order']
@@ -86,6 +78,7 @@ class Fitter:
         self.FitResults.update(**_fittings)
             
     def run_fit(self, model, _data, **kws):
+        # TODO improve fitting loop so that starting parameters from modelX and modelX+Si are shared, faster...
         _fit_res, _param_res = {}, {}
         init_params = model.model.make_params()
         x, y = _data.ramanshift, _data[kws.get('_int_lbl')]

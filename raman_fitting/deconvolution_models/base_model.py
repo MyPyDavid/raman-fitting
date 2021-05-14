@@ -56,9 +56,6 @@ class InitializeModels():
 
 
 
-
-
-
 class BaseModel():
     ''' This Model class combines the peaks from BasePeak into a regression model of type lmfit.model.CompositeModel
         that is compatible with the lmfit Model and fit functions.

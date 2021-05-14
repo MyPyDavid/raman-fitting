@@ -37,14 +37,6 @@ class G_peak(BasePeak):
                     'amplitude' : {'value' : 8E4, 'min' : 1E2}}
         return settings
 
-    
-def _testing():
-    Gp = G_peak()
-    Gp
-    Gp.print_params()
-    tp = test_peak()
-    
-    model = G_peak() + D_peak()
 
 
 class D_peak(BasePeak):
@@ -99,7 +91,7 @@ class D3_peak(BasePeak):
         super().__init__(peak_type = peak_type, peak_name = peak_name, gammavary = gammavary, normalization = normalization )
        
     def input_param_settings(self):
-        settings = {'center' : {'value' : 1480, 'min' : 1450, 'max' : 1505},
+        settings = {'center' : {'value' : 1480, 'min' : 1450, 'max' : 1525},
                     'sigma' : {'value' : 25,'min' : 1, 'max' : 150},
                     'amplitude' : {'value' : 25,'min' : 1E-02, 'max' : 500}}
         return settings
@@ -118,7 +110,7 @@ class D4_peak(BasePeak):
        
         
     def input_param_settings(self):
-        settings = {'center' : {'value' : 1230,'min' : 1180, 'max' : 1290},
+        settings = {'center' : {'value' : 1230,'min' : 1180, 'max' : 1310},
                     'sigma' : {'value' : 40,'min' : 1, 'max' : 150},
                     'amplitude' : {'value' : 20,'min' : 1E-02, 'max' : 200}}
         return settings
@@ -134,7 +126,7 @@ class D5_peak(BasePeak):
        
     def input_param_settings(self):    
         settings = {'center' : {'value' : 1150,'min' : 1100, 'max' : 1200},
-                    'sigma' : {'value' : 40,'min' : 1, 'max' : 150},
+                    'sigma' : {'value' : 40,'min' : 1, 'max' : 250},
                     'amplitude' : {'value' : 20,'min' : 1E-02, 'max' : 200}}
         return settings
 
@@ -154,5 +146,5 @@ class Si1_peak(BasePeak):
                     'amplitude' : {'value' : 10,'min' : 0, 'max' : 200}}
         return settings
 
-def test_for_Si_substrate(model):
+def test_for_Si_substrate(model): # TODO test fit on spectrum to decide wether Si substrate is required or not
     '''make test fit for only slice 900-1000'''

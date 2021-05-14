@@ -108,10 +108,15 @@ venv.bak/
 
 # datafiles and results
 **/results/*
+tests/test_results/**
+
 /*.csv
 /*.zip
 #/*.txt
 /*.xlsx
+
+# local configuration settings
+local_config.py
 
 # all logs
 logs/

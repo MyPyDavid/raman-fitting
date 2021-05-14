@@ -21,8 +21,10 @@ import raman_fitting.deconvolution_models.second_order_peaks as second_order_pea
 
 
 class Peak_Collection():
-    ''' Iterable collection of all defined costum (lmfit type) models.
-        '''
+    '''
+    This class collects all BasePeak type classes, which are costum lmfit type models, and 
+    constructs an iterable collection of all defined.
+    '''
     _bad_models = []
     _standard_modules = [first_order_peaks, second_order_peaks]
     _base_model = BasePeak
@@ -132,12 +134,10 @@ class Peak_Collection():
             raise AttributeError(f'Chosen name "{name}" not in in options: "{", ".join(self.options)}".')
     
     def normalization_model(self):
-        
         _D_norm = first_order_peaks.D_peak(normalization=True)
         _G_norm = first_order_peaks.G_peak(normalization=True) 
         norm_mod = _D_norm.model + _G_norm.model
         return norm_mod
-    
     
     def __iter__(self):
         for mod_inst in self.lmfit_models:
@@ -147,7 +147,3 @@ class Peak_Collection():
     def __repr__(self):
         return f'Model Collections, {len(self.model_selection)} models from endswith {self._endswith}: '+'\n\t- '+'\n\t- '.join([f'{i.model} \t "{i.__class__.__name__}" in "{i.__module__}", {i._lenpars}' for i in self.lmfit_models])
     
-def _testing():
-    mc = Peak_Collection()
-    self = mc
-    self.lmfit_models
