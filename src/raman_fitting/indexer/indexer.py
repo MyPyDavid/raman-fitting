@@ -19,13 +19,8 @@ import typing as t
 
 _logger = logging.getLogger(__name__)
 
-
-if __name__ == "__main__":
-#        config.RESULTS_DIR
-        # TODO !! fix and add local import for FindExpFolder, SampleIDstr and GetSampleID
-        pass
-
-# from ..config import config
+from ..config import config
+# from .index_selection import index_selection
 
 __all__= ['OrganizeRamanFiles']
 
@@ -33,29 +28,33 @@ __all__= ['OrganizeRamanFiles']
 
 
 class OrganizeRamanFiles:   
-    """Finds the RAMAN files in the top folder from config and creates an overview"""
+    """
+    
+    Finds the RAMAN files in the data folder from config and creates an overview, on the attribute .index
+    
+    """
     
     file_sample_cols = ['FileStem','SampleID','SamplePos','SampleGroup', 'FilePath']
     file_stat_cols = ['FileCreationDate', 'FileCreation','FileModDate', 'FileMod', 'FileHash']
     
     
-    def __init__(self, reload_index = True, run_mode = 'normal', costum_datadir = Path()):
+    def __init__(self, reload_index = True, run_mode = 'normal', costum_datadir = Path(), **kwargs):
+        self._kwargs = kwargs
         self._reload_index = reload_index
         self._run_mode = run_mode
         self.choose_dirs()
         self.load_index()
         
-#        OrganizeRamanFiles.index(self)
-#        self.raman_data_files = OrganizeRAMANFiles.find_files()
-#        self.ExpFiles = OrganizeRAMANFiles.find_files(FileHelper.FindExpFolder('RAMAN').DataDir)
+        self.set_index_selection()
+        
 #        self.ExpOVV = self.ovv(self.ExpFiles)
 #        self.ExpDB = FileHelper.FindExpFolder(exp_method).DestDir.joinpath('RAMAN_DB.hdf5')
     
     def choose_dirs(self):
         
-        if 'debug' in self._run_mode:
-            DestDir = config.PACKAGE_ROOT.parent.joinpath('tests/test_results')
-            RamanDataDir = config.PACKAGE_ROOT.parent.joinpath('tests/test_data')
+        if 'DEBUG' in self._run_mode:
+            DestDir = config.TESTS_DIR.parent.joinpath('tests/test_results')
+            RamanDataDir = config.TESTS_DIR.parent.joinpath('tests/test_data')
             IndexFile = DestDir.joinpath('test_index.csv')
             
         else:
@@ -64,7 +63,7 @@ class OrganizeRamanFiles:
             IndexFile = config.INDEX_FILE
         
         if not RamanDataDir.is_dir():
-            raise FileNotFoundError('This path to directory does not exist')
+            raise FileNotFoundError(f'This path to directory does not exist.\n {RamanDataDir}')
 
         if not DestDir.is_dir():
             DestDir.mkdir(exist_ok=True,parents=False)
@@ -77,6 +76,9 @@ class OrganizeRamanFiles:
         
         
     def find_files(self):
+        ''' 
+        Creates a list of all raman type files found in the RamanDataDir which are used in the creation of the index.
+        '''
         RFs = list(self.RamanDataDir.rglob('*txt'))
         raman_files_raw = [i for i in RFs if not 'fail' in i.stem and not 'Labjournal' in str(i)]
         self.raman_files = raman_files_raw
@@ -92,6 +94,7 @@ class OrganizeRamanFiles:
     
     @staticmethod
     def find_SampleID_position(ramanfilepath):
+        ''' Parser for the filenames -> finds SampleID and sample position '''
         ramanfile_stem  = ramanfilepath.stem
 
         if '_'  in ramanfile_stem:
@@ -185,6 +188,28 @@ class OrganizeRamanFiles:
             except Exception as e:
                 _logger.error(f'{self.__class__.__name__} error reload index {e})')
                 
+    def set_index_selection(self):
+        _kws = self._kwargs
+        _keys = _kws.keys()
+        RamanIndex_all = self.index
+        if 'samplegroups' in _keys:
+            if _kws['samplegroups']:
+                index_selection = RamanIndex_all.loc[RamanIndex_all.SampleGroup.str.contains('|'.join(_kws['samplegroups']))]
+        if 'sampleIDs' in _keys:
+            index_selection = RamanIndex_all.loc[RamanIndex_all.SampleID.str.contains('|'.join(_kws['sampleIDs']))]
+            
+        
+        if 'extra' in _keys:
+            runq = kwargs.get('run')
+            if 'recent' in runq:
+                grp = RamanIndex_all.sort_values('FileCreationDate',ascending=False).FileCreationDate.unique()[0]
+                
+                index_selection  =RamanIndex_all.loc[RamanIndex_all.FileCreationDate == grp]
+                index_selection = index_selection.assign(**{'DestDir' : [Path(i).joinpath(grp.strftime('%Y-%m-%d')) for i in index_selection.DestDir.values]})
+                
+        self.index_selection = index_selection 
+        
+    
             
 class SampleIDstr:
     """Tools to find the SampleID in a string"""

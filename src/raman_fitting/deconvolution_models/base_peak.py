@@ -75,6 +75,11 @@ class BasePeak(ABC):
     @property
     @abstractmethod
     def input_param_settings(self):
+        '''
+        this is required method for BasePeak Child classes,
+        it defines the parameters for the peak.
+        '''
+
         # TODO maybe read in param settings form eg xls file
         param_settings = {'center' : {'value' : 1571,'min' : 1545, 'max' : 1595},
                     'sigma' : {'value' : 30,'min' : 5, 'max' : 150},
@@ -91,7 +96,7 @@ class BasePeak(ABC):
     
     @normalization.setter
     def normalization(self, value):
-        ''' Check if normalization is True that the param settings are there'''
+        ''' Check if normalization is True that the param settings are there.'''
         if value and not self.normalization_param_settings:
             raise ValueError('When normalization is set True there should be a valid parameters setting')
         elif value and self.normalization_param_settings:
@@ -104,6 +109,10 @@ class BasePeak(ABC):
     
     # @classmethod
     def normalization_param_settings(self):
+        '''
+        If the child class is used in the normalization of the spectrum then
+        this method should be defined similar to the input_param_settings.
+        '''
         return {}
     
     @property
@@ -196,6 +205,8 @@ class BasePeak(ABC):
     def print_params(self):
         if self.model:
             self.model.print_param_hints()
+        else:
+            print(f'No model set for: {self}')
             
 
     
