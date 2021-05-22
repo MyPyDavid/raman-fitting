@@ -134,7 +134,7 @@ class MainDelegator():
                 # info raman loop finished because index is empty
         elif 'DEBUG' in self.run_mode:
             try:
-                self._run_gen()
+                # self._run_gen() # TODO add extra test runs in tests dir
                 pass
             except Exception as e:
                 print('Error in DEBUG run: ', e)
