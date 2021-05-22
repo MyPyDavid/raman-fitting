@@ -28,7 +28,7 @@ import sqlite3
 
 if __name__ == "__main__":
 
-    from indexer.indexer import OrganizeRamanFiles
+    from raman_fittng.indexer.indexer import OrganizeRamanFiles
     # from processing.cleaner import SpectrumCleaner
     from processing.spectrum_template import SpectrumTemplate
     from processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
@@ -38,7 +38,14 @@ if __name__ == "__main__":
     from config import config
 
 else:
-    pass
+    from ..indexer.indexer import OrganizeRamanFiles
+    # from processing.cleaner import SpectrumCleaner
+    from ..processing.spectrum_template import SpectrumTemplate
+    from ..processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
+    
+    from ..deconvolution_models.fit_models import InitializeModels, Fitter
+    from ..export.exporter import Exporter
+    from ..config import config
     # from raman_fitting.indexer.indexer import OrganizeRamanFiles
     
     # from raman_fitting.processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
@@ -51,19 +58,39 @@ else:
 def _testing():
     rr = RamanLoop()
     
-class RamanLoop():
+class MainDelegator():
+    # TODO Add flexible input handling for the cli, such a path to dir, or list of files
+    #  or create index when no kwargs are given.
+    
     ''' 
-    Main processing loop over an index of Raman files 
-    plots and files.
+    Main processing loop over an index of Raman files.
+    Input parameters is DataFrame of index
+    Creates plots and files in the config RESULTS directory.
     '''
     
-    def __init__(self, RamanIndex = pd.DataFrame(), run_mode = 'normal' ):
+    def __init__(self, **kwargs ):
+        self._kwargs = kwargs
         self.spectrum = SpectrumTemplate()
-        self.index = RamanIndex
-        self.run_mode = run_mode
-        
+        # self.index = RamanIndex
+        self.set_default_run_mode()
+        self.index_delegator()
         
         self.run_delegator()
+    
+    def set_default_run_mode(self):
+        if not 'run_mode' in self._kwargs.keys():
+            # TODO maybe give warning or raise Error
+            self._kwargs.update({'run_mode' : 'normal'})
+            # care default setting
+        _run_mode = self._kwargs.get('run_mode', 'normal')
+        self.run_mode = _run_mode
+    
+        
+    def index_delegator(self):
+        _raman_org = OrganizeRamanFiles(**self._kwargs)
+        self._raman_org = _raman_org
+        self.index = _raman_org.index_selection
+    
         
     def test_positions(self, sGrp_grp,nm, grp_cols = ['FileStem','SamplePos','FilePath']):
 #        grp_cols = ['FileStem','SamplePos','FileCreationDate']
@@ -75,15 +102,21 @@ class RamanLoop():
             return sGrp_grp.groupby(grp_cols),grp_cols
         
     def add_make_destdirs(self, sGr, sGrp_grp):
-#        DestDir = sGrp_grp.DestDir.unique()[0]
-        DestGrpDir = Path(sGrp_grp.DestDir.unique()[0])
-#        DestDir.joinpath(sGr)
-        DestFitPlots, DestFitComps = DestGrpDir.joinpath('Fitting_Plots'), DestGrpDir.joinpath('Fitting_Components')
-#        DestFitPlots.mkdir(parents=True,exist_ok=True)
+
+        DestGrpDir = Path(sGrp_grp.DestDir.unique()[0]) # takes one destination directory from Sample Groups
+        DestFitPlots = DestGrpDir.joinpath('Fitting_Plots'), 
+
+        DestFitComps = DestGrpDir.joinpath('Fitting_Components')
         DestFitComps.mkdir(parents=True,exist_ok=True)
+        
         DestRawData = DestGrpDir.joinpath('Raw_Data')
         DestRawData.mkdir(parents=True,exist_ok=True)
-        export_info = {'DestGrpDir' : DestGrpDir,'DestFittingPlots' : DestFitPlots,'DestFittingComps' : DestFitComps,'DestRaw' : DestRawData}
+        
+        export_info = {'DestGrpDir' : DestGrpDir, 
+                       'DestFittingPlots' : DestFitPlots, 
+                       'DestFittingComps' : DestFitComps, 
+                       'DestRaw' : DestRawData
+                       }
         return export_info 
     
     def run_delegator(self):
@@ -99,7 +132,7 @@ class RamanLoop():
             else:
                 pass
                 # info raman loop finished because index is empty
-        elif 'debug' in self.run_mode:
+        elif 'DEBUG' in self.run_mode:
             try:
                 self._run_gen()
                 pass
@@ -114,10 +147,12 @@ class RamanLoop():
         self.InitModels  = InitializeModels()
     
     def sample_group_gen(self):
+        ''' Generator for Sample Groups, yields the name of group and group of the index SampleGroup'''
         for grpnm, sGrp_grp in self.index.groupby(self.spectrum.grp_names.sGrp_cols[0]): # Loop over SampleGroups 
             yield grpnm, sGrp_grp
             
     def _sID_gen(self,grpnm, sGrp_grp):
+        ''' Generator for SampleIDs, yields the name of group, name of SampleID and group of the index of the SampleID'''
         for nm, sID_grp in sGrp_grp.groupby(list(self.spectrum.grp_names.sGrp_cols[1:])):# Loop over SampleIDs within SampleGroup
                 yield (grpnm, nm, sID_grp)
     
@@ -178,52 +213,38 @@ class RamanLoop():
         self.export_collect.append(rex)
         
     
-        
-def index_selection(RamanIndex_all,**kwargs):
-    keys = kwargs.keys()
-    if 'groups' in keys:
-        if kwargs['groups']:
-            index_selection = RamanIndex_all.loc[RamanIndex_all.SampleGroup.str.contains('|'.join(kwargs['groups']))]
-        else:
-            index_selection = RamanIndex_all
-    if 'run' in keys:
-        runq = kwargs.get('run')
-        if 'recent' in runq:
-            grp = RamanIndex_all.sort_values('FileCreationDate',ascending=False).FileCreationDate.unique()[0]
-            
-            index_selection  =RamanIndex_all.loc[RamanIndex_all.FileCreationDate == grp]
-            index_selection = index_selection.assign(**{'DestDir' : [Path(i).joinpath(grp.strftime('%Y-%m-%d')) for i in index_selection.DestDir.values]})
-            
-    return index_selection
+   
 
 #%%
 if __name__ == "__main__":
-
+    pass
     # runq = input('run raman? (enter y for standard run):\n')
-    runq = 'n'
-    
-    if runq == 'n':
-        pass
+    def _old_inpt():
+        # TODO remove since input now handled with Argparse
+        runq = 'n'
         
-    else:
-        ROrg = OrganizeRamanFiles(run_mode = runq)
-        if 'y' in runq:
-            RamanIndex_all = ROrg.index
-            RamanIndex = index_selection(RamanIndex_all,run= runq,groups=['DW'])
-            RL = RamanLoop(RamanIndex, run_mode ='normal')
-            # self = RL
-        elif 'debug' in runq:
-            RamanIndex_all = ROrg.index
-            RamanIndex = index_selection(RamanIndex_all,run= runq,groups=[])
-            RL = RamanLoop(RamanIndex, run_mode ='debug')
-            self = RL
+        if runq == 'n':
+            pass
             
         else:
-            try:
-                if not RamanIndex.empty:
-                    print('Raman Index ready')
-            except:
-                print('Raman re-indexing')
+            ROrg = OrganizeRamanFiles(run_mode = runq)
+            if 'y' in runq:
                 RamanIndex_all = ROrg.index
+                RamanIndex = index_selection(RamanIndex_all,run= runq,groups=['DW'])
+                RL = RamanLoop(RamanIndex, run_mode ='normal')
+                # self = RL
+            elif 'debug' in runq:
+                RamanIndex_all = ROrg.index
+                RamanIndex = index_selection(RamanIndex_all,run= runq,groups=[])
+                RL = RamanLoop(RamanIndex, run_mode ='debug')
+                self = RL
                 
-                RamanIndex = index_selection(RamanIndex_all,groups=[])
+            else:
+                try:
+                    if not RamanIndex.empty:
+                        print('Raman Index ready')
+                except:
+                    print('Raman re-indexing')
+                    RamanIndex_all = ROrg.index
+                    
+                    RamanIndex = index_selection(RamanIndex_all,groups=[])

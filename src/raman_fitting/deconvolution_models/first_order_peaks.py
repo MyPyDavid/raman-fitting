@@ -1,5 +1,9 @@
 
 
+
+# __all__ = ['G_peak']
+
+
 if __name__ == '__main__':
     
     from base_peak import BasePeak

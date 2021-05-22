@@ -14,10 +14,13 @@ import pandas as pd
 
 from lmfit import Parameters
 
-from raman_fitting.deconvolution_models.base_peak import BasePeak
-import raman_fitting.deconvolution_models.first_order_peaks as first_order_peaks
-import raman_fitting.deconvolution_models.second_order_peaks as second_order_peaks
-
+if __name__ == '__main__':
+    pass
+else:
+        
+    from .base_peak import BasePeak
+    from . import first_order_peaks 
+    from . import second_order_peaks 
 
 
 class Peak_Collection():

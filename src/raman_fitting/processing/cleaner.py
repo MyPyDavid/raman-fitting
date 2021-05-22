@@ -12,9 +12,10 @@ import pandas as pd
 from scipy import signal
 from scipy.stats import linregress
 
-
-# from raman_fitting.processing.slicer import SpectraInfo
-from raman_fitting.processing.spectrum_template import SpectrumWindows, SpecTemplate, SpectrumWindowLimits
+if __name__ == '__main__':
+    pass
+else:
+    from .spectrum_template import SpectrumWindows, SpecTemplate, SpectrumWindowLimits
 
 
 class SpectrumMethods:

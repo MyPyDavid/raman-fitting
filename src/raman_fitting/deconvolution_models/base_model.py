@@ -7,7 +7,10 @@ Created on Sat May  8 10:17:17 2021
 """
 
 
-from raman_fitting.deconvolution_models.model_validation import Peak_Collection
+if __name__ == '__main__':
+    pass
+else:
+    from .model_validation import Peak_Collection
 
 # ====== MODEL CHOICE ======= #
 

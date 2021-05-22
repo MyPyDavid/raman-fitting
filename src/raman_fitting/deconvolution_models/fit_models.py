@@ -11,7 +11,10 @@ from collections import OrderedDict,namedtuple
 import datetime as dt
 import pandas as pd
 
-from raman_fitting.deconvolution_models.base_model import InitializeModels
+if __name__ == '__main__':
+    pass
+else:
+    from .base_model import InitializeModels
 
 
 class Fitter:

@@ -62,5 +62,7 @@ del hard_dependencies, soft_dependencies, dependency, missing_dependencies
 
 # from raman_fitting import main_run_fit, indexer
 
+# Other user-facing functions
+from .api import *
 
 

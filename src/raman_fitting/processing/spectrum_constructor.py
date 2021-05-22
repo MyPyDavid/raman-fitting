@@ -17,9 +17,13 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
-from raman_fitting.processing.cleaner import Filter,Despiker, BaselineSubtractorNormalizer
-from raman_fitting.processing.spectrum_template import SpectrumWindows, SpecTemplate
-from raman_fitting.processing.parser import Parser
+if __name__ == '__main__':
+    pass
+else:
+    
+    from .cleaner import Filter,Despiker, BaselineSubtractorNormalizer
+    from .spectrum_template import SpectrumWindows, SpecTemplate
+    from .parser import Parser
 
 def _testing():
     spectrum_data = SpectrumDataLoader(file = meannm[-1], run_kwargs = _spectrum_position_info_kwargs, ovv = meangrp)
