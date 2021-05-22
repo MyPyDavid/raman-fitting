@@ -57,36 +57,39 @@ def main():
         # RL = RamanLoop(_org_index, run_mode ='normal')
         _main_run = rf.MainDelegator(**vars(args))
     
-    if args.run_mode.upper() == 'DEBUG':
+    elif args.run_mode.upper() == 'DEBUG':
         args.run_mode = args.run_mode.upper() 
-        
+        # TODO Add a FAST TRACK for DEBUG
         _main_run = rf.MainDelegator(**vars(args))
-
+    elif args.run_mode == 'testing':
+        _main_run = rf.MainDelegator(**vars(args))
+    
+    # return parser
 
     
-    if 'yes' == 'n':
-            ROrg = OrganizeRamanFiles()
-            if 'y' in runq:
-                RamanIndex_all = ROrg.index
-                RamanIndex = index_selection(RamanIndex_all,run= runq,groups=['DW'])
-                RL = RamanLoop(RamanIndex, run_mode ='normal')
-                # self = RL
-            elif 'test' in runq:
-                RamanIndex_all = ROrg.index
-                RamanIndex = index_selection(RamanIndex_all,run= runq,groups=[])
-                RL = RamanLoop(RamanIndex, run_mode ='DEBUG')
-                self = RL
+    # if 'yes' == 'n':
+    #         ROrg = OrganizeRamanFiles()
+    #         if 'y' in runq:
+    #             RamanIndex_all = ROrg.index
+    #             RamanIndex = index_selection(RamanIndex_all,run= runq,groups=['DW'])
+    #             RL = RamanLoop(RamanIndex, run_mode ='normal')
+    #             # self = RL
+    #         elif 'test' in runq:
+    #             RamanIndex_all = ROrg.index
+    #             RamanIndex = index_selection(RamanIndex_all,run= runq,groups=[])
+    #             RL = RamanLoop(RamanIndex, run_mode ='DEBUG')
+    #             self = RL
                 
-            else:
-                try:
-                    if not RamanIndex.empty:
-                        print('Raman Index ready')
-                except:
-                    print('Raman re-indexing')
-                    RamanIndex_all = ROrg.index
+    #         else:
+    #             try:
+    #                 if not RamanIndex.empty:
+    #                     print('Raman Index ready')
+    #             except:
+    #                 print('Raman re-indexing')
+    #                 RamanIndex_all = ROrg.index
                     
-                    RamanIndex = index_selection(RamanIndex_all,groups=[])
+    #                 RamanIndex = index_selection(RamanIndex_all,groups=[])
     
     
     
-    return parser
+    
