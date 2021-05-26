@@ -53,12 +53,15 @@ for dependency in soft_dependencies:
 
 del hard_dependencies, soft_dependencies, dependency, missing_dependencies
 
-
-
-
 # from raman_fitting import main_run_fit, indexer
 
 # Other user-facing functions
 from .api import *
 
+# TODO list
+# TODO add setup.cfg
+# TODO add README.rstpy
+# TODO add project.toml
+# TODO improve logger
+# TODO PLAN: to run the fitting > daemonize for using the package and dropping files in the datafiles folder
 

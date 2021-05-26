@@ -2,11 +2,12 @@ include *.txt
 include *.md
 include *.cfg
 include *.pkl
+
 recursive-include ./raman_fitting/*
 
 include raman_fitting/datafiles/*.txt
 
-include raman_files/VERSION
+include raman_fitting/VERSION
 
 include ./requirements.txt
 exclude *.log

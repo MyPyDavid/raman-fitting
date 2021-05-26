@@ -74,7 +74,7 @@ setup(
     packages=find_packages('src', exclude=('tests',)),
     package_dir={'': 'src'},
     py_modules=[path.name.suffix for path in Path('./src').glob('*.py')],
-    # package_data={'regression_model': ['VERSION']},
+    package_data={'': ['VERSION']},
     entry_points={
         'console_scripts': [
             f'{NAME} = {NAME}.cli:main'

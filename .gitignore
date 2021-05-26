@@ -123,3 +123,7 @@ logs/
 
 # trained models (will be created in CI)
 /*.pkl
+
+# extra tox files
+tox.ini.bak
+tox-generated.ini
