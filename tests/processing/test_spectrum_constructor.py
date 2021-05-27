@@ -1,3 +1,5 @@
+# flake8: noqa
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -15,3 +17,11 @@ def _testing():
     self = spcoll
 
 # class SpectrumData():
+def _testing():
+    spectrum_data = SpectrumDataLoader(file = meannm[-1], run_kwargs = _spectrum_position_info_kwargs, ovv = meangrp)
+    self = spectrum_data
+    self._despike.Z_t
+    self._despike.input_intensity
+    self = self._despike
+    rr = RL.export_collect[0]
+    spec = rr.fitter.spectra_arg._spectra[0]

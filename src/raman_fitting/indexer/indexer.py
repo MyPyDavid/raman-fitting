@@ -200,7 +200,7 @@ class OrganizeRamanFiles:
             
         
         if 'extra' in _keys:
-            runq = kwargs.get('run')
+            runq = _kws.get('run')
             if 'recent' in runq:
                 grp = RamanIndex_all.sort_values('FileCreationDate',ascending=False).FileCreationDate.unique()[0]
                 

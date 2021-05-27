@@ -1,13 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Feb 17 12:05:19 2020
+''' Multiprocessing implementation '''
+# flake8: noqa
 
-@author: DWXMG
-"""
 from os import cpu_count
 from multiprocessing import Pool
 from functools import partial
-#from .fit_models import Fit_1stOrder_Carbon
 
 
 class MultiRun():
@@ -18,7 +14,6 @@ class MultiRun():
     
     def __init__(self, spectra):
         self._spectra = spectra
-
 
 
 def _previous():

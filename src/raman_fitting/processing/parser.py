@@ -1,11 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon May 10 16:26:36 2021
-
-@author: zmg
-"""
-
+''' Parsing the data of spectrum into class instance '''
 
 
 class Parser:
@@ -17,8 +10,8 @@ class Parser:
         self.filepath = filepath
         self.choose_parsers()
         self.validate_data()
-        
-        
+    
+    
     @property
     def filepath(self):
         return self._filepath

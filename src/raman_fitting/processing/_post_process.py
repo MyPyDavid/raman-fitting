@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+# flake8: noqa
 
 # WARNING this module is under construction and not used
+# TODO update and move this module to a post process package
 
 class RamanPostProcessing:
     def __init__(self,SampleGrp = 'DW'):
