@@ -5,8 +5,8 @@ import pathlib
 import argparse
 
 
-def _testing():
-    args = parser.parse_args(['-M', 'debug'])
+# def _testing():
+#     args = parser.parse_args(['-M', 'debug'])
 
 def main():
     
