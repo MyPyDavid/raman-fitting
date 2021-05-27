@@ -49,11 +49,6 @@ class Exporter():
             peak_destpath = DestGrpDir.joinpath(f'{grpnm}_FitParameters_{pknm}')
             pkgrp.dropna(axis=1).to_excel(peak_destpath.with_suffix('.xlsx'), index=False)
     
-    def _all_index_export():
-        index = RamanExport().export_FitParams_Grp(FitParams1, FitParams2, export_info_out, grpnm,sID)
-        all_index.append(index)
-        pars_index = pd.DataFrame(*all_index,columns=list(GrpNames.sGrp_cols[0:2] +('PeakModel','DestPars')))
-        pars_index.to_excel( export_info_out.get('DestGrpDir').joinpath(f'{sGr}_index.xlsx'))
         
     def raw_export(self):
         raw_data_export(self.fitter.spectra_arg.fitting_spectra)
@@ -90,4 +85,13 @@ class Exporter():
             # res_peak_spec.extrainfo.to_excel(peak_destpath_extra.with_suffix('.xlsx'), index=False)
         except Exception as e:
             print('Error export_xls_from_spec', e)
+            
+    def _all_index_export():
+        pass
+        # TODO define fuction for exporting all the indexes
+        # index = RamanExport().export_FitParams_Grp(FitParams1, FitParams2, export_info_out, grpnm,sID)
+        # all_index.append(index)
+        # pars_index = pd.DataFrame(*all_index,columns=list(GrpNames.sGrp_cols[0:2] +('PeakModel','DestPars')))
+        # pars_index.to_excel( export_info_out.get('DestGrpDir').joinpath(f'{sGr}_index.xlsx'))
+    
             

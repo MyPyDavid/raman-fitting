@@ -1,11 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sat May 22 09:23:44 2021
-
-@author: zmg
-"""
-
+# pylint: disable=W0614,W0611,W0622, F401
+# flake8: noqa
+# isort:skip_file
 
 # Main Loop Delegator
 from .delegator.main_delegator import MainDelegator

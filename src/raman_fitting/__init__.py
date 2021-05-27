@@ -1,22 +1,27 @@
+# pylint: disable=W0614,W0611,W0622
+# flake8: noqa
+# isort:skip_file
 
-import logging
-import sys
+__author__ = 'David Wallace'
+__docformat__ = 'restructuredtext'
 
 from raman_fitting.config import config
-
-
 VERSION_PATH = config.PACKAGE_ROOT / 'VERSION'
-__author__ = 'David W'
 with open(VERSION_PATH, 'r') as version_file:
+    # TODO change version definitino
     __version__ = version_file.read().strip()
 
 
+import logging
+import sys
+import warnings
+
 # Configure logger for use in package
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('raman_fitting')
 logger.setLevel(logging.DEBUG)
 # from raman_fitting.config import logging_config
 # logger.addHandler(logging_config.get_console_handler())
-logger.propagate = False
+# logger.propagate = False
 
 # create console handler
 ch = logging.StreamHandler(stream=sys.stdout)
@@ -25,8 +30,6 @@ ch.setLevel(logging.INFO)
 # add the handlers to the logger
 logger.addHandler(ch)
 
-
-
 # This code is written for Python 3.
 if sys.version_info[0] != 3:
     logger.error("raman_fitting requires Python 3.")
@@ -34,7 +37,7 @@ if sys.version_info[0] != 3:
 
 # Let users know if they're missing any hard dependencies
 hard_dependencies = ("numpy", "pandas", "scipy", "matplotlib")
-soft_dependencies = { }
+soft_dependencies = {'lmfit'}
 missing_dependencies = []
 
 import importlib

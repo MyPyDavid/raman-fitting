@@ -9,15 +9,11 @@ from setuptools import find_packages, setup
 
 # Package meta-data.
 NAME = 'raman_fitting'
-DESCRIPTION = 'Package for indexing and fitting of raman spectra.'
+DESCRIPTION = 'Package for the batch processing and deconvolution of raman spectra.'
 URL = 'https://github.com/MyPyDavid/raman-fitting.git'
-EMAIL = 'your_email@email.com'
-AUTHOR = 'David W'
-REQUIRES_PYTHON = '>=3.6.0'
-
-
-
-
+EMAIL = 'mypydavid@github.com'
+AUTHOR = 'David Wallace'
+REQUIRES_PYTHON = '>=3.7.0'
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
@@ -34,6 +30,7 @@ def _list_requirements(ROOT_DIR):
     try:
         _req_lst = _req_txt_filename.read_text().splitlines()
     except Exception as e:
+        _err = f'No requirements.txt {e}'
         _req_lst = []
     return _req_lst
 
@@ -71,9 +68,11 @@ setup(
         # "Documentation": 'https://.readthedocs.io', # TODO prepare readme docs
         "Source Code": URL,
     },
-    packages=find_packages('src', exclude=('tests',)),
+    packages=find_packages('src', 
+                           exclude=('tests',)),
     package_dir={'': 'src'},
-    py_modules=[path.name.suffix for path in Path('./src').glob('*.py')],
+    py_modules=[path.name.suffix for path
+                in Path('./src').glob('*.py')],
     package_data={'': ['VERSION']},
     entry_points={
         'console_scripts': [
@@ -91,7 +90,6 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: Implementation :: CPython',
@@ -122,5 +120,4 @@ setup(
 #             'sphinx_rtd_theme',
 #         ],
 #     }
-        
-        
+
