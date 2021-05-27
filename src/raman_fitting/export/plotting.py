@@ -80,7 +80,7 @@ def raw_data_spectra_export(fitting_specs):
     
 
     
-def fit_spectrum_plot(peak1,res1_peak_spec,res2_peak_spec, plot_Annotation = True, plot_Residuals = True):
+def fit_spectrum_plot(peak1, peak2, res1_peak_spec, res2_peak_spec, plot_Annotation = True, plot_Residuals = True):
     
     #%%
     sID = res1_peak_spec.extrainfo['SampleID']

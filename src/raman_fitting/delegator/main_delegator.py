@@ -21,9 +21,7 @@ import hashlib
 import pandas as pd
 import sqlite3
 
-
 #from .raman_fitting 
-
 # from config import config
 
 if __name__ == "__main__":
@@ -32,7 +30,6 @@ if __name__ == "__main__":
     # from processing.cleaner import SpectrumCleaner
     from processing.spectrum_template import SpectrumTemplate
     from processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
-    
     from deconvolution_models.fit_models import InitializeModels, Fitter
     from export.exporter import Exporter
     from config import config
@@ -42,26 +39,19 @@ else:
     # from processing.cleaner import SpectrumCleaner
     from ..processing.spectrum_template import SpectrumTemplate
     from ..processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
-    
     from ..deconvolution_models.fit_models import InitializeModels, Fitter
     from ..export.exporter import Exporter
     from ..config import config
     # from raman_fitting.indexer.indexer import OrganizeRamanFiles
-    
     # from raman_fitting.processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
-    
 
 
 #%%
 # RamanDataDir = config.DATASET_DIR
 
-def _testing():
-    rr = RamanLoop()
-    
 class MainDelegator():
     # TODO Add flexible input handling for the cli, such a path to dir, or list of files
     #  or create index when no kwargs are given.
-    
     ''' 
     Main processing loop over an index of Raman files.
     Input parameters is DataFrame of index
@@ -74,7 +64,6 @@ class MainDelegator():
         # self.index = RamanIndex
         self.set_default_run_mode()
         self.index_delegator()
-        
         self.run_delegator()
     
     def set_default_run_mode(self):

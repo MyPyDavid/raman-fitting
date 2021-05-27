@@ -19,14 +19,13 @@ import typing as t
 
 _logger = logging.getLogger(__name__)
 
+from .filename_parser import parse_filepath_to_sid_and_pos
 from ..config import config
 # from .index_selection import index_selection
 
 __all__= ['OrganizeRamanFiles']
 
 #%%
-
-
 class OrganizeRamanFiles:   
     """
     
@@ -36,45 +35,43 @@ class OrganizeRamanFiles:
     
     file_sample_cols = ['FileStem','SampleID','SamplePos','SampleGroup', 'FilePath']
     file_stat_cols = ['FileCreationDate', 'FileCreation','FileModDate', 'FileMod', 'FileHash']
-    
-    
+
+
     def __init__(self, reload_index = True, run_mode = 'normal', costum_datadir = Path(), **kwargs):
         self._kwargs = kwargs
         self._reload_index = reload_index
         self._run_mode = run_mode
         self.choose_dirs()
         self.load_index()
-        
+
         self.set_index_selection()
-        
+
 #        self.ExpOVV = self.ovv(self.ExpFiles)
 #        self.ExpDB = FileHelper.FindExpFolder(exp_method).DestDir.joinpath('RAMAN_DB.hdf5')
-    
+
     def choose_dirs(self):
-        
+
         if 'DEBUG' in self._run_mode:
             DestDir = config.TESTS_DIR.parent.joinpath('tests/test_results')
             RamanDataDir = config.TESTS_DIR.parent.joinpath('tests/test_data')
             IndexFile = DestDir.joinpath('test_index.csv')
-            
+
         else:
             DestDir = config.RESULTS_DIR
             RamanDataDir = config.DATASET_DIR
             IndexFile = config.INDEX_FILE
-        
+
         if not RamanDataDir.is_dir():
             raise FileNotFoundError(f'This path to directory does not exist.\n {RamanDataDir}')
 
         if not DestDir.is_dir():
             DestDir.mkdir(exist_ok=True,parents=False)
-            
+
         self.DestDir = DestDir
         self.RamanDataDir = RamanDataDir
         self.IndexFile = IndexFile
-    
     # def _set_debug_paths(self):
-        
-        
+
     def find_files(self):
         ''' 
         Creates a list of all raman type files found in the RamanDataDir which are used in the creation of the index.
@@ -82,67 +79,16 @@ class OrganizeRamanFiles:
         RFs = list(self.RamanDataDir.rglob('*txt'))
         raman_files_raw = [i for i in RFs if not 'fail' in i.stem and not 'Labjournal' in str(i)]
         self.raman_files = raman_files_raw
-    
+
     def _fsID(self,rf):
         try:
-            _res = self.find_SampleID_position(rf)
+            _res = parse_filepath_to_sid_and_pos(rf)
         except Exception as e:
             _logger(f'Error fsid for {rf} \n{e}')
             _res = ()
             self._error_sids.append((rf,e))
         return _res
-    
-    @staticmethod
-    def find_SampleID_position(ramanfilepath):
-        ''' Parser for the filenames -> finds SampleID and sample position '''
-        ramanfile_stem  = ramanfilepath.stem
 
-        if '_'  in ramanfile_stem:
-            split = ramanfile_stem.split('_')
-        elif ' ' in ramanfile_stem:
-            split = ramanfile_stem.split(' ')
-        else:
-#            print(ramanfile_stem)
-            split = ramanfile_stem.split('_')
-            
-        if 'SI' in ramanfile_stem.upper() or 'Si-ref' in ramanfile_stem: 
-            position = 0
-            sID = 'Si-ref'
-        else:
-            if len(split) == 1:
-                sID = [SampleIDstr(split[0]).SampleID][0]
-                position = 0
-            elif len(split) == 2:
-                sID = split[0]
-                _pos_strnum = ''.join(i for i in split[1] if i.isnumeric())
-                if _pos_strnum:
-                    position = int(_pos_strnum)   
-                else:
-                    position = split[1]
-                    
-#                split = split + [0]
-            elif len(split) >= 3:
-                sID = [SampleIDstr('_'.join(split[0:-1])).SampleID][0]
-                position = int(''.join(filter(str.isdigit,split[-1])))
-#                split =[split_Nr0] + [position]
-            elif  len(split) == 0:
-                sID = SampleIDstr(split).SampleID
-                position = 0
-            else:
-                 sID = [SampleIDstr(split[0]).SampleID][0]
-                 if ''.join(((filter(str.isdigit,split[-1])))) == '':
-                     sID = [ramanfile_stem]
-                     position = 0
-                 else:
-                     position = int(''.join(filter(str.isdigit,split[-1])))
-
-        sGrpID = ''.join([i for i in sID[0:3] if i.isalpha()])
-        if 'Raman Data for fitting David' in ramanfilepath.parts:
-            sGrpID = 'SH'    
-#        RF_row_sIDs_out = 
-        RF_row_sIDs_out = (ramanfile_stem, sID, position, sGrpID, ramanfilepath)
-        return RF_row_sIDs_out
-    
     @staticmethod
     def get_file_stats(ramanfilepath):
         fstat = ramanfilepath.stat()
@@ -187,7 +133,7 @@ class OrganizeRamanFiles:
                 self.export_index()
             except Exception as e:
                 _logger.error(f'{self.__class__.__name__} error reload index {e})')
-                
+
     def set_index_selection(self):
         _kws = self._kwargs
         _keys = _kws.keys()
@@ -197,36 +143,16 @@ class OrganizeRamanFiles:
                 index_selection = RamanIndex_all.loc[RamanIndex_all.SampleGroup.str.contains('|'.join(_kws['samplegroups']))]
         if 'sampleIDs' in _keys:
             index_selection = RamanIndex_all.loc[RamanIndex_all.SampleID.str.contains('|'.join(_kws['sampleIDs']))]
-            
-        
+
         if 'extra' in _keys:
             runq = _kws.get('run')
             if 'recent' in runq:
                 grp = RamanIndex_all.sort_values('FileCreationDate',ascending=False).FileCreationDate.unique()[0]
-                
+
                 index_selection  =RamanIndex_all.loc[RamanIndex_all.FileCreationDate == grp]
                 index_selection = index_selection.assign(**{'DestDir' : [Path(i).joinpath(grp.strftime('%Y-%m-%d')) for i in index_selection.DestDir.values]})
-                
         self.index_selection = index_selection 
-        
-    
-            
-class SampleIDstr:
-    """Tools to find the SampleID in a string"""
-    
-    _std_names = [('David','DW'), ('stephen','SP'), 
-                  ('Alish','AS'), ('Aish','AS')]
-    
-    def __init__(self,string):
-        self.SampleID = self.Name_to_SampleID_Name(string)
-       
-    def Name_to_SampleID_Name(self,string):
-        for i,sID in self._std_names:
-            if i in string:
-                string = string.replace(i,sID)
-        return string
 
- 
 if __name__ == "__main__":
 
     try:

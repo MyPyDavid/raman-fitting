@@ -1,4 +1,4 @@
-# pylint: disable=W0614,W0611,W0622, F401
+# pylint: disable=W0614,W0611,W0622
 # flake8: noqa
 # isort:skip_file
 
@@ -7,7 +7,7 @@ from .delegator.main_delegator import MainDelegator
 
 # Indexer
 from .indexer.indexer import OrganizeRamanFiles
-    
+
 # Processing
 from .processing.spectrum_template import SpectrumTemplate
 from .processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
