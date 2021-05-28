@@ -6,9 +6,10 @@ Created on Fri May 14 09:18:02 2021
 
 @author: zmg
 """
+import pytest
 
 
-from raman_fitting.deconvolution_models.model_validation import Peak_Collection
+# from raman_fitting.deconvolution_models.model_validation import Peak_Collection
 
 
 def _testing():

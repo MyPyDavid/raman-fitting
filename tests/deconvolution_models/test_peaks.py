@@ -6,13 +6,11 @@ Created on Fri May 14 09:00:57 2021
 
 @author: zmg
 """
-from raman_fitting.deconvolution_models import first_order_peaks
-from raman_fitting.deconvolution_models.base_peak import BasePeak
+# from raman_fitting.deconvolution_models import first_order_peaks
+# from raman_fitting.deconvolution_models.base_peak import BasePeak
 
-
-
-
-
+class BasePeak:
+    pass
 
 class test_peak(BasePeak):
     

@@ -1,7 +1,19 @@
 
 
 def parse_filepath_to_sid_and_pos(ramanfilepath):
-    ''' Parser for the filenames -> finds SampleID and sample position '''
+    '''
+    Parser for the filenames -> finds SampleID and sample position 
+    
+    Parameters
+    ----------
+    ramanfilepath : Path
+        The filepath which the is parsed
+
+    Returns
+    -------
+    tuple of strings
+        Collection of strings which contains the parsed elements.
+    '''
     ramanfile_stem  = ramanfilepath.stem
 
     if '_'  in ramanfile_stem:

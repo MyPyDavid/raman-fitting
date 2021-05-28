@@ -1,20 +1,13 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 29 14:48:22 2020
 
-@author: zmg
-"""
-import sys
+# import sys
 import hashlib
+import logging
+# import typing as t
 
 from pathlib import Path
-from collections import namedtuple
+# from collections import namedtuple
 
 import pandas as pd
-
-import logging
-import typing as t
 
 
 _logger = logging.getLogger(__name__)
@@ -23,13 +16,16 @@ from .filename_parser import parse_filepath_to_sid_and_pos
 from ..config import config
 # from .index_selection import index_selection
 
-__all__= ['OrganizeRamanFiles']
+__all__= ['MakeRamanFilesIndex']
 
 #%%
-class OrganizeRamanFiles:   
+
+
+class MakeRamanFilesIndex:   
     """
     
     Finds the RAMAN files in the data folder from config and creates an overview, on the attribute .index
+    finds a list of files, 
     
     """
     
@@ -41,9 +37,10 @@ class OrganizeRamanFiles:
         self._kwargs = kwargs
         self._reload_index = reload_index
         self._run_mode = run_mode
+        self.index = pd.DataFrame()
         self.choose_dirs()
         self.load_index()
-
+        self.index_selection = pd.DataFrame()
         self.set_index_selection()
 
 #        self.ExpOVV = self.ovv(self.ExpFiles)
@@ -80,13 +77,13 @@ class OrganizeRamanFiles:
         raman_files_raw = [i for i in RFs if not 'fail' in i.stem and not 'Labjournal' in str(i)]
         self.raman_files = raman_files_raw
 
-    def _fsID(self,rf):
+    def parse_filename(self,ramanfilepath):
         try:
-            _res = parse_filepath_to_sid_and_pos(rf)
+            _res = parse_filepath_to_sid_and_pos(ramanfilepath)
         except Exception as e:
-            _logger(f'Error fsid for {rf} \n{e}')
+            _logger(f'Error parse_filename for {ramanfilepath} \n{e}')
             _res = ()
-            self._error_sids.append((rf,e))
+            self._error_parse_filenames.append((ramanfilepath,e))
         return _res
 
     @staticmethod
@@ -101,13 +98,13 @@ class OrganizeRamanFiles:
     def make_index(self):
     #    ridx = namedtuple('Raman_index_row', file_sample_cols+file_stat_cols)
         self.find_files()
-        self._error_sids = []
-        RF_indexed = [(self._fsID(i)+self.get_file_stats(i)) for i in self.raman_files]
+        self._error_parse_filenames = []
+        RF_indexed = [(self.parse_filename(i)+self.get_file_stats(i)) for i in self.raman_files]
         RF_index_raw = pd.DataFrame(RF_indexed,columns = self.file_sample_cols+self.file_stat_cols).drop_duplicates(subset=['FileHash'])
-        
         RF_index_raw = RF_index_raw.assign(**{'DestDir' : [self.DestDir.joinpath(sGrp) for sGrp in RF_index_raw.SampleGroup.to_numpy()]})
-        
         self.index = RF_index_raw
+        _logger.debug(f'{self.__class__.__name__} successfully set index {len(self.index)}')
+        
     
     def export_index(self):
         if not self.index.empty:
@@ -134,10 +131,33 @@ class OrganizeRamanFiles:
             except Exception as e:
                 _logger.error(f'{self.__class__.__name__} error reload index {e})')
 
-    def set_index_selection(self):
+    def set_index_selection(self, default_selection=''):
+        '''
+        Special selector on the index DataFrame
+        
+        Parameters
+        -------
+        default_selection str
+            all or '' for empty default
+        self._kwargs
+            checks for keywords suchs as samplegroups, sampleIDs, extra
+            meant for cli commands
+
+        Returns
+        -------
+        sets attribute index_selection
+
+        '''
         _kws = self._kwargs
         _keys = _kws.keys()
         RamanIndex_all = self.index
+        # default_selection = _kws.get('default_selection','')
+        index_selection = pd.DataFrame()
+        if default_selection:
+            if default_selection == 'all':
+                index_selection = RamanIndex_all .copy()
+            
+            pd.DataFrame()
         if 'samplegroups' in _keys:
             if _kws['samplegroups']:
                 index_selection = RamanIndex_all.loc[RamanIndex_all.SampleGroup.str.contains('|'.join(_kws['samplegroups']))]
@@ -156,7 +176,7 @@ class OrganizeRamanFiles:
 if __name__ == "__main__":
 
     try:
-        RamanIndex = OrganizeRamanFiles()
+        RamanIndex = MakeRamanFilesIndex()
 #        RamanIndex.index
 #        RamanIndex.make_index()
 #        RamanIndex.export_index()

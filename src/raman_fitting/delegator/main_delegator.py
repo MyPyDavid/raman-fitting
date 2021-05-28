@@ -5,7 +5,7 @@ from itertools import starmap
 
 
 if __name__ == "__main__":
-    from raman_fittng.indexer.indexer import OrganizeRamanFiles
+    from indexer.indexer import MakeRamanFilesIndex
     # from processing.cleaner import SpectrumCleaner
     from processing.spectrum_template import SpectrumTemplate
     from processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
@@ -14,7 +14,7 @@ if __name__ == "__main__":
     # from config import config
 
 else:
-    from ..indexer.indexer import OrganizeRamanFiles
+    from ..indexer.indexer import MakeRamanFilesIndex
     # from processing.cleaner import SpectrumCleaner
     from ..processing.spectrum_template import SpectrumTemplate
     from ..processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
@@ -51,9 +51,9 @@ class MainDelegator():
         self.run_mode = _run_mode
 
     def index_delegator(self):
-        _raman_org = OrganizeRamanFiles(**self._kwargs)
-        self._raman_org = _raman_org
-        self.index = _raman_org.index_selection
+        _make_rf_index = MakeRamanFilesIndex(**self._kwargs)
+        self._make_rf_index = _make_rf_index
+        self.index = _make_rf_index.index_selection
 
     def test_positions(self, sGrp_grp,nm, grp_cols = ['FileStem','SamplePos','FilePath']):
 #        grp_cols = ['FileStem','SamplePos','FileCreationDate']

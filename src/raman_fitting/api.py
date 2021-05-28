@@ -6,7 +6,8 @@
 from .delegator.main_delegator import MainDelegator
 
 # Indexer
-from .indexer.indexer import OrganizeRamanFiles
+from .indexer.indexer import MakeRamanFilesIndex as make_index
+
 
 # Processing
 from .processing.spectrum_template import SpectrumTemplate

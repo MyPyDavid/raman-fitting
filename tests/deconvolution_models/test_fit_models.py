@@ -7,7 +7,14 @@ Created on Fri May 14 09:12:56 2021
 @author: zmg
 """
 
-from raman_fitting.deconvolution_models.fit_models import Fitter
+import pytest
+
+try:
+    import raman_fitting
+
+    from raman_fitting.deconvolution_models.fit_models import Fitter
+except Exception as e:
+    print(f'pytest file {__file__}, {__name__} error {e}')
 
 
 
