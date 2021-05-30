@@ -10,7 +10,7 @@ Created on Sat May  8 10:17:17 2021
 if __name__ == '__main__':
     pass
 else:
-    from .model_validation import Peak_Collection
+    from .model_validation import PeakModelValidator
 
 # ====== MODEL CHOICE ======= #
 
@@ -22,7 +22,7 @@ class InitializeModels():
     for the models as keys.
     '''
     
-    peak_collection = Peak_Collection()
+    peak_collection = PeakModelValidator()
     _standard_1st_order = {'2peaks' : 'G+D',
                             '3peaks' : 'G+D+D3',
                             '4peaks' : 'G+D+D3+D4',
@@ -34,7 +34,7 @@ class InitializeModels():
                    
     def __init__(self, standard_models = True):
         self.construct_standard_models()    
-        self.normalization_model = self.peak_collection.normalization
+        # self.normalization_model = self.peak_collection.normalization
         
     def construct_standard_models(self):
         
@@ -66,7 +66,7 @@ class BaseModel():
     
     model_prefix_name = ''
     
-    def __init__(self, peak_collection = Peak_Collection(), model_name = '', add_substrate = True, substrate_peak = 'Si1_peak'):
+    def __init__(self, peak_collection = PeakModelValidator(), model_name = '', add_substrate = True, substrate_peak = 'Si1_peak'):
         self.peak_collection = peak_collection
         self._model_name = model_name
         self._add_substrate = add_substrate

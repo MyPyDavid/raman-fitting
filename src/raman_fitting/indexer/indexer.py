@@ -49,33 +49,33 @@ class MakeRamanFilesIndex:
     def choose_dirs(self):
 
         if 'DEBUG' in self._run_mode:
-            DestDir = config.TESTS_DIR.parent.joinpath('tests/test_results')
-            RamanDataDir = config.TESTS_DIR.parent.joinpath('tests/test_data')
-            IndexFile = DestDir.joinpath('test_index.csv')
+            RESULTS_DIR = config.TESTS_DIR.parent.joinpath('tests/test_results')
+            DATASET_DIR = config.TESTS_DIR.parent.joinpath('tests/test_data')
+            INDEX_FILE = RESULTS_DIR.joinpath('test_index.csv')
 
         else:
-            DestDir = config.RESULTS_DIR
-            RamanDataDir = config.DATASET_DIR
-            IndexFile = config.INDEX_FILE
+            RESULTS_DIR = config.RESULTS_DIR
+            DATASET_DIR = config.DATASET_DIR
+            INDEX_FILE = config.INDEX_FILE
 
-        if not RamanDataDir.is_dir():
-            raise FileNotFoundError(f'This path to directory does not exist.\n {RamanDataDir}')
+        if not DATASET_DIR.is_dir() and self._run_mode != 'normal':
+            raise FileNotFoundError(f'The path to this directory does not exist.\n"{DATASET_DIR}"')
 
-        if not DestDir.is_dir():
-            DestDir.mkdir(exist_ok=True,parents=False)
+        if not RESULTS_DIR.is_dir():
+            RESULTS_DIR.mkdir(exist_ok=True,parents=True)
 
-        self.DestDir = DestDir
-        self.RamanDataDir = RamanDataDir
-        self.IndexFile = IndexFile
+        self.RESULTS_DIR = RESULTS_DIR
+        self.DATASET_DIR = DATASET_DIR
+        self.INDEX_FILE = INDEX_FILE
     # def _set_debug_paths(self):
 
     def find_files(self):
         ''' 
-        Creates a list of all raman type files found in the RamanDataDir which are used in the creation of the index.
+        Creates a list of all raman type files found in the DATASET_DIR which are used in the creation of the index.
         '''
-        RFs = list(self.RamanDataDir.rglob('*txt'))
+        RFs = self.DATASET_DIR.rglob('*txt')
         raman_files_raw = [i for i in RFs if not 'fail' in i.stem and not 'Labjournal' in str(i)]
-        self.raman_files = raman_files_raw
+        return raman_files_raw
 
     def parse_filename(self,ramanfilepath):
         try:
@@ -97,28 +97,28 @@ class MakeRamanFilesIndex:
 
     def make_index(self):
     #    ridx = namedtuple('Raman_index_row', file_sample_cols+file_stat_cols)
-        self.find_files()
+        raman_files_raw = self.find_files()
         self._error_parse_filenames = []
-        RF_indexed = [(self.parse_filename(i)+self.get_file_stats(i)) for i in self.raman_files]
+        RF_indexed = [(self.parse_filename(i)+self.get_file_stats(i)) for i in raman_files_raw]
         RF_index_raw = pd.DataFrame(RF_indexed,columns = self.file_sample_cols+self.file_stat_cols).drop_duplicates(subset=['FileHash'])
-        RF_index_raw = RF_index_raw.assign(**{'DestDir' : [self.DestDir.joinpath(sGrp) for sGrp in RF_index_raw.SampleGroup.to_numpy()]})
+        RF_index_raw = RF_index_raw.assign(**{'DestDir' : [self.RESULTS_DIR.joinpath(sGrp) for sGrp in RF_index_raw.SampleGroup.to_numpy()]})
         self.index = RF_index_raw
         _logger.debug(f'{self.__class__.__name__} successfully set index {len(self.index)}')
         
     
     def export_index(self):
         if not self.index.empty:
-            self.index.to_csv(self.IndexFile)
-            _logger.info(f'Succesfully Exported Raman Index file to {config.INDEX_FILE}, with len({len(self.index)})')
+            self.index.to_csv(self.INDEX_FILE)
+            _logger.info(f'Succesfully Exported Raman Index file to {self.INDEX_FILE}, with len({len(self.index)})')
     
     def load_index(self):
         if not self._reload_index:
             try:
-                _index_load = pd.read_csv(self.IndexFile)
-                _logger.info(f'Succesfully imported Raman Index file from {config.INDEX_FILE}, with len({len(_index_load)})')
+                _index_load = pd.read_csv(self.INDEX_FILE)
+                _logger.info(f'Succesfully imported Raman Index file from {self.INDEX_FILE}, with len({len(_index_load)})')
                 self.index = _index_load
             except:
-                _logger.error(f'Error in load_index from {config.INDEX_FILE}, restarting make_index ... )')
+                _logger.error(f'Error in load_index from {self.INDEX_FILE}, restarting make_index ... )')
                 self._reload_index = True
         self.reload_index()
                 
@@ -177,8 +177,5 @@ if __name__ == "__main__":
 
     try:
         RamanIndex = MakeRamanFilesIndex()
-#        RamanIndex.index
-#        RamanIndex.make_index()
-#        RamanIndex.export_index()
     except Exception as e:
         _logger.error(f'Raman Index error: {e}')

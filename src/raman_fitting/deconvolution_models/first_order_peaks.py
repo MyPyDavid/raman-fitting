@@ -1,18 +1,11 @@
 
-
-
-# __all__ = ['G_peak']
-
-
-if __name__ == '__main__':
-    
+if __name__ == '__main__' or __name__ == 'first_order_peaks':
     from base_peak import BasePeak
-
 else:
-    # print(__name__)
     from .base_peak import BasePeak
 
 
+# ====== FIRST ORDER PEAKS ======= #
 
 class G_peak(BasePeak):
     '''Graphite belongs to the P63/mmc (D46h) space group. If considering only a graphene plane, at 
@@ -24,25 +17,39 @@ class G_peak(BasePeak):
     Für G: 1580-1590 D5 und D2 weiß ich nicht
     '''
     
-    def __init__(self, peak_type = 'Lorentzian', peak_name ='G', gammavary = False, normalization = False):
-        # self.model = PeakTypeChooser(PeakType,prefix)
-        super().__init__(peak_type = peak_type, peak_name = peak_name, gammavary = gammavary, normalization = normalization )
+    def __init__(self):
+        self.peak_type = 'Lorentzian'
+        self.peak_name ='G'
+        self.input_param_settings = {
+            'center': {'value': 1571,'min': 1545, 'max': 1595},
+            'sigma': {'value': 30,'min': 5, 'max': 150},
+            'amplitude': {'value': 35,'min': 5, 'max': 500}}
 
-    def input_param_settings(self):
-        # TODO maybe read in param settings form eg xls file
-        param_settings = {'center' : {'value' : 1571,'min' : 1545, 'max' : 1595},
-                    'sigma' : {'value' : 30,'min' : 5, 'max' : 150},
-                    'amplitude' : {'value' : 35,'min' : 5, 'max' : 500}}
-        return param_settings
-   
-    def normalization_param_settings(self):
-        settings = {'center' : {'value' : 1581, 'min' : 1500, 'max' : 1600},
-                    'sigma' : {'value' : 40, 'min' : 1E-05, 'max' : 1E3},
-                    'amplitude' : {'value' : 8E4, 'min' : 1E2}}
-        return settings
+# class AddNormalizationModel():  #TODO add this model
 
+class norm_G_peak(BasePeak):
+    '''G_peak used for normalization'''
+    
+    def __init__(self, *args, **kwargs):
+        self.peak_name = 'norm_G_peak'
+        self.peak_type = 'Lorentzian'
+        self.input_param_settings = {
+            'center' : {'value' : 1581, 'min' : 1500, 'max' : 1600},
+            'sigma' : {'value' : 40, 'min' : 1E-05, 'max' : 1E3},
+            'amplitude' : {'value' : 8E4, 'min' : 1E2}}
+    # norm_G_peak = BasePeak(peak_name=peak_name,peak_type=peak_type,input_param_settings=settings)
 
-
+class norm_D_peak(BasePeak):
+    ''' D_peak for normalization '''
+    
+    def __init__(self, *args, **kwargs):
+        self.peak_name='norm_D_peak'
+        self.peak_type='Lorentzian'
+        self.input_param_settings={
+            'center' : {'value' : 1350,'min' : 1300, 'max' : 1400},
+            'sigma' : {'value' : 90, 'min' : 1E-05},
+            'amplitude' : {'value' : 10E5, 'min' : 1E2}}
+                           
 class D_peak(BasePeak):
     ''' D or D1 ; Disordered graphitic lattice (graphene layer edges,A1gsymmetry)
     A defective graphite presents other bands that can be as intense as the G band at D=1350 and D'=1615 cm-1
@@ -50,21 +57,14 @@ class D_peak(BasePeak):
     Für D1: 1340-1350 
     '''
 
-    def __init__(self, peak_type = 'Lorentzian', peak_name ='D', gammavary = False, normalization = False):
-        # self.model = PeakTypeChooser(PeakType,prefix)
-        super().__init__(peak_type = peak_type, peak_name = peak_name, gammavary = gammavary, normalization = normalization )
-       
-    def input_param_settings(self):
-        settings = {'center' : {'value' : 1350,'min' : 1330, 'max' : 1380},
-                    'sigma' : {'value' : 35,'min' : 1, 'max' : 150},
-                    'amplitude' : {'value' : 120,'min' : 1E-05, 'max' : 500}}
-        return settings
+    def __init__(self):
+        self.peak_type = 'Lorentzian'
+        self.peak_name ='D'
+        self.input_param_settings = {
+            'center' : {'value' : 1350,'min' : 1330, 'max' : 1380},
+            'sigma' : {'value' : 35,'min' : 1, 'max' : 150},
+            'amplitude' : {'value' : 120,'min' : 1E-05, 'max' : 500}}
     
-    def normalization_param_settings(self):
-        settings = {'center' : {'value' : 1350,'min' : 1300, 'max' : 1400},
-                    'sigma' : {'value' : 90, 'min' : 1E-05},
-                    'amplitude' : {'value' : 10E5, 'min' : 1E2}}
-        return settings
 
 
 class D2_peak(BasePeak):
@@ -73,15 +73,13 @@ class D2_peak(BasePeak):
     j.molstruc.2010.12.065
     '''
 
-    def __init__(self, peak_type = 'Lorentzian', peak_name ='D2', gammavary = False, normalization = False):
-        # self.model = PeakTypeChooser(PeakType,prefix)
-        super().__init__(peak_type = peak_type, peak_name = peak_name, gammavary = gammavary, normalization = normalization )
-       
-    def input_param_settings(self):
-         settings = {'center' : {'value' : 1606,'min' : 1592, 'max' : 1635},
-                    'sigma' : {'value' : 30,'min' : 5, 'max' : 150},
-                    'amplitude' : {'value' : 35,'min' : 5, 'max' : 500}}
-         return settings
+    def __init__(self):
+        self.peak_type = 'Lorentzian'
+        self.peak_name ='D2'
+        self.input_param_settings={
+            'center' : {'value' : 1606,'min' : 1592, 'max' : 1635},
+            'sigma' : {'value' : 30,'min' : 5, 'max' : 150},
+            'amplitude' : {'value' : 35,'min' : 5, 'max' : 500}}
         
 
 class D3_peak(BasePeak):
@@ -90,15 +88,13 @@ class D3_peak(BasePeak):
     Für D3: 1495-1515
     '''
     
-    def __init__(self, peak_type = 'Lorentzian', peak_name ='D3', gammavary = False, normalization = False):
-        # self.model = PeakTypeChooser(PeakType,prefix)
-        super().__init__(peak_type = peak_type, peak_name = peak_name, gammavary = gammavary, normalization = normalization )
-       
-    def input_param_settings(self):
-        settings = {'center' : {'value' : 1480, 'min' : 1450, 'max' : 1525},
-                    'sigma' : {'value' : 25,'min' : 1, 'max' : 150},
-                    'amplitude' : {'value' : 25,'min' : 1E-02, 'max' : 500}}
-        return settings
+    def __init__(self):
+        self.peak_type = 'Lorentzian'
+        self.peak_name ='D3'
+        self.input_param_settings={
+             'center' : {'value' : 1480, 'min' : 1450, 'max' : 1525},
+             'sigma' : {'value' : 25,'min' : 1, 'max' : 150},
+             'amplitude' : {'value' : 25,'min' : 1E-02, 'max' : 500}}
 
 class D4_peak(BasePeak):
     ''' D4 or I ; Below D band, a shoulder sometimes split with D5 band.
@@ -108,31 +104,28 @@ class D4_peak(BasePeak):
     Für D4: 1185-1210, but depends on if there is D5 or not.
     '''
 
-    def __init__(self, peak_type = 'Lorentzian', peak_name ='D4', gammavary = False, normalization = False):
-        # self.model = PeakTypeChooser(PeakType,prefix)
-        super().__init__(peak_type = peak_type, peak_name = peak_name, gammavary = gammavary, normalization = normalization )
-       
-        
-    def input_param_settings(self):
-        settings = {'center' : {'value' : 1230,'min' : 1180, 'max' : 1310},
-                    'sigma' : {'value' : 40,'min' : 1, 'max' : 150},
-                    'amplitude' : {'value' : 20,'min' : 1E-02, 'max' : 200}}
-        return settings
-   
+    def __init__(self):
+        self.peak_type = 'Lorentzian'
+        self.peak_name ='D4'
+        self.input_param_settings={
+             'center' : {'value' : 1230,'min' : 1180, 'max' : 1310},
+             'sigma' : {'value' : 40,'min' : 1, 'max' : 150},
+             'amplitude' : {'value' : 20,'min' : 1E-02, 'max' : 200}}
+
+
 class D5_peak(BasePeak):
     '''D5 peak at 1110 cm−1. At lowest should of D peak, below D4.
     Ref: Jurkiewicz, K., Pawlyta, M., Zygadło, D. et al. J Mater Sci (2018) 53: 3509. https://doi.org/10.1007/s10853-017-1753-7
     '''
     
-    def __init__(self, peak_type = 'Lorentzian', peak_name ='D5', gammavary = False, normalization = False):
-        # self.model = PeakTypeChooser(PeakType,prefix)
-        super().__init__(peak_type = peak_type, peak_name = peak_name, gammavary = gammavary, normalization = normalization )
-       
-    def input_param_settings(self):    
-        settings = {'center' : {'value' : 1150,'min' : 1100, 'max' : 1200},
-                    'sigma' : {'value' : 40,'min' : 1, 'max' : 250},
-                    'amplitude' : {'value' : 20,'min' : 1E-02, 'max' : 200}}
-        return settings
+    def __init__(self):
+        self.peak_type = 'Lorentzian'
+        self.peak_name ='D5'
+        self.input_param_settings={
+             'center' : {'value' : 1150,'min' : 1100, 'max' : 1200},
+             'sigma' : {'value' : 40,'min' : 1, 'max' : 250},
+             'amplitude' : {'value' : 20,'min' : 1E-02, 'max' : 200}}
+
 
 class Si1_peak(BasePeak):
     '''===== Extra peak at ca. 960 cm-1 presumably from Si substrate 2nd order === not from Nafion...
@@ -140,15 +133,14 @@ class Si1_peak(BasePeak):
     => Place an extra Gaussian peak at 960 in the fit
     '''
 
-    def __init__(self, peak_type = 'Gaussian', peak_name ='Si1', gammavary = False, normalization = False):
-        # self.model = PeakTypeChooser(PeakType,prefix)
-        super().__init__(peak_type = peak_type, peak_name = peak_name, gammavary = gammavary, normalization = normalization )
-       
-    def input_param_settings(self): 
-        settings = {'center' : {'value' : 960,'min' : 900, 'max' : 980},
-                    'sigma' : {'value' : 10,'min' : 0, 'max' : 150},
-                    'amplitude' : {'value' : 10,'min' : 0, 'max' : 200}}
-        return settings
+    def __init__(self):
+        self.peak_type = 'Gaussian'
+        self.peak_name ='Si1'
+        self.input_param_settings={
+             'center' : {'value' : 960,'min' : 900, 'max' : 980},
+             'sigma' : {'value' : 10,'min' : 0, 'max' : 150},
+             'amplitude' : {'value' : 10,'min' : 0, 'max' : 200}}
+
 
 def test_for_Si_substrate(model): # TODO test fit on spectrum to decide wether Si substrate is required or not
     '''make test fit for only slice 900-1000'''
