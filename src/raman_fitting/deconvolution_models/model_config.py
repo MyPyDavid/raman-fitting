@@ -15,11 +15,17 @@ else:
 
 class ModelConfigurator():
     
-    standard_config_file = 'modelconfig_standard'
+    standard_config_file = 'model_config_standard.cfg'
     
     def __init__(self,**kwargs):
         self._kwargs = kwargs
         
+    def find_user_config_files(self):
+        pass
+        
+    
+    def file_handler(self):
+        pass
         
     def standard_valid_models(self):
         

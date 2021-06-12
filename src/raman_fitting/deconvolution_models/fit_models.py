@@ -29,7 +29,6 @@ class Fitter:
     def spectra(self, value):
         
         _errtxt = (f'This assignment {value} does not contain valid spectra')
-        
         if type(value) == dict:
             _data = value
         elif type(value).__name__ == 'SpectrumDataCollection':

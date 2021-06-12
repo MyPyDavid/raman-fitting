@@ -33,7 +33,7 @@ class SpectraInfo():
                _info = {i:getattr(spec, i) for i in spec._fields if not 'array' in str(type(getattr(spec, i))) }
                # _info = {}
 
-            SpecSlice_template = namedtuple('SpectrumSliced',tuple(_arrays.keys())+('windowname',)+tuple(_info.keys()))
+           SpecSlice_template = namedtuple('SpectrumSliced',tuple(_arrays.keys())+('windowname',)+tuple(_info.keys()))
            spec_length = spec.spectrum_length
            # 'array' in str(type(i)) and
            # _arrays = {k : val for k,val in _arrays.items() if len(val) == spec_length}

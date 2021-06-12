@@ -1,0 +1,388 @@
+
+import inspect
+from warnings import warn
+
+# import operator
+# from abc import ABC, abstractmethod
+from lmfit.models import VoigtModel,LorentzianModel, GaussianModel, Model
+from lmfit import Parameter,Parameters
+# from lmfit import CompositeModel
+
+class BasePeakWarning(UserWarning):
+    pass
+
+
+class BasePeak(type):
+    '''Base class for typical intensity peaks found the raman spectra.\
+    Several peaks combined are used as a model (composed in the fit_models module)\
+        to fit a certain region of the spectrum.'''
+
+    _ATTRS = ['peak_name','peak_type','param_hints']
+
+    PEAK_TYPE_OPTIONS = ['Lorentzian', 'Gaussian', 'Voigt']
+    
+    _PARAM_HINTS_ARGS = inspect.signature(Parameter).parameters.keys()
+    # ('value', 'vary', 'min', 'max', 'expr') # optional
+    default_settings = {'gamma': 
+                             {'value': 1,
+                              'min': 1E-05,
+                              'max': 70,
+                              'vary': False}
+                         }
+    _intern = list(super.__dict__.keys())+['__module__','_kwargs']
+    # input_param_hints = {}
+    _kwargs = {}
+    
+    def __new__(mcls, name, bases, cls_dict, **kwargs):
+        print(f"Called __new ({mcls} ),name {name}, bases{bases}, cls_dict {cls_dict} kwargs {kwargs}")
+        # print(f'vars: {vars(cls)}')
+        
+        mcls, _attrs_found_kwargs = mcls._check_for_attrs(kwargs, source='kwargs')
+        mcls, _attrs_found_vars = mcls._check_for_attrs(cls_dict, source='vars_cls')
+        
+        _kws = {**_attrs_found_kwargs, **_attrs_found_vars}
+        kwargs = {**kwargs, **_kws}
+        
+        _instance = super().__new__(mcls, name, bases, cls_dict) #,*args, **{**_attrs_found, **kwargs})
+        if hasattr(_instance, 'input_param_settings'):
+            print(f"Instance {_instance} has input_param_settings")
+        
+        if '__init__' in cls_dict.keys():
+            print(f"__new if __init__ Instance {cls_dict.keys()} has __init__")
+            _init_func = cls_dict['__init__']
+            print(f"__new init func is {_init_func}")
+            # del cls_dict['__init__']
+            # _init_inst = _instance.__init__(_instance)
+            _init_inst = _init_func(_instance)
+            print(f"__new init is {_init_inst}")
+            print(f'__new vars: {vars(_init_func)}')
+        else:
+            pass
+            # cls_dict['__init__'] = mcls.__init__(_instance, name, bases, cls_dict, **kwargs)
+
+
+        print(f'__new__ instance {_instance} end')
+        # _subinit= mcls.__init_subclass__(_instance, name, bases, cls_dict, **kwargs)
+        # print(f'__new__ sub_init {_subinit}')
+        # cls = super().__new__(mcls, name, bases, cls_dict)
+        return _instance
+            # return cls
+            
+        # else:
+            # print(f'==== no vars found for {cls.__qualname__}')
+            
+        # return super().__new__(cls)
+        # if not hasattr(cls, 'param_hints'):
+        #     print(f'subclass {cls} has not attribute param_hints')
+    @classmethod
+    def _check_for_attrs(cls, dict_, source=''):
+        _attrs_found = {}
+        if any(i in cls._ATTRS for i in dict_.keys()):
+            _attrs_found = {k: val for k,val in dict_.items() if k in cls._ATTRS
+                                       and type(val) in (str, dict)}
+            print(f'attr found in {source}: {_attrs_found}')
+            
+        if _attrs_found and source == 'vars_cls':
+            for k,val in _attrs_found.items():
+                print(f'attr {k} deleted from {cls} in {source}: {val}')
+                # delattr(cls, k)
+                setattr(cls, f'{k}_', val)
+        return cls, _attrs_found
+    
+    # def __init__(self, *args, **kwargs):
+        # print('call BasePeak __init__')
+        # super().__init__(*args, **kwargs)
+    
+    def __init__(self, name, bases, cls_dict, *args, **kwargs):
+        print(f"__init_ base ({self} called with args {args} and kwargs {kwargs})")
+        # super().__init__(self)
+        self.test_p()
+        
+        self._kwargs = kwargs
+        
+        self._name = self.__class__.__name__
+        self.peak_group = self.__module__
+        
+        for _attr in self._ATTRS:
+            if hasattr(self,f'{_attr}_'):
+                print(f"Called setattr in __init_({self}) with {_attr}")
+                setattr(self, _attr, getattr(self, f'{_attr}_'))
+        self.test_p()
+        # self.peak_name = 'default'
+        # self.peak_type = 'Lorentzian'
+        # self.param_hints = {}
+        
+        # print(f"Called __init_({self} with args {args} and kwargs {kwargs})")
+        # self.peak_model = self.make_model_and_set_param_hints()
+        
+        allowed_keys = [i for i in dir(self) 
+                        if "__" not in i 
+                        and any([j.endswith(i) for j in self.__dict__.keys()])
+                        and i not in self._intern]
+         # get a list of all predefined values directly from __dict__
+        # Update __dict__ but only for keys that have been predefined 
+        # (silently ignore others)
+        # To NOT silently ignore rejected keys
+        rejected_keys = set(kwargs.keys()) - set(allowed_keys)
+        if rejected_keys:
+            warn(f"Invalid arguments in init constructor:{rejected_keys}")
+            # raise ValueError(f"Invalid arguments in constructor:{rejected_keys}")
+        # for key, value in kwargs.items():
+        #     # Update properties, but only for keys that have been predefined 
+        #     # (silently ignore others)
+        #     if key in allowed_keys:
+        #         setattr(self, key, value)
+                # exec(f"self.{key} = '{value}'")
+        # return None
+            
+    # def __init_subclass__(cls, *args, **kwargs):
+        # print(f'__init_subclass__ {cls} started')
+        # super().__init__( *args, **kwargs)
+    #     if not hasattr(cls, '_param_hints'):
+    #         print(f'subclass {cls} has not attribute param_hints')
+        
+    #     if hasattr(cls, 'input_param_settings'):
+    #         print(f"Called __init_subclass({cls}), input_param_settings")
+    #     # print(f"Called __init_subclass({cls})")
+    #     print(f'__init_subclass__ {cls} leaving')
+        # return cls
+        # print('cls dict', cls.__dict__)
+        
+        
+        # cls.peak_model = cls.make_model_and_set_param_hints()
+        
+    def test_p(self):
+        print(f'__test_p method {self}')
+        
+    @property
+    def peak_type(self):
+        '''The peak type property should be in PEAK_TYPE_OPTIONS'''
+        return self._peak_type
+    
+    @peak_type.setter
+    def peak_type(self, value: str):
+        '''The peak type property should be in PEAK_TYPE_OPTIONS'''
+        if any([value.upper() == i.upper() for i in self.PEAK_TYPE_OPTIONS]):
+            # self.type_to_model_chooser(value)
+            self._peak_type = value
+        elif any([i.upper() in value.upper() for i in self.PEAK_TYPE_OPTIONS]):
+            _opts = [i for i in self.PEAK_TYPE_OPTIONS if i.upper() in value.upper()]
+            if len(_opts) == 1:
+                value_ = _opts[0]
+                self._peak_type = value_
+                warn(f'Peak type misspelling mistake check {value}, forgiven and fixed with {value_}', BasePeakWarning)
+            elif len(_opts) > 1:
+                raise ValueError(f'Multiple options {_opts} for misspelled value "{value}" in {self.PEAK_TYPE_OPTIONS}.')
+            else:
+                raise ValueError(f'Multiple options {_opts} for misspelled value "{value}" in {self.PEAK_TYPE_OPTIONS}.')
+        else:
+            raise ValueError(f'The value "{value}" for "peak_type" is not in {self.PEAK_TYPE_OPTIONS}.')
+    
+    @property
+    def peak_model(self):
+        '''The peak model property is constructed from peak name and param hints'''
+        # if hasattr(self, '_peak_model'):
+        return self._peak_model
+    
+    @peak_model.setter
+    def peak_model(self,value):
+        '''The peak model property is constructed from peak name and param hints'''
+        
+        if issubclass(value.__class__, Model) or value == None:
+            self._peak_model = value
+        else:
+            raise TypeError(f'Setting {value} is not of type lmfit.Model or None')
+    
+    @property
+    def param_hints(self):
+        '''The params_hints property is constructed param hints'''
+        # if hasattr(self, '_peak_model'):
+        return self._param_hints
+    
+    @param_hints.setter
+    def param_hints(self,value):
+        '''The peak model property is constructed from peak name and param hints'''
+        param_hints_ = self.param_hints_constructor(value)
+        model = self.call_make_model_from_params(param_hints_)
+        self.peak_model = model
+        self._param_hints = param_hints_
+    
+    def call_make_model_from_params(self, param_hints_):
+        prefix_= self.peak_name if hasattr(self,'peak_name') else ''
+        peak_type_ = self.peak_type if hasattr(self,'peak_type') else ''
+        model = self.make_model_and_set_param_hints(prefix_, peak_type_, param_hints_)
+        return model
+        
+    def make_model_and_set_param_hints(self, prefix_, peak_type_, param_hints_):
+        try:
+            # prefix_set = self.peak_name if hasattr(self,'peak_name') else ''
+            model = self.type_to_model_chooser(peak_type_, prefix_)
+            model = self.set_model_params_hints(model, param_hints_)
+            model._metadata= (self.__class__, prefix_, peak_type_, param_hints_)
+            # model = self.model_set_param_hints_delegator(model)
+            return model
+        except Exception as e:
+            warn(f'make model and set param hints failed \n {e}', BasePeakWarning)
+            return None
+
+    def type_to_model_chooser(self, value, prefix_):
+        model = None
+        if value:
+            _val_upp = value.upper()
+            if 'Lorentzian'.upper() in _val_upp :
+                model = LorentzianModel(prefix=prefix_)
+            elif 'Gaussian'.upper() in _val_upp :
+                model = GaussianModel(prefix=prefix_)
+            elif 'Voigt'.upper() in _val_upp :
+                model = VoigtModel(prefix=prefix_)
+            else:
+                raise NotImplementedError(f'This peak type or model "{value}" has not been implemented.')
+            # if model and hasattr(self, '_input_param_hints'):
+                # model = self.set_model_params_hints(model, self.input_param_hints)
+        return model
+
+    @property
+    def peak_name(self):
+        '''This is the name that the peak Model will get as prefix'''
+        return self._peak_name
+
+    @peak_name.setter
+    def peak_name(self, value : str, maxlen = 20):
+        '''This is the name that the peak will get as prefix'''
+        if len(value) < maxlen:
+            prefix_set = value + '_'
+            if hasattr(self,'_peak_model'):
+                try:
+                    self._peak_model.prefix = prefix_set
+                except Exception as e:
+                    warn(f'Peak name can not be set as prefix on model \n{e}', BasePeakWarning)
+            self._peak_name = value
+        else:
+            raise ValueError(f'The value "{value}" for peak_name is too long({len(value)}) (max. {maxlen}).')
+
+    # @property.getter
+    # def model_param_hints(self):
+        # '''
+        # this property  defines the initial parameters settings for the peak model.
+        # '''
+        # return self._input_param_hints
+        # TODO maybe read in param settings form eg xls file
+    # def model_set_param_hints_delegator(self, model):
+
+    #     if hasattr(self, 'param_hints'):
+    #         # params = self.param_hints_constructor(self.param_hints)
+    #         model = self.set_model_params_hints(model, params)
+    #     else:
+    #         warn('No params_hints set for this peak definition', BasePeakWarning)
+    #     return model
+    # @model_param_hints.setter
+    def param_hints_constructor(self, value):
+        '''
+        This setter validates and converts the input parameter settings (dict) argument
+        for the lmfit Parameters class.
+        '''
+        params = Parameters()
+        
+        if hasattr(self,'default_settings'):
+            try:
+                _default_params = [Parameter(k, **val) for k, val in self.default_settings.items()]
+                params.add_many(*_default_params)
+            except Exception as e:
+                raise ValueError(f'Unable to create a Parameter from default_parameters {self.default_settings}:\n{e}')
+
+        if not isinstance(value, dict):
+            raise TypeError('input_param_hints should be of type dictionary not {type(value)}')
+        else:
+            _valid_parlst = []
+            for k,val in value.items():
+                try:
+                    _par = Parameter(k, **val)
+                    _valid_parlst.append(_par)
+                except Exception as e:
+                    raise ValueError(f'Unable to create a Parameter from {k} and {val}:\n{e}')
+            if _valid_parlst:
+                try:
+                    params.add_many(*_valid_parlst)
+                except Exception as e:
+                    raise ValueError(f'Unable to add many Parameters from {_valid_parlst}:\n{e}')
+        return params
+
+    def set_model_params_hints(self, model, param_hints_):
+        _error = ''
+        if issubclass(model.__class__, Model) and issubclass(param_hints_.__class__,Parameters):
+            try:
+                for pname,par in param_hints_.items():
+                    try:
+                        _par_hint_dict = {pn:  getattr(par,pn, None) 
+                                          for pn in self._PARAM_HINTS_ARGS if getattr(par,pn, None)}
+                        # _par_hint_dict = {k: val for k, val in _par_hint_dict.items() if val}
+                        model.set_param_hint(**_par_hint_dict)
+                    except Exception as e:
+                        _error += f'Error in make_model_hints, check param_hints for {pname} with {par}, {e}'
+                # return model
+            except Exception as e:
+                _error += f'Error in make_model_hints, check param_hints \n{e}'
+        else:
+            _error += f'TypeError in make_model_hints, check {param_hints_} or {model}'
+        print(_error)
+        return model
+
+    @property
+    def name(self):
+        return self.__class__.__name__
+
+    @classmethod
+    def getfile(cls):
+        return inspect.getfile(cls)
+
+    @classmethod
+    def getmodule(cls):
+        return inspect.getmodule(cls)
+
+    def __repr__(self):
+        _repr = f'{self.__class__.__name__}'
+        if hasattr(self, 'peak_model'):
+            _repr += f', {self.peak_model.name}'
+            _param_center = self.peak_model.param_hints.get('center', {})
+            if _param_center:
+                _center_txt = ''
+                _center_val = _param_center.get('value')
+                _center_min = _param_center.get('min',_center_val)
+                if _center_min != _center_val:
+                    _center_txt += f'{_center_min} < '
+                _center_txt += f'{_center_val}'
+                _center_max = _param_center.get('max', _center_val)
+                if _center_max != _center_val:
+                    _center_txt += f' > {_center_max}'
+                _repr += f', center : {_center_txt}'
+        else:
+            _repr += ': no Model set'
+        return _repr
+
+    def print_params(self):
+        if self.peak_model:
+            self.peak_model.print_param_hints()
+        else:
+            print(f'No model set for: {self}')
+
+def clutter():
+    pass
+
+
+def ValidateInputParameterSettings(value):
+    _allowed_keys = ['center', 'sigma', 'amplitude', 'gamma']
+    
+    # if not isinstance(value, dict):
+    #      raise TypeError('input_param_hints should be of type dictionary not {type(value)}')
+    #  else:
+    #      for k,val in value.items():
+    #          k,val
+     
+    #  elif not all(isinstance(i,dict) for i in value.values()):
+    #      raise TypeError('input_param_hints should be a nested dictionary not {[type(i) i for i in value.values()])}')
+    #  elif not all('value' in i.keys() for i in value.values()):
+    #      raise ValueError('input_param_hints should be a nested dictionary with at least a "value : .." setting not {type(value)}')
+    #  elif not all(k,val for k,val in i.items() for i in value.values()):
+    #      value = {'center' : {'value' : 1571,'min' : 1545, 'max' : 1595},
+    #              'sigma' : {'value' : 30,'min' : 5, 'max' : 150},
+    #              'amplitude' : {'value' : 35,'min' : 5, 'max' : 500}}

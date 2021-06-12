@@ -1,7 +1,17 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri May 28 09:05:06 2021
-
-@author: zmg
-"""
+'''
+run commands examples
+        pytest --cov=app
+    --cov check if it is folder or package
+    pytest --cov=fizzbuzz 
+    --cov-report=term-missing
+        shows the terms that are missing
+    
+    --cov-branch branch 
+        coverage, where conditionals
+        require a double  coverage
+        
+    use # pragma: no cover
+        to iqnore coverage test for that code block
+    
+    
+'''

@@ -11,7 +11,7 @@ MODEL_DIR = PACKAGE_ROOT / "deconvolution_models"
 TESTS_DIR = PACKAGE_ROOT.parent.parent / "tests"
 
 # Home dir from pathlib.Path for storing the results
-PACKAGE_HOME = pathlib.Path.home() / '.pyramdeconv'
+PACKAGE_HOME = pathlib.Path.home() / '.pyramdeconv' # pyramdeconv for new package name
 
 DATASET_DIR = PACKAGE_HOME / "datafiles"
 RESULTS_DIR =  PACKAGE_HOME/ "results"
@@ -33,3 +33,5 @@ if LOCAL_CONFIG_FILE.is_file():
 # import configparser
 # config = configparser.ConfigParser()
 # config['DEFAULT'] = {'A': 1}
+
+    

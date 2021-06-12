@@ -7,7 +7,7 @@ else:
 
 # ====== FIRST ORDER PEAKS ======= #
 
-class G_peak(BasePeak):
+class G_peak(metaclass=BasePeak):
     '''Graphite belongs to the P63/mmc (D46h) space group. If considering only a graphene plane, at 
     the Ã point of the Brillouin zone, there are six normal modes that possess only one mode (doubly
     degenerate in plane) with a E2g representation, which is Raman active
@@ -25,32 +25,8 @@ class G_peak(BasePeak):
             'sigma': {'value': 30,'min': 5, 'max': 150},
             'amplitude': {'value': 35,'min': 5, 'max': 500}}
 
-# class AddNormalizationModel():  #TODO add this model
-
-class norm_G_peak(BasePeak):
-    '''G_peak used for normalization'''
-    
-    def __init__(self, *args, **kwargs):
-        self.peak_name = 'norm_G_peak'
-        self.peak_type = 'Lorentzian'
-        self.input_param_settings = {
-            'center' : {'value' : 1581, 'min' : 1500, 'max' : 1600},
-            'sigma' : {'value' : 40, 'min' : 1E-05, 'max' : 1E3},
-            'amplitude' : {'value' : 8E4, 'min' : 1E2}}
-    # norm_G_peak = BasePeak(peak_name=peak_name,peak_type=peak_type,input_param_settings=settings)
-
-class norm_D_peak(BasePeak):
-    ''' D_peak for normalization '''
-    
-    def __init__(self, *args, **kwargs):
-        self.peak_name='norm_D_peak'
-        self.peak_type='Lorentzian'
-        self.input_param_settings={
-            'center' : {'value' : 1350,'min' : 1300, 'max' : 1400},
-            'sigma' : {'value' : 90, 'min' : 1E-05},
-            'amplitude' : {'value' : 10E5, 'min' : 1E2}}
                            
-class D_peak(BasePeak):
+class D_peak(metaclass=BasePeak):
     ''' D or D1 ; Disordered graphitic lattice (graphene layer edges,A1gsymmetry)
     A defective graphite presents other bands that can be as intense as the G band at D=1350 and D'=1615 cm-1
     These bands are activated by defects due to the breaking of the crystal symmetry that relax the Raman selection rules.
@@ -67,7 +43,7 @@ class D_peak(BasePeak):
     
 
 
-class D2_peak(BasePeak):
+class D2_peak(metaclass=BasePeak):
     '''D2 or D' ; Right next to the G peak, sometimes not obvious as G peak split.
     Disordered graphitic lattice (surface graphene layers,E2g-symmetry)
     j.molstruc.2010.12.065
@@ -80,9 +56,9 @@ class D2_peak(BasePeak):
             'center' : {'value' : 1606,'min' : 1592, 'max' : 1635},
             'sigma' : {'value' : 30,'min' : 5, 'max' : 150},
             'amplitude' : {'value' : 35,'min' : 5, 'max' : 500}}
-        
 
-class D3_peak(BasePeak):
+
+class D3_peak(metaclass=BasePeak):
     ''' D3 or D'' or A or Am ; Between the D and G peak, sometimes too broad.
     For amorphous carbon (Gaussian[26]or Lorentzian[3,18,27]line shape).
     Für D3: 1495-1515
@@ -96,7 +72,7 @@ class D3_peak(BasePeak):
              'sigma' : {'value' : 25,'min' : 1, 'max' : 150},
              'amplitude' : {'value' : 25,'min' : 1E-02, 'max' : 500}}
 
-class D4_peak(BasePeak):
+class D4_peak(metaclass=BasePeak):
     ''' D4 or I ; Below D band, a shoulder sometimes split with D5 band.
     Disordered graphitic lattice (A1gsymmetry)[10],polyenes[3,27], ionic impurities
     D4 peak at 1212 cm−1
@@ -113,7 +89,7 @@ class D4_peak(BasePeak):
              'amplitude' : {'value' : 20,'min' : 1E-02, 'max' : 200}}
 
 
-class D5_peak(BasePeak):
+class D5_peak(metaclass=BasePeak):
     '''D5 peak at 1110 cm−1. At lowest should of D peak, below D4.
     Ref: Jurkiewicz, K., Pawlyta, M., Zygadło, D. et al. J Mater Sci (2018) 53: 3509. https://doi.org/10.1007/s10853-017-1753-7
     '''
@@ -127,7 +103,7 @@ class D5_peak(BasePeak):
              'amplitude' : {'value' : 20,'min' : 1E-02, 'max' : 200}}
 
 
-class Si1_peak(BasePeak):
+class Si1_peak(metaclass=BasePeak):
     '''===== Extra peak at ca. 960 cm-1 presumably from Si substrate 2nd order === not from Nafion...
     => Either cut the Spectra 1000-2000
     => Place an extra Gaussian peak at 960 in the fit

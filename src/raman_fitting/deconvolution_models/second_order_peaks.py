@@ -5,7 +5,7 @@ else:
     from .base_peak import BasePeak
 
 # ====== SECOND ORDER PEAKS ======= #
-class D4D4_peak(BasePeak):
+class D4D4_peak(metaclass=BasePeak):
     '''2nd order D4 peak '''
     
     def __init__(self):
@@ -16,7 +16,7 @@ class D4D4_peak(BasePeak):
                 'sigma' : {'value' : 30,'min' : 1, 'max' : 200},
                 'amplitude' : {'value' : 2,'min' : 1E-03, 'max' : 100}}
 
-class D1D1_peak(BasePeak):
+class D1D1_peak(metaclass=BasePeak):
     '''2nd order D(1) peak, aka 2D
     2450 cm􀀀1 band, which has been attributed recently to a D + D” 
     band by Couzi et al. [61], the D + D’ (in literature, the wrong D + G label is often found [62]), the
@@ -32,7 +32,7 @@ class D1D1_peak(BasePeak):
             'sigma' : {'value' : 60,'min' : 1, 'max' : 200},
             'amplitude' : {'value' : 14,'min' : 1E-03, 'max' : 100}}
 
-class GD1_peak(BasePeak):
+class GD1_peak(metaclass=BasePeak):
     '''2nd order G+D(1) peak '''
 #        D2D2_mod = VoigtModel(prefix='D2D2_')
     def __init__(self):
@@ -44,7 +44,7 @@ class GD1_peak(BasePeak):
             'amplitude' : {'value' : 10,'min' : 1E-03, 'max' : 100}}
 
 
-class D2D2_peak(BasePeak):
+class D2D2_peak(metaclass=BasePeak):
     '''2nd order D2 peak, aka 2D2'''
 #        D2D2_mod = VoigtModel(prefix='D2D2_')
     

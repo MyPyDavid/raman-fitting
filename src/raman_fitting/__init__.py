@@ -61,8 +61,9 @@ del hard_dependencies, soft_dependencies, dependency, missing_dependencies
 # Other user-facing functions
 from .api import *
 
-# TODO list
+# TODO list:
 # TODO add setup.cfg
+# TODO add unittests
 # TODO add README.rstpy
 # TODO add project.toml
 # TODO improve logger
