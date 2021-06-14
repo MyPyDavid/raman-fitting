@@ -1,5 +1,5 @@
 
-if __name__ == '__main__' or __name__ == 'first_order_peaks':
+if __name__ == '__main__': # or __name__ == 'first_order_peaks':
     from base_peak import BasePeak
 else:
     from .base_peak import BasePeak
@@ -8,7 +8,7 @@ else:
 # ====== FIRST ORDER PEAKS ======= #
 
 class G_peak(metaclass=BasePeak):
-    '''Graphite belongs to the P63/mmc (D46h) space group. If considering only a graphene plane, at 
+    '''Graphite belongs to the P63/mmc (D46h) space group. If considering only a graphene plane, at
     the Ã point of the Brillouin zone, there are six normal modes that possess only one mode (doubly
     degenerate in plane) with a E2g representation, which is Raman active
     G ; Ideal graphitic lattice (E2g-symmetry)
@@ -16,7 +16,7 @@ class G_peak(metaclass=BasePeak):
     magnetic fields, pressure
     Für G: 1580-1590 D5 und D2 weiß ich nicht
     '''
-    
+
     def __init__(self):
         self.peak_type = 'Lorentzian'
         self.peak_name ='G'
@@ -25,12 +25,12 @@ class G_peak(metaclass=BasePeak):
             'sigma': {'value': 30,'min': 5, 'max': 150},
             'amplitude': {'value': 35,'min': 5, 'max': 500}}
 
-                           
+
 class D_peak(metaclass=BasePeak):
     ''' D or D1 ; Disordered graphitic lattice (graphene layer edges,A1gsymmetry)
     A defective graphite presents other bands that can be as intense as the G band at D=1350 and D'=1615 cm-1
     These bands are activated by defects due to the breaking of the crystal symmetry that relax the Raman selection rules.
-    Für D1: 1340-1350 
+    Für D1: 1340-1350
     '''
 
     def __init__(self):
@@ -40,7 +40,7 @@ class D_peak(metaclass=BasePeak):
             'center' : {'value' : 1350,'min' : 1330, 'max' : 1380},
             'sigma' : {'value' : 35,'min' : 1, 'max' : 150},
             'amplitude' : {'value' : 120,'min' : 1E-05, 'max' : 500}}
-    
+
 
 
 class D2_peak(metaclass=BasePeak):
@@ -63,7 +63,7 @@ class D3_peak(metaclass=BasePeak):
     For amorphous carbon (Gaussian[26]or Lorentzian[3,18,27]line shape).
     Für D3: 1495-1515
     '''
-    
+
     def __init__(self):
         self.peak_type = 'Lorentzian'
         self.peak_name ='D3'
@@ -93,7 +93,7 @@ class D5_peak(metaclass=BasePeak):
     '''D5 peak at 1110 cm−1. At lowest should of D peak, below D4.
     Ref: Jurkiewicz, K., Pawlyta, M., Zygadło, D. et al. J Mater Sci (2018) 53: 3509. https://doi.org/10.1007/s10853-017-1753-7
     '''
-    
+
     def __init__(self):
         self.peak_type = 'Lorentzian'
         self.peak_name ='D5'

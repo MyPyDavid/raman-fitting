@@ -22,12 +22,13 @@ _file_parent_name = Path(__file__).parent.name
 print(__name__,__file__,f'name: {_file_parent_name}')
 
 if __name__ == '__main__': #or _file_parent_name == 'deconvolution_models':
-    from base_peak import BasePeak
+
     import first_order_peaks
     import second_order_peaks
     import normalization_peaks
+    from .base_peak import BasePeak
 else:
-    from . base_peak import BasePeak
+    from .base_peak import BasePeak
     from . import first_order_peaks
     from . import second_order_peaks
     from . import normalization_peaks
