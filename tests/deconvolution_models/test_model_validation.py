@@ -1,18 +1,24 @@
 # flake8: noqa
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri May 14 09:18:02 2021
 
-@author: zmg
-"""
+import unittest
 import pytest
 
+import raman_fitting
+from raman_fitting.deconvolution_models.model_validation import PeakModelValidator
 
-# from raman_fitting.deconvolution_models.model_validation import Peak_Collection
+from lmfit import Model
 
 
-def _testing():
-    mc = Peak_Collection()
-    self = mc
-    self.lmfit_models
+
+
+
+class TestPeakModelValidator(unittest.TestCase):
+    
+    def _testing():
+        peaks = PeakModelValidator()
+        
+        assert peaks.lmfit_models
+        
+        all([isinstance(i.peak_model, Model) for i in peaks.lmfit_models])
+        all([isinstance(i.peak_model, Model) for i in peaks.get_dict().values()])
+        
