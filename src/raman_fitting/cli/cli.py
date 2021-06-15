@@ -7,8 +7,7 @@ import argparse
 
 # def _testing():
 #     args = parser.parse_args(['-M', 'debug'])
-def cli_run_choices():
-    return ['normal','testing','debug', 'make_index']
+RUN_MODES = ['normal','testing','debug', 'make_index']
 
 
 def main():
@@ -25,7 +24,7 @@ def main():
     parser.add_argument(
         '-M', '--run-mode',
         type=str,
-        choices=cli_run_choices(),
+        choices=RUN_MODES,
         help='running mode of package, for testing',
         default='normal'
     )

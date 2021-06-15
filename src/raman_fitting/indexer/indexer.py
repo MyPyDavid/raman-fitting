@@ -206,4 +206,4 @@ if __name__ == "__main__":
     try:
         RamanIndex = MakeRamanFilesIndex()
     except Exception as e:
-        _logger.error(f'Raman Index error: {e}')
+        logger.error(f'Raman Index error: {e}')
