@@ -1,9 +1,11 @@
+''' Default peaks used for 1st order deconvolution'''
 
-if __name__ == '__main__': # or __name__ == 'first_order_peaks':
-    from base_peak import BasePeak
+if __name__ == '__main__':
+    from raman_fitting.deconvolution_models.base_peak import BasePeak
 else:
     from .base_peak import BasePeak
 
+__all__ = ['G_peak', 'D_peak', 'D2_peak', 'D3_peak', 'D5_peak', 'Si1_peak']
 
 # ====== FIRST ORDER PEAKS ======= #
 

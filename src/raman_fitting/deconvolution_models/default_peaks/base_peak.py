@@ -11,13 +11,14 @@ from lmfit.models import VoigtModel,LorentzianModel, GaussianModel, Model
 from lmfit import Parameter,Parameters
 # from lmfit import CompositeModel
 
-print('name: ',__name__,'file: ', __file__)
+print('name: ',__name__,'file: ', __file__, __package__)
 
 if __name__ in ('__main__'): #'base_peak'
-    from ..utils.coordinators import FieldsCoordinator
+    from raman_fitting.utils.coordinators import FieldsCoordinator
 else:
-    from ..utils.coordinators import FieldsCoordinator
+    from ...utils.coordinators import FieldsCoordinator
 
+# __all__ = [Base]
 
 class BasePeakWarning(UserWarning): # pragma: no cover
     pass
@@ -53,9 +54,8 @@ class BasePeak(type):
 
         if 'debug' in kwargs.keys():
             if kwargs.get('debug', False):
-
                 print(f'__prepare ,name {name}, bases{bases}, kwargs {kwargs}')
-        kwargs.update({'debug': False}) # FIXME check debug
+        # kwargs.update({'debug': False})
         return kwargs
 
     def __new__(mcls, name, bases, cls_dict, **kwargs):

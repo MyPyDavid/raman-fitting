@@ -1,13 +1,16 @@
 
-if __name__ == '__main__' or __name__ == 'second_order_peaks':
-    from base_peak import BasePeak # for testing purposes
+
+if __name__ == '__main__':
+    from raman_fitting.deconvolution_models.base_peak import BasePeak
 else:
     from .base_peak import BasePeak
+
+__all__ = ['D4D4_peak', 'D1D1_peak', 'GD1_peak', 'D2D2_peak']
 
 # ====== SECOND ORDER PEAKS ======= #
 class D4D4_peak(metaclass=BasePeak):
     '''2nd order D4 peak '''
-    
+
     def __init__(self):
         self.peak_type = 'Lorentzian'
         self.peak_name ='D4D4'
@@ -18,12 +21,12 @@ class D4D4_peak(metaclass=BasePeak):
 
 class D1D1_peak(metaclass=BasePeak):
     '''2nd order D(1) peak, aka 2D
-    2450 cm􀀀1 band, which has been attributed recently to a D + D” 
+    2450 cm􀀀1 band, which has been attributed recently to a D + D”
     band by Couzi et al. [61], the D + D’ (in literature, the wrong D + G label is often found [62]), the
     2D’ bands and the 2D + G band.
     1627 and 2742 cm􀀀1 bands as the D’ and 2D
     '''
-    
+
     def __init__(self):
         self.peak_type = 'Lorentzian'
         self.peak_name ='D1D1'
@@ -47,7 +50,7 @@ class GD1_peak(metaclass=BasePeak):
 class D2D2_peak(metaclass=BasePeak):
     '''2nd order D2 peak, aka 2D2'''
 #        D2D2_mod = VoigtModel(prefix='D2D2_')
-    
+
     def __init__(self):
         self.peak_type = 'Lorentzian'
         self.peak_name ='D2D2'

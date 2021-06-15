@@ -1,10 +1,11 @@
 ''' Peaks used for normalization'''
 
-if __name__ in ('__main__', 'normalization_peaks'):
-    from base_peak import BasePeak
+if __name__ == '__main__':
+    from raman_fitting.deconvolution_models.base_peak import BasePeak
 else:
     from .base_peak import BasePeak
 
+__all__ = ['norm_G_peak', 'norm_D_peak']
 # ====== PEAKS USED FOR NORMALIZATION ======= #
 
 class norm_G_peak(metaclass=BasePeak):
@@ -29,4 +30,3 @@ class norm_D_peak(metaclass=BasePeak):
             'center': {'value': 1350,'min': 1300, 'max': 1400},
             'sigma': {'value': 90, 'min': 1E-05},
             'amplitude': {'value': 10E5, 'min': 1E2}}
-        

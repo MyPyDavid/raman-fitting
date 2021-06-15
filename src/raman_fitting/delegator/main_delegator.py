@@ -1,8 +1,11 @@
 # pylint: disable=W0614,W0401,W0611,W0622,C0103,E0401,E0402
-
+import sys
 from pathlib import Path
 from itertools import starmap
 
+import logging
+
+logger = logging.getLogger('pyramdeconv')
 
 if __name__ == "__main__":
     from indexer.indexer import MakeRamanFilesIndex
@@ -20,9 +23,18 @@ else:
     from ..processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
     from ..deconvolution_models.fit_models import InitializeModels, Fitter
     from ..export.exporter import Exporter
+
     # from ..config import config
     # from raman_fitting.indexer.indexer import OrganizeRamanFiles
     # from raman_fitting.processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
+
+class prdError(Exception):
+    """Base error raised by pyramdeconv."""
+
+
+class MainDelegatorError(prdError):
+    """ Raised when a method in the main delegator fails."""
+
 
 
 class MainDelegator():
@@ -34,26 +46,41 @@ class MainDelegator():
     Creates plots and files in the config RESULTS directory.
     '''
 
+    DEFAULT_RUN_MODE = {'run_mode' : 'normal'}
+    _kwargs = {}
+
     def __init__(self, **kwargs ):
+        # print(f'{self} kwargs:', kwargs)
         self._kwargs = kwargs
+
+        self.run_mode = kwargs.get('run_mode', self.DEFAULT_RUN_MODE['run_mode'])
+
+        # print(f'{self} SECOND, {kwargs.keys()}')
+
         self.spectrum = SpectrumTemplate()
         # self.index = RamanIndex
-        self.set_default_run_mode()
-        self.index_delegator()
+
         self.run_delegator()
 
-    def set_default_run_mode(self):
-        if 'run_mode' not in self._kwargs.keys():
+    def set_default_run_mode(self, **kwargs):
+        # logger.warning(f'{self} warning "run_mode" not in keywords of {", ".join(map(str,kwargs.keys()))}')
+        return kwargs['run_mode']
+
+    def other(self):
+        if 'run_mode' not in kwargs.keys():
+            logger.warning(f'{self} warning "run_mode" not in keywords of {kwargs.keys()}')
             # TODO maybe give warning or raise Error
-            self._kwargs.update({'run_mode' : 'normal'})
+            kwargs.update(self.DEFAULT_RUN_MODE)
             # care default setting
-        _run_mode = self._kwargs.get('run_mode', 'normal')
-        self.run_mode = _run_mode
+        return kwargs['run_mode']
 
     def index_delegator(self):
-        _make_rf_index = MakeRamanFilesIndex(**self._kwargs)
-        self._make_rf_index = _make_rf_index
-        self.index = _make_rf_index.index_selection
+        RF_index = MakeRamanFilesIndex(**self._kwargs)
+        logger.info(f'{self} index prepared with len {len(RF_index)}')
+        return RF_index
+        # self._make_rf_index = _make_rf_index
+        # return _make_rf_index
+
 
     def test_positions(self, sGrp_grp,nm, grp_cols = ['FileStem','SamplePos','FilePath']):
 #        grp_cols = ['FileStem','SamplePos','FileCreationDate']
@@ -79,7 +106,7 @@ class MainDelegator():
                        'DestFittingComps' : dest_fit_comps,
                        'DestRaw' : dest_raw_data_dir
                        }
-        return export_info 
+        return export_info
 
     def run_delegator(self):
         # TODO remove self.set_models() removed InitModels
@@ -87,36 +114,62 @@ class MainDelegator():
         self.export_collect = []
 
         # assert type(self.index) == type(pd.DataFrame())
-        if self.run_mode == 'normal':
-            if not self.index.empty:
-                self._run_gen()
-            else:
-                pass
+        if self.run_mode in ('normal', 'DEBUG', 'make_index') :
+            RF_indexer = self.index_delegator()
+            self.index = RF_indexer.index_selection
+
+            if self.run_mode == 'make_index':
+                 logger.warning(f'Debug run mode {self}. Index loaded and Models initialized {RF_indexer}')
+                 sys.exit(0)
+
+            models = self.initialize_models()
+
+            if self.run_mode == 'normal':
+                if not self.index.empty:
+                    self._run_gen()
+                else:
+                    pass
                 # info raman loop finished because index is empty
-        elif 'DEBUG' in self.run_mode:
-            try:
-                # self._run_gen() # TODO add extra test runs in tests dir
-                pass
-            except Exception as e:
-                print('Error in DEBUG run: ', e)
+            elif self.run_mode == 'DEBUG':
+                logger.info(f'Debug run mode {self}. Models initialized {models}')
+
+                try:
+                    # self._run_gen() # TODO add extra test runs in tests dir
+                    pass
+                except Exception as e:
+                     raise MainDelegatorError(
+                         "The debug run failed. "
+                         f" on {self} because {e}"
+                         )
+                    # raise('Error in DEBUG run: ', e)
+            else:
+                logger.warning(f'Debug run mode {self.run_mode} not recognized')
             # TODO get testing from index and run
             pass
         else:
+            logger.warning(f'Debug run mode "{self.run_mode}" not recognized not in ')
             pass # warning run mode not understood
 
-    def initialized_models(self):
-        return InitializeModels()
-    
+    def initialize_models(self):
+        try:
+            return InitializeModels()
+        except Exception as e:
+            raise MainDelegatorError(
+                "The initialization of models failed. "
+                f" on {self}"
+                )
+            return None
+
     def sample_group_gen(self):
         ''' Generator for Sample Groups, yields the name of group and group of the index SampleGroup'''
-        for grpnm, sGrp_grp in self.index.groupby(self.spectrum.grp_names.sGrp_cols[0]): # Loop over SampleGroups 
+        for grpnm, sGrp_grp in self.index.groupby(self.spectrum.grp_names.sGrp_cols[0]): # Loop over SampleGroups
             yield grpnm, sGrp_grp
-            
+
     def _sID_gen(self,grpnm, sGrp_grp):
         ''' Generator for SampleIDs, yields the name of group, name of SampleID and group of the index of the SampleID'''
         for nm, sID_grp in sGrp_grp.groupby(list(self.spectrum.grp_names.sGrp_cols[1:])):# Loop over SampleIDs within SampleGroup
                 yield (grpnm, nm, sID_grp)
-    
+
     def _run_gen(self):
         # sort of coordinator coroutine, can implement still deque
         _mygen = self._generator()
@@ -128,15 +181,15 @@ class MainDelegator():
                 break
             finally:
                 Exporter(self.export_collect) # clean up and export
-        
+
     def _generator(self):
-    
+
         _sgrpgen = self.sample_group_gen()
         for grpnm, sGrp_grp in _sgrpgen:
             _sID_gen = self._sID_gen(grpnm, sGrp_grp)
             try:
                 yield from starmap(self.process_sample_wrapper, _sID_gen)
-            
+
             except GeneratorExit:
                 print('Generator closed')
                 return
@@ -152,7 +205,7 @@ class MainDelegator():
 
     def process_sample(self, *args):
         grpnm, nm, sID_grp = args
-        sGr, (sID, sDate) = grpnm, nm 
+        sGr, (sID, sDate) = grpnm, nm
         sGr_out = dict(zip(self.spectrum.grp_names.sGrp_cols, (grpnm,) + nm))
         export_info_out = self.add_make_destdirs(sID_grp)
         sample_pos_grp, sPos_cols = self.test_positions(sID_grp, nm, list(self.spectrum.grp_names.sPos_cols))
@@ -169,3 +222,5 @@ class MainDelegator():
         ft = Fitter(spectra_collection, RamanModels=self.initialized_models())
         rex = Exporter(ft)
         self.export_collect.append(rex)
+    def __repr__(self):
+        return f'Maindelegator: {", ".join([f"{k} = {str(val)}" for k,val in self._kwargs.items()])}'

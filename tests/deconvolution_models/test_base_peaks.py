@@ -5,7 +5,7 @@ import pytest
 
 # from raman_fitting.deconvolution_models import first_order_peaks
 import raman_fitting
-from raman_fitting.deconvolution_models.base_peak import BasePeak, BasePeakWarning
+from raman_fitting.deconvolution_models.default_peaks.base_peak import BasePeak, BasePeakWarning
 
 
 #%%

@@ -7,20 +7,20 @@ from lmfit import Model
 _SUBSTRATE_PEAK = 'Si1_peak'
 
 if __name__ == '__main__':
-    from model_validation import PeakModelValidator
+    from peak_validation import PeakModelValidator
 else:
-    from .model_validation import PeakModelValidator
+    from .peak_validation import PeakModelValidator
 
 #%%
 
 # ====== InitializeMode======= #
 class InitializeModels():
-    ''' 
+    '''
     This class will initialize and validate the different fitting models.
     The models are of type lmfit.model.CompositeModel and stored in a dict with names
     for the models as keys.
     '''
-    
+
     _standard_1st_order_models = {
                             '2peaks' : 'G+D',
                             '3peaks' : 'G+D+D3',
@@ -32,27 +32,27 @@ class InitializeModels():
                         '2nd_4peaks' : 'D4D4+D1D1+GD1+D2D2'
                         }
     def __init__(self, standard_models = True):
-        
+
         try:
             self.peak_collection = PeakModelValidator()
         except Exception:
             warn('{self.__class__.__name__} failure in PeakModelValidator initialization')
             self.peak_collection = []
-        
-        self.construct_standard_models()    
+
+        self.construct_standard_models()
         # self.normalization_model = self.peak_collection.normalization
 
     def construct_standard_models(self):
-        
+
         _models = {}
-        _models_1st = {f'1st_{key}' : BaseModel(peak_collection = self.peak_collection, model_name=value) 
+        _models_1st = {f'1st_{key}' : BaseModel(peak_collection = self.peak_collection, model_name=value)
                        for key,value in self._standard_1st_order_models.items()}
         _models.update(_models_1st)
         _models_1st_no_substrate = {f'1st_{key}' : BaseModel(peak_collection = self.peak_collection, model_name=value)
                                     for key,value in self._standard_1st_order_models.items()}
         _models.update(_models_1st_no_substrate)
         self.first_order = {**_models_1st, **_models_1st_no_substrate}
-        
+
         _models_2nd = {key : BaseModel(peak_collection = self.peak_collection, model_name=value)
                        for key,value in self._standard_2nd_order_models.items()}
         _models.update(_models_2nd)
@@ -65,26 +65,26 @@ class BaseModelWarning(UserWarning):
 
 
 class BaseModel():
-    ''' 
+    '''
     This Model class combines the collection of valid peaks from BasePeak into a regression model of type lmfit.model.CompositeModel
     that is compatible with the lmfit Model and fit functions.
     The model_name, include_substrate and lmfit_model attributes are kept consistent w.r.t. their meaning when they are set.
-    
+
     Parameters
     --------
         model_name: string ==> is converted to lmfit Model object
         include_substrate: bool ==> toggle between True and False to include a substrate peak
-        
+
     '''
     _SEP = '+'
     _SUFFIX = '_peak'
-    
+
     # TODO change include substrate to  has substrate and remove from init
-    def __init__(self, 
+    def __init__(self,
                  model_name: str = '',
                  peak_collection=PeakModelValidator(),
                  substrate_peak_name: str = _SUBSTRATE_PEAK):
-        
+
         self.peak_collection = peak_collection
         self.peak_options = self.set_peak_options()
         self.substrate_peak_name = substrate_peak_name
@@ -92,7 +92,7 @@ class BaseModel():
         # has_substrate: bool = False,
         self._substrate_name= self.substrate_peak_name.split(self._SUFFIX)[0]
         self.model_name = model_name
-        
+
         self.lmfit_model = self.model_constructor_from_model_name(self.model_name)
         # self.model_constructor()
         # self.peak_dict = self.peak_collection.get_dict()
@@ -129,9 +129,9 @@ class BaseModel():
         _has = False
         if hasattr(self,'model_name'):
             _has = self.name_contains_substrate(self.model_name)
-        
+
         return _has
-    
+
     @has_substrate.setter
     def has_substrate(self, value):
         # _hasattr_model = hasattr(self, 'model')
@@ -144,14 +144,14 @@ class BaseModel():
         #     self._equalize_name_choice(None, _choice)
         #     self._include_substrate = _choice
         # self._include_substrate = _choice
-        
+
     def name_contains_substrate(self, _name):
         ''' Checks if name contains the substrate name, returns bool'''
         _name_contains_any = False
         if type(_name) == str:
             _name_contains_any = any(i == self._substrate_name for i in _name.split('+'))
         return _name_contains_any
-    
+
     def remove_substrate(self):
         if hasattr(self, 'model_name'):
             _name = self.model_name
@@ -161,7 +161,7 @@ class BaseModel():
                 if _new_name != _name:
                     self.model_name = _new_name
         # return _name
-    
+
     def add_substrate(self):
         if hasattr(self, 'model_name'):
             _name = self.model_name
@@ -170,7 +170,7 @@ class BaseModel():
                 if _new_name != _name:
                     self.model_name = _new_name
         # return _name
-    
+
     def validate_model_name_input(self, value):
         ''' checks if given input name is valid'''
         if not type(value) == str:
@@ -187,25 +187,25 @@ class BaseModel():
             if not _splitname or not any(bool(i) for i in _splitname):
                 raise ValueError(f'The split with sep "+" of name {value} is empty')
             else:
-                return '+'.join([i for i in _splitname if i]) 
+                return '+'.join([i for i in _splitname if i])
 
     def model_constructor_from_model_name(self, _name):
         ''' Construct a lmfit.Model from the string model name'''
-        
+
         _discarded_terms = []
         _peak_names = []
         if _name:
-            for _peak in _name.split(self._SEP): # filter model name for last time 
+            for _peak in _name.split(self._SEP): # filter model name for last time
                 _peak_from_opts = self.peak_options.get(_peak,None)
                 if _peak_from_opts:
                     _peak_names.append(_peak_from_opts)
                 else:
                     _discarded_terms.append(_peak)
-     
+
         _peak_models = [self.peak_collection.model_dict.get(i) for i in _peak_names if i]
         if _discarded_terms:
             warn(f'Model evalution for "{_name}" discarded terms {",".join(_discarded_terms)} => clean: {_peak_names}', BaseModelWarning)
-        
+
         if not _peak_models:
             _lmfit_model = None
         elif len(_peak_models) == 1:
@@ -229,15 +229,15 @@ class BaseModel():
         return _lmfit_model
 
     def __repr__(self):
-        
+
         _choice = 'no' if not self.has_substrate else 'yes'
         _txt = f'name: {self.model_name}, substrate ({_choice}): '
         if hasattr(self,'lmfit_model'):
-            _txt += '\n'+repr(self.lmfit_model)    
+            _txt += '\n'+repr(self.lmfit_model)
         else:
             _txt += 'empty model'
         return _txt
-    
+
     # def _0equalize_from_model_name(self,_name):
     #     pass
     # def _0equalize_from_incl_substrate(self,_choice):
@@ -266,7 +266,7 @@ class BaseModel():
     #         _substr_name = self.substrate_peak_name.split(self._SUFFIX)[0]
     #         warn(f'\n{self.__class__.__name__} include substrate is set to {_choice} so "{_substr_name}" is removed from {_name}.\n',BaseModelWarning)
     #         _name = '+'.join(i for i in _name.split('+') if i not in _substr_name)  # remove substr name
-            
+
     # def _0add_or_rem_substrate_to_model_name(self, _choice, _name):
     #     _substr_name = self.substrate_peak_name.split(self._SUFFIX)[0]
     #     _contains = self._name_contains_substrate(_name)
@@ -276,4 +276,3 @@ class BaseModel():
     #         warn(f'\n{self.__class__.__name__} include substrate is set to {_choice} so "{_substr_name}" is removed from {_name}.\n',BaseModelWarning)
     #         _name = '+'.join(i for i in _name.split('+') if i not in _substr_name)  # remove substr name
     #     return _name
-

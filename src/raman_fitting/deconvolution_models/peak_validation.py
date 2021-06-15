@@ -22,31 +22,33 @@ _file_parent_name = Path(__file__).parent.name
 print(__name__,__file__,f'name: {_file_parent_name}')
 
 if __name__ == '__main__': #or _file_parent_name == 'deconvolution_models':
-
-    import first_order_peaks
-    import second_order_peaks
-    import normalization_peaks
-    from .base_peak import BasePeak
+    # import first_order_peaks
+    # import second_order_peaks
+    # import normalization_peaks
+    from default_peaks import BasePeak
 else:
-    from .base_peak import BasePeak
-    from . import first_order_peaks
-    from . import second_order_peaks
-    from . import normalization_peaks
+    from .default_peaks.base_peak import BasePeak
+    # from . import first_order_peaks
+    # from . import second_order_peaks
+    # from . import normalization_peaks
+
+
+
+#%%
 
 class NotFoundAnyModelsWarning(UserWarning):
     pass
 class CanNotInitializeModelWarning(UserWarning):
     pass
 
-#%%
 class PeakModelValidator():
     '''
     This class collects all BasePeak type classes, which are costum lmfit type models, and
     constructs an iterable collection of all defined.
     '''
 
-    _standard_modules = [first_order_peaks, second_order_peaks, normalization_peaks]
-    _base_model = BasePeak
+    # _standard_modules = [first_order_peaks, second_order_peaks, normalization_peaks]
+    BASE_PEAK = BasePeak
 
     _modvalid = namedtuple('ModelValidation', 'valid peak_group model_inst message')
 
@@ -86,22 +88,23 @@ class PeakModelValidator():
         return _debug
 
     def find_inspect_models(self):
-        _all_subclasses = self._base_model.subclasses
+        _all_subclasses = self.BASE_PEAK.subclasses
         self._inspect_modules_all = _all_subclasses
         # [cl for i in (inspect.getmembers(mod, inspect.isclass)
                                 # for mod in self._standard_modules)
                                      # for cl in i]
         self._inspect_models = _all_subclasses
                                 # [a for a in _all_subclasses
-                                # if issubclass(a,self._base_model)
-                                # and a is not self._base_model]
+                                # if issubclass(a,self.BASE_PEAK)
+                                # and a is not self.BASE_PEAK]
         self._inspect_models_grpby = groupby(self._inspect_models, key=lambda x:x.__module__)
 
         if not self._inspect_modules_all:
-            warn(f'\nNo classes were found in inspected modules:\n {", ".join(self._standard_modules)}\n', NotFoundAnyModelsWarning)
+            warn(f'\nNo classes were found in inspected modules:\n', NotFoundAnyModelsWarning)
+            # {", ".join(self._standard_modules)}
         elif not self._inspect_models:
             warn(f'\nNo base models were found in:\n {", ".join([str(i) for i in self._inspect_modules_all])}.\n', NotFoundAnyModelsWarning)
-        # assert self._inspect_models, 'inspect.getmembers found 0 models, change the search parameters for _standard_modules or _base_model'
+        # assert self._inspect_models, 'inspect.getmembers found 0 models, change the search parameters for _standard_modules or BASE_PEAK'
 
     def validation_inspect_models(self):
         _model_validations = []
@@ -143,7 +146,7 @@ class PeakModelValidator():
         ''' Sorting the selected valid models for color assigment etc..'''
         _sorted = value
         try:
-            _setting_key = [i for i in self._base_model._fields if 'param_hints' in i]
+            _setting_key = [i for i in self.BASE_PEAK._fields if 'param_hints' in i]
             if value:
                 if _setting_key:
                     _sorted = sorted(value, key= lambda x: getattr(x.model_inst,_setting_key[0]).get('center',0))
@@ -170,7 +173,7 @@ class PeakModelValidator():
             warn(f'{_err}', CanNotInitializeModelWarning)
             return (False, value, _err)
 
-        for field in self._base_model._fields:
+        for field in self.BASE_PEAK._fields:
             if not hasattr( _inst,field):
                 return (False, value,'instance {_inst} has no attr {field}.\n')
             if not getattr(_inst, field):

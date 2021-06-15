@@ -17,7 +17,7 @@ import sys
 import warnings
 
 # Configure logger for use in package
-logger = logging.getLogger('raman_fitting')
+logger = logging.getLogger('pyramdeconv')
 logger.setLevel(logging.DEBUG)
 # from raman_fitting.config import logging_config
 # logger.addHandler(logging_config.get_console_handler())
@@ -25,7 +25,7 @@ logger.setLevel(logging.DEBUG)
 
 # create console handler
 ch = logging.StreamHandler(stream=sys.stdout)
-ch.setLevel(logging.INFO)
+ch.setLevel(logging.DEBUG)
 
 # add the handlers to the logger
 logger.addHandler(ch)
@@ -68,4 +68,3 @@ from .api import *
 # TODO add project.toml
 # TODO improve logger
 # TODO PLAN: to run the fitting > daemonize for using the package and dropping files in the datafiles folder
-
