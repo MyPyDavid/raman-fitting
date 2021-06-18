@@ -4,6 +4,10 @@ from warnings import warn
 
 from lmfit import Model
 
+import logging
+logger = logging.getLogger('pyramdeconv')
+
+
 _SUBSTRATE_PEAK = 'Si1_peak'
 
 if __name__ == '__main__':
@@ -32,15 +36,24 @@ class InitializeModels():
                         '2nd_4peaks' : 'D4D4+D1D1+GD1+D2D2'
                         }
     def __init__(self, standard_models = True):
+        self._cqnm = self.__class__.__name__
 
-        try:
-            self.peak_collection = PeakModelValidator()
-        except Exception:
-            warn('{self.__class__.__name__} failure in PeakModelValidator initialization')
-            self.peak_collection = []
+        self.peak_collection = self.get_peak_collection(PeakModelValidator)
 
+        self.all_models = {}
         self.construct_standard_models()
         # self.normalization_model = self.peak_collection.normalization
+
+    def get_peak_collection(self, func):
+        try:
+            peak_collection = func()
+            logger.warning(f'{self._cqnm} collection of peaks validated:\n{peak_collection}')
+
+        except Exception:
+            logger.warning(f'{self._cqnm} failure in PeakModelValidator initialization')
+            peak_collection = []
+        return peak_collection
+
 
     def construct_standard_models(self):
 
@@ -58,6 +71,11 @@ class InitializeModels():
         _models.update(_models_2nd)
         self.second_order = _models_2nd
         self.all_models = _models
+
+    def __repr__(self):
+        _t = '\n'.join(map(str,self.all_models.values()))
+        return _t
+
 
 
 class BaseModelWarning(UserWarning):
@@ -231,9 +249,9 @@ class BaseModel():
     def __repr__(self):
 
         _choice = 'no' if not self.has_substrate else 'yes'
-        _txt = f'name: {self.model_name}, substrate ({_choice}): '
+        _txt = f'{self.model_name}, substrate ({_choice}): '
         if hasattr(self,'lmfit_model'):
-            _txt += '\n'+repr(self.lmfit_model)
+            _txt += '\n\t' + repr(self.lmfit_model)
         else:
             _txt += 'empty model'
         return _txt

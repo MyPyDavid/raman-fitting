@@ -1,6 +1,9 @@
 import pathlib
 
-from .logging_config import get_console_handler
+# from .logging_config import get_console_handler
+import logging
+
+logger = logging.getLogger('pyramdeconv')
 
 # import pandas as pd
 # pd.options.display.max_rows = 10
@@ -8,17 +11,20 @@ from .logging_config import get_console_handler
 
 PACKAGE_ROOT = pathlib.Path(__file__).resolve().parent.parent
 MODEL_DIR = PACKAGE_ROOT / "deconvolution_models"
-TESTS_DIR = PACKAGE_ROOT.parent.parent / "tests"
+
+TESTS_ROOT_DIR = PACKAGE_ROOT.parent.parent / "tests"
+TESTS_DATASET_DIR = TESTS_ROOT_DIR / "test_data"
+TESTS_RESULTS_DIR = TESTS_ROOT_DIR / "test_results"
 
 # Home dir from pathlib.Path for storing the results
-PACKAGE_HOME = pathlib.Path.home() / '.pyramdeconv' # pyramdeconv for new package name
+PACKAGE_HOME = pathlib.Path.home() / ".pyramdeconv" # pyramdeconv is the new version package name
 
 DATASET_DIR = PACKAGE_HOME / "datafiles"
 RESULTS_DIR =  PACKAGE_HOME/ "results"
 # Storage file of the index
-INDEX_FILE = RESULTS_DIR / 'index.csv'
+INDEX_FILE = RESULTS_DIR / "index.csv"
 # Optional local configuration file
-LOCAL_CONFIG_FILE = PACKAGE_HOME / 'local_config.py'
+LOCAL_CONFIG_FILE = PACKAGE_HOME / "local_config.py"
 
 
 # ADAPT to your own configurations
@@ -33,5 +39,3 @@ if LOCAL_CONFIG_FILE.is_file():
 # import configparser
 # config = configparser.ConfigParser()
 # config['DEFAULT'] = {'A': 1}
-
-    

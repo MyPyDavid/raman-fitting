@@ -4,7 +4,6 @@ from pathlib import Path
 from itertools import starmap, repeat
 
 import logging
-
 logger = logging.getLogger('pyramdeconv')
 
 if __name__ == "__main__":
@@ -14,7 +13,7 @@ if __name__ == "__main__":
     from processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
     from deconvolution_models.fit_models import InitializeModels, Fitter
     from export.exporter import Exporter
-    # from config import config
+    from config import config
 
 else:
     from ..indexer.indexer import MakeRamanFilesIndex
@@ -24,8 +23,8 @@ else:
     from ..deconvolution_models.fit_models import InitializeModels, Fitter
     from ..export.exporter import Exporter
     from ..cli.cli import RUN_MODES
+    from ..config import config
 
-    # from ..config import config
     # from raman_fitting.indexer.indexer import OrganizeRamanFiles
     # from raman_fitting.processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
 
@@ -51,22 +50,67 @@ class MainDelegator():
     _kwargs = {}
 
     def __init__(self, run_mode = 'normal', **kwargs ):
+
         # print(f'{self} kwargs:', kwargs)
+        self._kwargs = kwargs
+        self._cqnm = __class__.__qualname__
         self._kwargs = kwargs
 
         self.run_mode = run_mode
         if 'run_mode' not in RUN_MODES:
             logger.warning(f'{self} warning run_mode choice {run_mode} not in {RUN_MODES}')
 
-        # print(f'{self} SECOND, {kwargs.keys()}')
+        dest_dirs = self.get_dirs(run_mode = run_mode)
+        self.RESULTS_DIR = dest_dirs['RESULTS_DIR']
+        self.DATASET_DIR = dest_dirs['DATASET_DIR']
 
         self.spectrum = SpectrumTemplate()
         # self.index = RamanIndex
 
-        self.run_delegator()
+        self.run_delegator(**self._kwargs)
 
-    def index_delegator(self):
-        RF_index = MakeRamanFilesIndex(run_mode = self.run_mode, **self._kwargs)
+    def get_dirs(self, run_mode: str = ''):
+
+        dest_dirs = {}
+        DATASET_DIR = None
+        RESULTS_DIR = None
+
+        if run_mode in ('DEBUG', 'testing'):
+            self.debug = True
+            RESULTS_DIR = config.TESTS_RESULTS_DIR
+            DATASET_DIR = config.TESTS_DATASET_DIR
+
+        elif run_mode == 'make_examples':
+            RESULTS_DIR = config.PACKAGE_HOME.joinpath('example_results')
+            DATASET_DIR = config.TESTS_DATASET_DIR
+            self._kwargs.update({'default_selection' : 'all'})
+
+        elif run_mode in ('normal', 'make_index'):
+            RESULTS_DIR = config.RESULTS_DIR
+            DATASET_DIR = config.DATASET_DIR
+            # INDEX_FILE = config.INDEX_FILE
+        else:
+            logger.warning(f'Run mode {run_mode} not recognized. Exiting...')
+
+        if DATASET_DIR:
+            if not DATASET_DIR.is_dir():
+                logger.warning(f'The datafiles directory does not exist, index will be empty.\n"{DATASET_DIR}"\nExiting...')
+                sys.exit()
+            # raise FileNotFoundError(f'This directory does not exist:\n{DATASET_DIR}')
+        else:
+            logger.warning(f'No datafiles directory was set for{run_mode}. Exiting...')
+        if not RESULTS_DIR.is_dir():
+            RESULTS_DIR.mkdir(exist_ok=True,parents=True)
+            logger.info(f'{self._cqnm} the results directory did not exist and was created at:\n"{RESULTS_DIR}"')
+
+        dest_dirs = {'RESULTS_DIR' : RESULTS_DIR, 'DATASET_DIR' : DATASET_DIR}
+        return dest_dirs
+
+    def index_delegator(self, **kwargs):
+        RF_index = MakeRamanFilesIndex(run_mode = self.run_mode,
+                                       RESULTS_DIR = self.RESULTS_DIR,
+                                       DATASET_DIR = self.DATASET_DIR,
+                                       **kwargs)
         logger.info(f'{self} index prepared with len {len(RF_index)}')
         return RF_index
         # self._make_rf_index = _make_rf_index
@@ -99,26 +143,32 @@ class MainDelegator():
                        }
         return export_info
 
-    def run_delegator(self):
+    def run_delegator(self, **kwargs):
         # TODO remove self.set_models() removed InitModels
         self._failed_samples = []
         self.export_collect = []
 
         # assert type(self.index) == type(pd.DataFrame())
-        if self.run_mode in ('normal', 'DEBUG', 'make_index') :
-            RF_indexer = self.index_delegator()
+        if self.run_mode in ('normal', 'DEBUG', 'make_index', 'make_examples') :
+            RF_indexer = self.index_delegator(**kwargs)
             self.index = RF_indexer.index_selection
 
+            if self.index.empty:
+                logger.warning(f'{self._cqnm} index selection empty')
+
             if self.run_mode == 'make_index':
-                logger.warning(f'Debug run mode {self}. Index loaded and Models initialized {RF_indexer}')
+                logger.warning(f'{self._cqnm} Debug run mode {self}. Index loaded {RF_indexer}')
                 sys.exit(0)
 
             models = self.initialize_models()
+            logger.info(f'\n{self._cqnm} models initialized for run mode ({self.run_mode}):\n\n{repr(models)}')
 
-            if self.run_mode == 'normal':
+            if self.run_mode in ('normal', 'make_examples'):
                 if not self.index.empty:
-                    self._run_gen()
+                    logger.info(f'{self._cqnm}. starting run generator.')
+                    self._run_gen(models = models)
                 else:
+
                     pass
                 # info raman loop finished because index is empty
             elif self.run_mode == 'DEBUG':
@@ -174,7 +224,6 @@ class MainDelegator():
                 Exporter(self.export_collect) # clean up and export
 
     def _generator(self, *args, **kwargs):
-
         _sgrpgen = self.sample_group_gen()
         for grpnm, sGrp_grp in _sgrpgen:
             _sID_gen = self._sID_gen(grpnm, sGrp_grp)
@@ -201,7 +250,9 @@ class MainDelegator():
         Loops over individual Sample positions (files) from a SampleID and performs the
         fitting, plotting and exporting.
         '''
+
         grpnm, nm, sID_grp = args
+        logger.warning(f'{self._cqnm} process sample {", ".join(map(str,args))}. on models:\n{models}')
         sGr, (sID, sDate) = grpnm, nm
         sGr_out = dict(zip(self.spectrum.grp_names.sGrp_cols, (grpnm,) + nm))
         export_info_out = self.add_make_destdirs(sID_grp)

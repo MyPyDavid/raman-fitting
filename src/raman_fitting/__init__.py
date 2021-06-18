@@ -4,6 +4,9 @@
 
 __author__ = 'David Wallace'
 __docformat__ = 'restructuredtext'
+__status__ = 'Development'
+__future_version_name__ = 'pyramdeconv'
+__current_version_name__ = 'raman_fitting'
 
 from raman_fitting.config import config
 VERSION_PATH = config.PACKAGE_ROOT / 'VERSION'
@@ -17,7 +20,7 @@ import sys
 import warnings
 
 # Configure logger for use in package
-logger = logging.getLogger('pyramdeconv')
+logger = logging.getLogger(__future_version_name__ )
 logger.setLevel(logging.DEBUG)
 # from raman_fitting.config import logging_config
 # logger.addHandler(logging_config.get_console_handler())

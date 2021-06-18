@@ -7,7 +7,7 @@ import argparse
 
 # def _testing():
 #     args = parser.parse_args(['-M', 'debug'])
-RUN_MODES = ['normal','testing','debug', 'make_index']
+RUN_MODES = ['normal','testing','debug', 'make_index', 'make_examples']
 
 
 def main():

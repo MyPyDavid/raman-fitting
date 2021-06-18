@@ -11,7 +11,7 @@ from lmfit.models import VoigtModel,LorentzianModel, GaussianModel, Model
 from lmfit import Parameter,Parameters
 # from lmfit import CompositeModel
 
-print('name: ',__name__,'file: ', __file__, __package__)
+# print('name: ',__name__,'file: ', __file__, __package__)
 
 if __name__ in ('__main__'): #'base_peak'
     from raman_fitting.utils.coordinators import FieldsCoordinator

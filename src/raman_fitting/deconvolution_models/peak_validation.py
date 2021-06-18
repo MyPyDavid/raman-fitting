@@ -18,8 +18,8 @@ import pandas as pd
 
 from lmfit import Parameters
 
-_file_parent_name = Path(__file__).parent.name
-print(__name__,__file__,f'name: {_file_parent_name}')
+# _file_parent_name = Path(__file__).parent.name
+# print(__name__,__file__,f'name: {_file_parent_name}')
 
 if __name__ == '__main__': #or _file_parent_name == 'deconvolution_models':
     # import first_order_peaks
