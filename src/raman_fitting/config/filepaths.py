@@ -1,5 +1,6 @@
+''' this module prepares the local file paths for data and results'''
 
-
+import sys
 import logging
 
 
@@ -41,7 +42,7 @@ def get_directory_paths_for_run_mode(run_mode: str = ''):
             logger.warning(f'No datafiles directory was set for{run_mode}. Exiting...')
         if not RESULTS_DIR.is_dir():
             RESULTS_DIR.mkdir(exist_ok=True,parents=True)
-            logger.info(f'{self._cqnm} the results directory did not exist and was created at:\n"{RESULTS_DIR}"')
+            logger.info(f'get_directory_paths_for_run_mode the results directory did not exist and was created at:\n"{RESULTS_DIR}"')
 
     # def get_index_file_path(self, dest_dir = Path()):
         ''' returns index file path '''
@@ -50,7 +51,10 @@ def get_directory_paths_for_run_mode(run_mode: str = ''):
             logger.info(f'get_directory_paths_for_run_mode the index file will be saved as:\n"{INDEX_FILE}"')
             # return INDEX_FILE
         else:
-            logger.warning(f'get_directory_paths_for_run_mode the index file destination dir does not exists. Please choose an existing Results dir.\n"{dest_dir}"')
+            logger.warning(f'''get_directory_paths_for_run_mode the RESULTS_DIR destination dir does not exists.
+                           Please choose an existing Results dir and not:\n
+                           {RESULTS_DIR}
+                           ''')
             INDEX_FILE = None
 
         dest_dirs = {'RESULTS_DIR': RESULTS_DIR, 'DATASET_DIR': DATASET_DIR, 'INDEX_FILE': INDEX_FILE}

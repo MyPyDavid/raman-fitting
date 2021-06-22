@@ -158,7 +158,7 @@ class MakeRamanFilesIndex:
                 if not len(self.index) == self.raman_files:
                     logger.error(f''''Error in load_index from {self.INDEX_FILE},
                                  \nlength of loaded index not same as number of raman files
-                                 \n{e}\n starting reload index ... ''')
+                                 \n starting reload index ... ''')
                     self.index = self.reload_index()
 
 
