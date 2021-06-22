@@ -1,6 +1,11 @@
 # raman-fitting
-These modules will index raman data files in a chosen folder and perform a fitting on typical parts of interest on the spectrum of carbonaceous materials.
+ A Python framework that performs a deconvolution on typical parts of interest on the spectrum of carbonaceous materials.
+ The deconvolutions are done with models which are composed of collections of lineshapes or peaks that typically assigned to these spectra in scientific literature.
+ 
+ 
 
+
+These modules will index raman data files in a chosen folder and
 First, it will try to extract a sample ID and position number from the filenames and create an index of the files in a dataframe. Over this index a preprocessing, fitting and exporting loop will start.
 There are several models, each with a different combination of typical peaks, used for fitting. Each individual typical peak is defined as a class in the fit_models.py file with some added literature reference. Here, the individual peaks can also be easily adjusted for initial values, limits, shape (eg. Lorentzian, Gaussian and Voigt) or be fixed on initial values.
 Export is done with plots and excel files for the spectral data and fitting parameters for further analysis.
@@ -14,27 +19,37 @@ https://github.com/MyPyDavid/raman-fitting/wiki
 ### Installation
 
 Please install the package from this source, installation from PyPI will follow soon.
-These command are based on a linux terminal.
+The following commands for installation and testing are based on a linux terminal.
 
 - Download or clone this repository in a certain folder:
-'git clone https://github.com/MyPyDavid/raman-fitting.git'
-
-- Set up a virtual environment for python:
-'python -m venv testenv'
-
+``` bash
+git clone https://github.com/MyPyDavid/raman-fitting.git
+```
+ - Set up a virtual environment for python:
+``` bash
+python -m venv testenv
+```
 - Activate the virtual environment:
-'source /testenv/bin/activate'
-
+``` bash
+source /testenv/bin/activate
+```
 - Install the repository from the folder wherein the repo was cloned. The required dependencies should be installed as well:
-'pip install -e raman-fitting'
+``` bash
+# regular install
+pip install raman-fitting/
 
-- Testing the package after installation:
-     via the cli command:
-        'raman_fitting -M make_examples'
-    via python interpreter api:
-        '>>> import raman_fitting'
-        '>>> raman_fitting.make_examples()'
-
+# develop mode
+pip install -e raman-fitting/
+```
+- Test the package after installation with the cli command:
+``` bash
+raman_fitting -M make_examples
+```
+- Test the package after installation in the python interpreter with the api:
+``` python
+import raman_fitting
+raman_fitting.make_examples()
+```
 
 ### Dependencies
 
