@@ -4,16 +4,23 @@ from collections import OrderedDict,namedtuple
 import datetime as dt
 import pandas as pd
 
+
+import logging
+logger = logging.getLogger('pyramdeconv')
+
+
 if __name__ == '__main__':
     pass
 else:
     from .base_model import InitializeModels
 
 class Fitter:
-    
+
     fit_windows = ['1st_order', '2nd_order']
-    
+
     def __init__(self, spectra_arg, RamanModels = InitializeModels(), start_fit = True):
+        self._qcnm = self.__class__.__qualname__
+        logger.info(f'{self._qcnm} is called with spectrum\n\t{spectra_arg}\n')
         self.start_fit = start_fit
         self.models = RamanModels
 
@@ -27,7 +34,7 @@ class Fitter:
 
     @spectra.setter
     def spectra(self, value):
-        
+
         _errtxt = (f'This assignment {value} does not contain valid spectra')
         if type(value) == dict:
             _data = value
@@ -56,27 +63,30 @@ class Fitter:
         if self.start_fit:
             self.fit_models(self.models.second_order)
             self.fit_models(self.models.first_order)
-            
+
     def fit_models(self, model_selection):
 
         _fittings = {}
+        logger.debug(f'{self._qcnm} fit_models starting.')
         for modname, model in model_selection.items():
-            modname, model 
+            modname, model
             _windowname = [i for i in self.fit_windows if modname[0:3] in i][0]
             _data = self.spectra.get(_windowname)
             _int_lbl = self.get_int_label(_data)
-            
-            out = self.run_fit(model, _data, _int_lbl = _int_lbl, _modelname = modname, _info = self.info)
-            prep = PrepareParams(out, extra_fit_results = self.FitResults)
-            _fittings.update({modname : prep.FitResult})
+            try:
+                out = self.run_fit(model.lmfit_model, _data, _int_lbl = _int_lbl, _modelname = modname, _info = self.info)
+                prep = PrepareParams(out, extra_fit_results = self.FitResults)
+                _fittings.update({modname : prep.FitResult})
+            except Exception as e:
+                logger.warning(f'{self._qcnm} fit_model failed for {modname}: {model}, because:\n {e}')
         self.FitResults.update(**_fittings)
 
     def run_fit(self, model, _data, **kws):
         # TODO improve fitting loop so that starting parameters from modelX and modelX+Si are shared, faster...
         _fit_res, _param_res = {}, {}
-        init_params = model.model.make_params()
+        init_params = model.make_params()
         x, y = _data.ramanshift, _data[kws.get('_int_lbl')]
-        out = model.model.fit(y,init_params,x=x,method='leastsq') # 'leastsq'
+        out = model.fit(y,init_params,x=x,method='leastsq') # 'leastsq'
         for k,val in kws.items():
             setattr(out,k,val)
         return out
@@ -106,6 +116,8 @@ class PrepareParams:
     _standard_2nd_order = '2nd_4peaks'
 
     def __init__(self, model_result, extra_fit_results =  {}):
+        self._qcnm = self.__class__.__qualname__
+        logger.debug(f'{self._qcnm} is called with model_result\n\t{model_result}\n')
         self.extra_fit_results = extra_fit_results
         self.model_result = model_result
 
@@ -115,7 +127,7 @@ class PrepareParams:
 
     @model_result.setter
     def model_result(self, value):
-        ''' 
+        '''
         Takes the ModelResult class instance from lmfit.
         Optional extra functionality with a list of instances.
         '''
@@ -134,7 +146,7 @@ class PrepareParams:
         _mod_lbl = 'Model'
         if hasattr(value,'_modelname'):
             _mod_lbl = f'Model_{getattr(value,"_modelname")}'
-        self.model_name_lbl = _mod_lbl    
+        self.model_name_lbl = _mod_lbl
 
         self.raw_data_lbl = value.data.name
 
@@ -147,7 +159,7 @@ class PrepareParams:
         self.prep_components()
         self.FitReport = self.model_result.fit_report(show_correl=False)
         self.prep_extra_info()
-        self.FitResult = self.fit_result_template(self.FitComponents,self.FitParameters, self.FitReport, 
+        self.FitResult = self.fit_result_template(self.FitComponents,self.FitParameters, self.FitReport,
                                                   self.extra_info, self.model_name_lbl, self.raw_data_lbl)
 
     def prep_extra_info(self):
@@ -163,7 +175,7 @@ class PrepareParams:
         try:
             self.add_ratio_params()
         except Exception as e:
-            print(e)
+            logger.error(f'{self._qcnm} prep params failed\n\t{e}\n')
 
         self.result.update({'_run_date_YmdH' : dt.datetime.now().strftime(format='%Y-%m-%d %H:00')})
         self.FitParameters = pd.DataFrame(self.result,index=[self.model_name_lbl])
@@ -186,7 +198,7 @@ class PrepareParams:
                     RatioParams.update({f'{a}D3/{a}G' : self.result['D3'+t]/self.result['G'+t]})
             if 'D4_' in self.peaks:
                 RatioParams.update({f'{a}D4/{a}G' : self.result['D4'+t]/self.result['G'+t]})
-            
+
             if {'D1D1_','GD1_'}.issubset(self.peaks):
                     RatioParams.update({f'{a}D1D1/{a}GD1' : self.result['D1D1'+t]/self.result['GD1'+t]})
             if self.extra_fit_results:
@@ -207,7 +219,7 @@ class PrepareParams:
         # FittingParams = pd.DataFrame(fit_params_od,index=[peak_model])
         _fit_comps_data = OrderedDict({'RamanShift' : self.model_result.userkws['x']})
         _fit_comps_data.update(self.model_result.eval_components())
-        _fit_comps_data.update({self.model_name_lbl : self.model_result.best_fit, 'residuals' :  self.model_result.residual, 
+        _fit_comps_data.update({self.model_name_lbl : self.model_result.best_fit, 'residuals' :  self.model_result.residual,
                                 self.model_result.data.name : self.model_result.data})
         FittingComps = pd.DataFrame(_fit_comps_data)
         self.FitComponents = FittingComps
@@ -226,6 +238,6 @@ def NormalizeFit(norm_cleaner,plotprint = False): # TODO optional add normalizat
               'Model' : Model}
 #    pre_fit = Model.fit(y,params ,x=x,method='differential-evolution') # 'leastsq'
     if plotprint:
-        pre_fit.plot() 
+        pre_fit.plot()
         print(pre_fit.fit_report())
     return output

@@ -4,7 +4,7 @@ from pathlib import Path
 from itertools import starmap, repeat
 
 import logging
-logger = logging.getLogger('pyramdeconv')
+
 
 if __name__ == "__main__":
     from indexer.indexer import MakeRamanFilesIndex
@@ -24,7 +24,11 @@ else:
     from ..export.exporter import Exporter
     from ..cli.cli import RUN_MODES
     from ..config import config
+    from ..config.filepaths import get_directory_paths_for_run_mode
 
+    from .. import __package_name__
+
+logger = logging.getLogger(__package_name__)
     # from raman_fitting.indexer.indexer import OrganizeRamanFiles
     # from raman_fitting.processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
 
@@ -41,75 +45,42 @@ class MainDelegator():
     # TODO Add flexible input handling for the cli, such a path to dir, or list of files
     #  or create index when no kwargs are given.
     '''
-    Main processing loop over an index of Raman files.
+    Main delegator for the processing of files containing Raman spectra.
+
     Input parameters is DataFrame of index
     Creates plots and files in the config RESULTS directory.
     '''
 
     # DEFAULT_RUN_MODE = {'run_mode' : 'normal'}
-    _kwargs = {}
+    # _kwargs = {}
 
     def __init__(self, run_mode = 'normal', **kwargs ):
 
         # print(f'{self} kwargs:', kwargs)
-        self._kwargs = kwargs
+        self.kwargs = kwargs
         self._cqnm = __class__.__qualname__
-        self._kwargs = kwargs
 
         self.run_mode = run_mode
-        if 'run_mode' not in RUN_MODES:
-            logger.warning(f'{self} warning run_mode choice {run_mode} not in {RUN_MODES}')
+        if run_mode not in RUN_MODES:
+            logger.warning(f'{self}\n\twarning run_mode choice {run_mode} not in\n\t{RUN_MODES}')
 
-        dest_dirs = self.get_dirs(run_mode = run_mode)
-        self.RESULTS_DIR = dest_dirs['RESULTS_DIR']
-        self.DATASET_DIR = dest_dirs['DATASET_DIR']
+        self.dest_dirs = get_directory_paths_for_run_mode(run_mode = run_mode)
+        self.RESULTS_DIR = self.dest_dirs['RESULTS_DIR']
+        self.DATASET_DIR = self.dest_dirs['DATASET_DIR']
+        self.INDEX_FILE = self.dest_dirs['INDEX_FILE']
 
         self.spectrum = SpectrumTemplate()
         # self.index = RamanIndex
 
-        self.run_delegator(**self._kwargs)
+        self.run_delegator(**self.kwargs)
 
-    def get_dirs(self, run_mode: str = ''):
-
-        dest_dirs = {}
-        DATASET_DIR = None
-        RESULTS_DIR = None
-
-        if run_mode in ('DEBUG', 'testing'):
-            self.debug = True
-            RESULTS_DIR = config.TESTS_RESULTS_DIR
-            DATASET_DIR = config.TESTS_DATASET_DIR
-
-        elif run_mode == 'make_examples':
-            RESULTS_DIR = config.PACKAGE_HOME.joinpath('example_results')
-            DATASET_DIR = config.TESTS_DATASET_DIR
-            self._kwargs.update({'default_selection' : 'all'})
-
-        elif run_mode in ('normal', 'make_index'):
-            RESULTS_DIR = config.RESULTS_DIR
-            DATASET_DIR = config.DATASET_DIR
-            # INDEX_FILE = config.INDEX_FILE
-        else:
-            logger.warning(f'Run mode {run_mode} not recognized. Exiting...')
-
-        if DATASET_DIR:
-            if not DATASET_DIR.is_dir():
-                logger.warning(f'The datafiles directory does not exist, index will be empty.\n"{DATASET_DIR}"\nExiting...')
-                sys.exit()
-            # raise FileNotFoundError(f'This directory does not exist:\n{DATASET_DIR}')
-        else:
-            logger.warning(f'No datafiles directory was set for{run_mode}. Exiting...')
-        if not RESULTS_DIR.is_dir():
-            RESULTS_DIR.mkdir(exist_ok=True,parents=True)
-            logger.info(f'{self._cqnm} the results directory did not exist and was created at:\n"{RESULTS_DIR}"')
-
-        dest_dirs = {'RESULTS_DIR' : RESULTS_DIR, 'DATASET_DIR' : DATASET_DIR}
-        return dest_dirs
 
     def index_delegator(self, **kwargs):
+
         RF_index = MakeRamanFilesIndex(run_mode = self.run_mode,
                                        RESULTS_DIR = self.RESULTS_DIR,
                                        DATASET_DIR = self.DATASET_DIR,
+                                       INDEX_FILE = self.INDEX_FILE,
                                        **kwargs)
         logger.info(f'{self} index prepared with len {len(RF_index)}')
         return RF_index
@@ -126,22 +97,7 @@ class MainDelegator():
         else:
             return sGrp_grp.groupby(grp_cols),grp_cols
 
-    def add_make_destdirs(self, sample_grp):
 
-        dest_grp_dir = Path(sample_grp.DestDir.unique()[0])  # takes one destination directory from Sample Groups
-        dest_fit_plots = dest_grp_dir.joinpath('Fitting_Plots')
-        dest_fit_comps = dest_grp_dir.joinpath('Fitting_Components')
-        dest_fit_comps.mkdir(parents=True,exist_ok=True)
-
-        dest_raw_data_dir = dest_grp_dir.joinpath('Raw_Data')
-        dest_raw_data_dir.mkdir(parents=True,exist_ok=True)
-
-        export_info = {'DestGrpDir' : dest_grp_dir,
-                       'DestFittingPlots' : dest_fit_plots,
-                       'DestFittingComps' : dest_fit_comps,
-                       'DestRaw' : dest_raw_data_dir
-                       }
-        return export_info
 
     def run_delegator(self, **kwargs):
         # TODO remove self.set_models() removed InitModels
@@ -161,12 +117,13 @@ class MainDelegator():
                 sys.exit(0)
 
             models = self.initialize_models()
+            self.kwargs.update({'models' : models})
             logger.info(f'\n{self._cqnm} models initialized for run mode ({self.run_mode}):\n\n{repr(models)}')
 
             if self.run_mode in ('normal', 'make_examples'):
                 if not self.index.empty:
                     logger.info(f'{self._cqnm}. starting run generator.')
-                    self._run_gen(models = models)
+                    self._run_gen(**self.kwargs)
                 else:
 
                     pass
@@ -213,12 +170,17 @@ class MainDelegator():
 
     def _run_gen(self, **kwargs):
         # sort of coordinator coroutine, can implement still deque
-        _mygen = self._generator(kwargs)
+        _mygen = self._generator(**kwargs)
+        logger.info(f'{self._cqnm} _run_gen starting: {kwargs}')
+        _count = 0
         while True:
+
             try:
                 next(_mygen)
+                _count += 1
             except StopIteration:
-                print('StopIteration for mygen')
+                logger.info(f'{self._cqnm} _run_gen StopIteration after {_count } steps')
+                # print('StopIteration for mygen')
                 break
             finally:
                 Exporter(self.export_collect) # clean up and export
@@ -227,35 +189,61 @@ class MainDelegator():
         _sgrpgen = self.sample_group_gen()
         for grpnm, sGrp_grp in _sgrpgen:
             _sID_gen = self._sID_gen(grpnm, sGrp_grp)
+            logger.info(f'{self._cqnm} _generator starting group: {grpnm}')
             try:
-                args_for_starmap = zip(repeat(self.process_sample), _sID_gen, repeat(kwargs))
-                yield from starmap(self.process_sample_wrapper, args_for_starmap )
+
+                yield from self.simple_process_sample_wrapper(_sID_gen, **kwargs)
+                # starmap(process_sample_wrapper, args_for_starmap )
+                # args_for_starmap = zip(repeat(self.process_sample), _sID_gen, repeat(kwargs))
 
             except GeneratorExit:
-                print('Generator closed')
-                return
+                logger.warning(f'{self._cqnm} _generator closed.')
+                return None
+            except Exception as e:
+                logger.warning(f'{self._cqnm} _generator exception: {e}')
+
 
     def coordinator(self):
         pass
 
-    def process_sample_wrapper(self,fn, *args, **kwargs):
+    def simple_process_sample_wrapper(self, _gen, **kwargs):
+        for sID_args in _gen:
+            logger.warning(f'{self._cqnm} simple process_sample_wrapper args:\n\t - {_gen}\n\t - {kwargs}')
+            exp_sample = None
+            try:
+                logger.warning(f'{self._cqnm} simple process_sample_wrapper trying:\n\t - {sID_args}')
+                exp_sample = self.process_sample(*sID_args, **kwargs)
+                self.export_collect.append(exp_sample)
+            except Exception as e:
+                logger.warning(f'{self._cqnm} simple process_sample_wrapper exception on call process sample: {e}')
+                self._failed_samples.append((e, sID_args, kwargs))
+
+
+
+    def _process_sample_wrapper(self, fn, *args, **kwargs):
+        logger.warning(f'{self._cqnm} process_sample_wrapper args:\n\t - {fn}\n\t - {args}\n\t - {kwargs}')
+        exp_sample = None
         try:
-            exp_sample = fn(*args, **kwargs)
+            exp_sample = fn(self, *args, **kwargs)
             self.export_collect.append(exp_sample)
         except Exception as e:
+            logger.warning(f'{self._cqnm} process_sample_wrapper exception on call {fn}: {e}')
             self._failed_samples.append((e, args, kwargs))
 
-    def process_sample(self, *args, models = None, **kwargs):
+    def process_sample(self, *args, **kwargs):
         '''
         Loops over individual Sample positions (files) from a SampleID and performs the
         fitting, plotting and exporting.
         '''
-
+        logger.info(f'{self._cqnm} process_sample called:\n\t - {args}\n\t - {kwargs}')
+        # self = args[0]
+        # args = args[]
         grpnm, nm, sID_grp = args
+        models = kwargs.get('models', None)
         logger.warning(f'{self._cqnm} process sample {", ".join(map(str,args))}. on models:\n{models}')
         sGr, (sID, sDate) = grpnm, nm
         sGr_out = dict(zip(self.spectrum.grp_names.sGrp_cols, (grpnm,) + nm))
-        export_info_out = self.add_make_destdirs(sID_grp)
+        export_info_out = add_make_sample_group_destdirs(sID_grp)
         sample_pos_grp, sPos_cols = self.test_positions(sID_grp, nm, list(self.spectrum.grp_names.sPos_cols))
 
         sample_spectra = []
@@ -271,4 +259,42 @@ class MainDelegator():
         return rex
 
     def __repr__(self):
-        return f'Maindelegator: run_mode = {self.run_mode}, {", ".join([f"{k} = {str(val)}" for k,val in self._kwargs.items()])}'
+        return f'Maindelegator: run_mode = {self.run_mode}, {", ".join([f"{k} = {str(val)}" for k,val in self.kwargs.items()])}'
+
+
+def add_make_sample_group_destdirs(sample_grp):
+
+    dest_grp_dir = Path(sample_grp.DestDir.unique()[0])  # takes one destination directory from Sample Groups
+    dest_fit_plots = dest_grp_dir.joinpath('Fitting_Plots')
+    dest_fit_comps = dest_grp_dir.joinpath('Fitting_Components')
+    dest_fit_comps.mkdir(parents=True,exist_ok=True)
+
+    dest_raw_data_dir = dest_grp_dir.joinpath('Raw_Data')
+    dest_raw_data_dir.mkdir(parents=True,exist_ok=True)
+
+    export_info = {'DestGrpDir' : dest_grp_dir,
+                   'DestFittingPlots' : dest_fit_plots,
+                   'DestFittingComps' : dest_fit_comps,
+                   'DestRaw' : dest_raw_data_dir
+                   }
+    return export_info
+
+
+
+
+def process_sample_wrapper(fn, *args, **kwargs):
+    def wrapper(*args, **kwargs):
+        logger.warning(f'process_sample_wrapper process_sample_wrapper args:\n\t - {fn}\n\t - {args}\n\t - {kwargs}')
+        exp_sample = None
+        try:
+            exp_sample = fn(*args, **kwargs)
+            # self.export_collect.append(exp_sample)
+        except Exception as e:
+            logger.error(f'process_sample_wrapper process_sample_wrapper exception on call {fn}: {e}')
+            # self._failed_samples.append((e, args, kwargs))
+            exp_sample = (e, args, kwargs)
+        finally:
+            return exp_sample
+
+def make_examples():
+    _main_run = MainDelegator(run_mode='make_examples')

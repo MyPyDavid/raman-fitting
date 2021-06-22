@@ -3,7 +3,7 @@
 # isort:skip_file
 
 # Main Loop Delegator
-from .delegator.main_delegator import MainDelegator
+from .delegator.main_delegator import MainDelegator, make_examples
 
 # Indexer
 from .indexer.indexer import MakeRamanFilesIndex as make_index

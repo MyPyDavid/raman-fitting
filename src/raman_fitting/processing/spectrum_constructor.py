@@ -14,14 +14,17 @@ from typing import Dict, List
 from pathlib import Path
 from dataclasses import dataclass, field
 from operator import itemgetter
+import logging
 
 import numpy as np
 import pandas as pd
 
-from .cleaner import Filter, Despiker, BaselineSubtractorNormalizer
-from .spectrum_template import SpectrumWindows, SpecTemplate
-# from .parser import Parser
 
+from .cleaner import SpectrumMethods, Despiker, BaselineSubtractorNormalizer
+from .spectrum_template import SpectrumWindows, SpecTemplate
+from .. import __package_name__
+# from .parser import Parser
+logger = logging.getLogger(__package_name__)
 
 @dataclass(order=True, frozen=False)
 class SpectrumDataLoader():
@@ -41,6 +44,8 @@ class SpectrumDataLoader():
     run_kwargs: Dict = field(default_factory=dict, repr=False)
 
     def __post_init__(self):
+
+        self._qcnm = self.__class__.__qualname__
 
         self.register = {}  # this stores the data of each method as they are performed
 
@@ -73,6 +78,10 @@ class SpectrumDataLoader():
             self.load_data()
             if self._read_succes:
                 self.spectrum_methods_delegator()
+            else:
+                logger.warning('{self._qcnm} load data fail for:\n\t {self.file}')
+
+
             self.info = {**self.info, **self.run_kwargs}
 
         elif self.file.name == 'empty.txt':
@@ -93,7 +102,8 @@ class SpectrumDataLoader():
                 # Alternative parsing method with pandas.read_csv
                 # _rawdf = pd.read_csv(self.file, usecols=(0, 1), delimiter='\t',
                 #                     skiprows=i, header =None, names=['ramanshift','intensity'])
-                print(self.file, len(ramanshift), len(intensity))
+                logger.info(f'{self.file} with len rs({len(ramanshift)}) and len int({len(intensity)})')
+
                 self._read_succes = True
                 self.spectrum_length = len(ramanshift)
                 self.info.update({'spectrum_length': self.spectrum_length, 'skipped_rows': i})
@@ -113,7 +123,8 @@ class SpectrumDataLoader():
 
     def filter_data(self, on_lbl='raw', out_lbl='filtered'):
         _r, _int, _lbl = self.register.get(on_lbl)
-        filtered_intensity = Filter.get_filtered(_int)
+        logger.debug(f'{self.file} try to filter len int({len(_int)}),({type(_int)})')
+        filtered_intensity = SpectrumMethods.filtered_int(intensity=_int)
         self.filtered_intensity = filtered_intensity
         self.register_spectrum(_r, filtered_intensity, out_lbl)
 
@@ -153,6 +164,7 @@ class SpectrumDataLoader():
             else:
                 _regdf = pd.merge_asof(_regdf, _spec, on='ramanshift')
         self.register_df = _regdf
+        logger.debug(f'{self._qcnm} set_df_from_register len int({len(_regdf)}),({type(_regdf)})')
 
     def plot_raw(self):
         _raw_lbls = [i for i in self.regdf.columns
@@ -178,6 +190,7 @@ class SpectrumDataCollection:
     MeanSpecTemplate = namedtuple('MeanSpectras', 'windowname sID_rawcols sIDmean_col mean_info mean_spec')
 
     def __init__(self, spectra: List = []):
+        self._qcnm = self.__class__.__qualname__
         self._spectra = spectra
         self._check_members()
         self.test_spectra_lengths()
@@ -186,8 +199,13 @@ class SpectrumDataCollection:
 
     def _check_members(self):
         # TODO remove assert and implement RaiseSpectrum error
-        assert all(type(spec).__name__ == 'SpectrumDataLoader' for spec in self._spectra)
-        assert all(hasattr(spec, 'clean_data') for spec in self._spectra)
+        if not all(type(spec).__name__ == 'SpectrumDataLoader' for spec in self._spectra):
+            _false_spectra = [spec for spec in self._spectra if not type(spec).__name__ == 'SpectrumDataLoader']
+
+            logger.warning(f'{self._qcnm} not all spectra members are "SpectrumDataLoader"')
+
+        if not all(hasattr(spec, 'clean_data') for spec in self._spectra):
+            logger.warning(f'{self._qcnm} not all spectra members are have attribute clean_data')
 
     def test_spectra_lengths(self):
         lengths = [i.spectrum_length for i in self._spectra]

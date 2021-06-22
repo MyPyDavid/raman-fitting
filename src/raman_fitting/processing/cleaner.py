@@ -12,9 +12,13 @@ from scipy import signal
 from scipy.stats import linregress
 
 if __name__ == '__main__':
-    pass
+    from spectrum_template import SpectrumWindows, SpecTemplate, SpectrumWindowLimits
+    # pass
 else:
     from .spectrum_template import SpectrumWindows, SpecTemplate, SpectrumWindowLimits
+
+class SpectrumMethodException(ValueError):
+    pass
 
 
 class SpectrumMethods:
@@ -29,6 +33,17 @@ class SpectrumMethods:
         self.intensity = intensity
         self.label = label
         self.kwargs = kwargs
+
+    @staticmethod
+    def filtered_int(intensity=None):
+        # if hasattr(self, 'intensity') and intensity == None:
+            # _int = self.intensity
+        if len(intensity) > 0:
+            _int = intensity
+        else:
+            raise SpectrumMethodException('no intensity given to filter')
+        int_savgol_fltr = signal.savgol_filter(intensity, 13, 3, mode='nearest')
+        return int_savgol_fltr
 
 
 class SpectrumSplitter(SpectrumMethods):
@@ -57,14 +72,15 @@ class SpectrumSplitter(SpectrumMethods):
         self.windows_data = _d
 
 
-class Filter(SpectrumMethods):
-    '''
-    For filtering the intensity of a spectrum
-    '''
+# class Filter(SpectrumMethods):
+    # '''
+    # For filtering the intensity of a spectrum
+    # '''
 
-    def get_filtered(self, intensity):
-        int_savgol_fltr = signal.savgol_filter(intensity, 13, 3, mode='nearest')
-        return int_savgol_fltr
+
+
+    # def get_filtered(self, intensity):
+
 
 
 class BaselineSubtractorNormalizer(SpectrumSplitter):

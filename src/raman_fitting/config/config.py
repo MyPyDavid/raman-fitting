@@ -2,6 +2,7 @@ import pathlib
 
 # from .logging_config import get_console_handler
 import logging
+from .. import __package_name__
 
 logger = logging.getLogger('pyramdeconv')
 
@@ -22,7 +23,7 @@ PACKAGE_HOME = pathlib.Path.home() / ".pyramdeconv" # pyramdeconv is the new ver
 DATASET_DIR = PACKAGE_HOME / "datafiles"
 RESULTS_DIR =  PACKAGE_HOME/ "results"
 # Storage file of the index
-INDEX_FILE = RESULTS_DIR / "index.csv"
+INDEX_FILE = RESULTS_DIR / f"{__package_name__}_index.csv"
 # Optional local configuration file
 LOCAL_CONFIG_FILE = PACKAGE_HOME / "local_config.py"
 
