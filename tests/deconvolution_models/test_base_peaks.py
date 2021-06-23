@@ -124,11 +124,11 @@ class TestBasePeak(unittest.TestCase):
                     'amplitude' : {'value' : 14,'min' : 1E-03, 'max' : 100}}
 
         td1 = TestD1peak()
-        peakmod = "<lmfit.Model: Model(voigt, prefix='D1D1')>"
+        peakmod = "<lmfit.Model: Model(voigt, prefix='D1D1_')>"
         td1.peak_model = td1.peak_model
         self.assertEqual(str(td1.peak_model), peakmod)
         _class_str = f"TestD1peak, {peakmod}, center : 2600 < 2650 > 2750"
-        self.assertEqual(str(td1), _class_str)
+        self.assertIn(_class_str, str(td1))
         td1.peak_name = 'R2D2'
         self.assertEqual(td1.peak_model.prefix, 'R2D2_')
 
@@ -168,8 +168,8 @@ class TestBasePeak(unittest.TestCase):
                     'amplitude' : {'value' : 14,'min' : 1E-03, 'max' : 100}}
 
         td1 = TestD1peak()
-        _class_str = "TestD1peak, <lmfit.Model: Model(voigt, prefix='D1D1')>, center : 2600 < 2650 > 2750"
-        self.assertEqual(str(td1), _class_str)
+        _class_str = "TestD1peak, <lmfit.Model: Model(voigt, prefix='D1D1_')>, center : 2600 < 2650 > 2750"
+        self.assertIn(_class_str, str(td1))
         # print(td1)
 
     #%%
@@ -201,8 +201,9 @@ class TestBasePeak(unittest.TestCase):
                 # return arg
 
         td1m = TestD1peakmeta(add=33)
-        _teststr = "TestD1peakmeta, <lmfit.Model: Model(lorentzian, prefix='D1D1')>, center : 2600 < 2650 > 2750"
-        assert str(td1m) == _teststr
+        _teststr = "TestD1peakmeta, <lmfit.Model: Model(lorentzian, prefix='D1D1_')>, center : 2600 < 2650 > 2750"
+        self.assertIn(_teststr, str(td1m))
+        # assert str(td1m) == _teststr
 
 
         #%%

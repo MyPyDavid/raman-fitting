@@ -370,7 +370,7 @@ class BasePeak(type):
         return model
 
     def repr__(self):
-        _repr = f'{self.__class__.__qualname__}'
+        _repr = f'{self.__class__.__name__}'
         if hasattr(self, 'peak_model'):
             _repr += f', {self.peak_model}'
             _param_center = ''
