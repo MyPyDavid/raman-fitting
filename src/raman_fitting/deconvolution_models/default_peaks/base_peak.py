@@ -296,6 +296,10 @@ class BasePeak(type):
     @property
     def peak_name(self):
         '''This is the name that the peak Model will get as prefix'''
+        if self._peak_name:
+            if not self._peak_name.endswith('_'):
+                self._peak_name = self._peak_name + '_'
+
         return self._peak_name
 
     @peak_name.setter
@@ -366,7 +370,7 @@ class BasePeak(type):
         return model
 
     def repr__(self):
-        _repr = f'{self.__class__.__name__}'
+        _repr = f'{self.__class__.__qualname__}'
         if hasattr(self, 'peak_model'):
             _repr += f', {self.peak_model}'
             _param_center = ''

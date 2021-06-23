@@ -7,7 +7,7 @@ __docformat__ = 'restructuredtext'
 __status__ = 'Development'
 __future_version_name__ = 'pyramdeconv'
 __current_version_name__ = 'raman_fitting'
-__package_name__ = __future_version_name__
+__package_name__ = __current_version_name__
 
 from raman_fitting.config import config
 VERSION_PATH = config.PACKAGE_ROOT / 'VERSION'

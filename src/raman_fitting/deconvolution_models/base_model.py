@@ -95,7 +95,7 @@ class BaseModel():
 
     '''
     _SEP = '+'
-    _SUFFIX = '_peak'
+    _SUFFIX = '_'
 
     # TODO change include substrate to  has substrate and remove from init
     def __init__(self,

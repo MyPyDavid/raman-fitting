@@ -47,7 +47,8 @@ def get_directory_paths_for_run_mode(run_mode: str = ''):
     # def get_index_file_path(self, dest_dir = Path()):
         ''' returns index file path '''
         if RESULTS_DIR.exists():
-            INDEX_FILE = config.INDEX_FILE
+            INDEX_FILE = RESULTS_DIR / f"{__package_name__}_index.csv"
+            # config.INDEX_FILE
             logger.info(f'get_directory_paths_for_run_mode the index file will be saved as:\n"{INDEX_FILE}"')
             # return INDEX_FILE
         else:

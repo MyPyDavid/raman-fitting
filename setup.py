@@ -68,12 +68,12 @@ setup(
         # "Documentation": 'https://.readthedocs.io', # TODO prepare readme docs
         "Source Code": URL,
     },
-    packages=find_packages('src', 
+    packages=find_packages('src',
                            exclude=('tests',)),
     package_dir={'': 'src'},
     py_modules=[path.name.suffix for path
                 in Path('./src').glob('*.py')],
-    package_data={'': ['VERSION']},
+    package_data={'': ['VERSION','datafiles/example_files/*.txt']},
     entry_points={
         'console_scripts': [
             f'{NAME} = {NAME}.cli:main'
@@ -120,4 +120,3 @@ setup(
 #             'sphinx_rtd_theme',
 #         ],
 #     }
-

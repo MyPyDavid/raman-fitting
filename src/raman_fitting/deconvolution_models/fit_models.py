@@ -175,7 +175,7 @@ class PrepareParams:
         try:
             self.add_ratio_params()
         except Exception as e:
-            logger.error(f'{self._qcnm} prep params failed\n\t{e}\n')
+            logger.error(f'{self._qcnm} extra prep params failed\n\t{e}\n')
 
         self.result.update({'_run_date_YmdH' : dt.datetime.now().strftime(format='%Y-%m-%d %H:00')})
         self.FitParameters = pd.DataFrame(self.result,index=[self.model_name_lbl])

@@ -4,21 +4,25 @@ import pathlib
 import logging
 from .. import __package_name__
 
-logger = logging.getLogger('pyramdeconv')
+logger = logging.getLogger(__package_name__)
 
 # import pandas as pd
 # pd.options.display.max_rows = 10
 # pd.options.display.max_columns = 10
 
-PACKAGE_ROOT = pathlib.Path(__file__).resolve().parent.parent
+CONFIG_FILE = pathlib.Path(__file__).resolve()
+PACKAGE_ROOT = CONFIG_FILE.parent.parent
 MODEL_DIR = PACKAGE_ROOT / "deconvolution_models"
 
-TESTS_ROOT_DIR = PACKAGE_ROOT.parent.parent / "tests"
-TESTS_DATASET_DIR = TESTS_ROOT_DIR / "test_data"
-TESTS_RESULTS_DIR = TESTS_ROOT_DIR / "test_results"
+# TESTS_ROOT_DIR = PACKAGE_ROOT.parent.parent / "tests"
+# TESTS_ROOT_DIR =
+TESTS_DATASET_DIR = PACKAGE_ROOT / "datafiles" / "example_files"
+
 
 # Home dir from pathlib.Path for storing the results
-PACKAGE_HOME = pathlib.Path.home() / ".pyramdeconv" # pyramdeconv is the new version package name
+PACKAGE_HOME = pathlib.Path.home() / f".{__package_name__}" # pyramdeconv is the new version package name
+
+TESTS_RESULTS_DIR = PACKAGE_HOME / "test_results"
 
 DATASET_DIR = PACKAGE_HOME / "datafiles"
 RESULTS_DIR =  PACKAGE_HOME/ "results"

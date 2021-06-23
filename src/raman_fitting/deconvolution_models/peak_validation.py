@@ -248,7 +248,7 @@ class PeakModelValidator():
         # self.params_set = set([a for m in self.lmfit_models for a in m[1].param_names])
 #    lmfit_models = [Model(i.func,name=i.name) for i in model_selection]
     def __repr__(self):
-        _repr = 'Model Collection'
+        _repr = 'Validated Peak model collection'
         if self.selected_models:
             _selmods = f', {len(self.selected_models)} models from: '+'\n\t- '
             _repr += _selmods
