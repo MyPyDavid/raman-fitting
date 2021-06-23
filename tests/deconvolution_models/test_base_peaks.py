@@ -293,8 +293,8 @@ class TestBasePeak(unittest.TestCase):
                 #                         }
                 # super().__init__(self)
         nci = NewChildClassInit()
-        assert nci.peak_type == 'Gaussian'
-        assert nci.peak_model.param_hints['center']['value'] == 2435
+        self.assertEqual(nci.peak_type, 'Gaussian')
+        self.assertEqual(nci.peak_model.param_hints['center']['value'], 2435)
         # print(nci)
             # print(self.__dict__)
 
