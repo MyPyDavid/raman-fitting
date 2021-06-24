@@ -34,9 +34,12 @@ def get_directory_paths_for_run_mode(run_mode: str = ''):
             logger.warning(f'Run mode {run_mode} not recognized. Exiting...')
 
         if DATASET_DIR:
-            if not DATASET_DIR.is_dir():
-                logger.warning(f'The datafiles directory does not exist, index will be empty.\n"{DATASET_DIR}"\nExiting...')
-                sys.exit()
+            create_dataset_dir(DATASET_DIR)
+            # if not DATASET_DIR.is_dir():
+            #     logger.warning(f'''The datafiles directory does not exist yet,
+
+            #                    index will be empty.\n"{DATASET_DIR}"\nExiting...''')
+            #     sys.exit()
             # raise FileNotFoundError(f'This directory does not exist:\n{DATASET_DIR}')
         else:
             logger.warning(f'No datafiles directory was set for{run_mode}. Exiting...')
@@ -60,3 +63,40 @@ def get_directory_paths_for_run_mode(run_mode: str = ''):
 
         dest_dirs = {'RESULTS_DIR': RESULTS_DIR, 'DATASET_DIR': DATASET_DIR, 'INDEX_FILE': INDEX_FILE}
         return dest_dirs
+
+def create_dataset_dir(DATASET_DIR):
+    if not DATASET_DIR.is_dir():
+        logger.warning(f'''
+                       The datafiles directory
+                       {DATASET_DIR}
+                       does not exist yet,
+                       therefore {__package_name__} can not find any files.
+                       The program will now try to create this folder.
+                       ''')
+        try:
+            DATASET_DIR.mkdir()
+            logger.warning(f'''
+                        The datafiles directory does has now been created at:
+                        {DATASET_DIR}
+                        please place your raman datafiles in this folder
+                        and run {__package_name__} again in normal mode
+                        ''')
+            sys.exit()
+            # TODO build in daemon version with folder watcher....
+        except Exception as e:
+            logger.warning(f'''
+                           Filepath error, this datafiles directory could not be created:
+                           {DATASET_DIR}
+                           please redefine this path in the config settings
+                           ''')
+    else:
+        _diter = DATASET_DIR.iterdir()
+        try:
+            next(_diter)
+        except StopIteration:
+            logger.warning(f'''
+                           Filepath error, this datafiles directory is empty:
+                           {DATASET_DIR}
+                           please place your files in here or
+                           change this path in the config settings.
+                           ''')
