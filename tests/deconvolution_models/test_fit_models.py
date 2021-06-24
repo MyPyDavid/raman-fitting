@@ -7,20 +7,47 @@ Created on Fri May 14 09:12:56 2021
 @author: zmg
 """
 
+import unittest
 import pytest
 
-try:
-    import raman_fitting
+from lmfit import Model
+import pandas as pd
 
-    from raman_fitting.deconvolution_models.fit_models import Fitter
-except Exception as e:
-    print(f'pytest file {__file__}, {__name__} error {e}')
+import raman_fitting
+from raman_fitting.deconvolution_models.fit_models import Fitter, PrepareParams
 
+# try:
+#     import raman_fitting
+
+
+# except Exception as e:
+#     print(f'pytest file {__file__}, {__name__} error {e}')
+
+
+
+
+
+class TestFitter(unittest.TestCase):
+
+    def test_empty_Fitter(self):
+        ft = Fitter({})
+        self.assertFalse(ft.start_fit)
+        self.assertEqual(ft.spectra, {})
+        ft.fit_delegator()
+
+class TestPrepareParams(unittest.TestCase):
+
+    def test_empty_PrepareParams(self):
+        # pp =
+        with self.assertRaises(AttributeError):
+            PrepareParams({})
 
 
 def _testing():
-    ft = Fitter(spectra_collection)
-    ft.fit_delegator()
+
     self = ft
-    
     self = prep
+
+
+if __name__ == '__main__':
+    unittest.main()

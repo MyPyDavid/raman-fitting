@@ -6,7 +6,7 @@ Created on Wed Apr 28 15:08:26 2021
 @author: zmg
 """
 
-# import inspect
+import inspect
 from warnings import warn
 from itertools import groupby
 from collections import namedtuple
@@ -18,6 +18,8 @@ import pandas as pd
 
 from lmfit import Parameters
 
+import logging
+
 # _file_parent_name = Path(__file__).parent.name
 # print(__name__,__file__,f'name: {_file_parent_name}')
 
@@ -28,29 +30,39 @@ if __name__ == '__main__': #or _file_parent_name == 'deconvolution_models':
     from default_peaks import BasePeak
 else:
     from .default_peaks.base_peak import BasePeak
-    # from . import first_order_peaks
-    # from . import second_order_peaks
-    # from . import normalization_peaks
+    from .. import __package_name__
+    logger = logging.getLogger(__package_name__)
 
 
 
 #%%
-
-class NotFoundAnyModelsWarning(UserWarning):
+class PeakValidationWarning(UserWarning):
     pass
-class CanNotInitializeModelWarning(UserWarning):
+
+
+class NotFoundAnyModelsWarning(PeakValidationWarning):
+    pass
+class CanNotInitializeModelWarning(PeakValidationWarning):
     pass
 
 class PeakModelValidator():
     '''
-    This class collects all BasePeak type classes, which are costum lmfit type models, and
-    constructs an iterable collection of all defined.
-    '''
+    This class collects all BasePeak (=BASE_PEAK) type classes, which are costum lmfit type models, and
+    constructs an iterable collection of all defined Child class.
+    Each subclass of BasePeak is:
+        - validated: instance check
+        - filtered: optional
+        - sorted: sorting for valid models based on defined center position of BasePeak
 
+    Followed by color assignment to each BasePeak and collection of lmfit_models
+
+    '''
     # _standard_modules = [first_order_peaks, second_order_peaks, normalization_peaks]
     BASE_PEAK = BasePeak
 
-    _modvalid = namedtuple('ModelValidation', 'valid peak_group model_inst message')
+    ModelValidation = namedtuple('ModelValidation', 'valid peak_group model_inst message')
+
+    CMAP_OPTIONS_DEFAULT = ('Dark2', 'tab20')
 
     debug = False
 
@@ -59,26 +71,28 @@ class PeakModelValidator():
     # _skip_models = []
     # endwsith = '_peak'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, cmap_options = CMAP_OPTIONS_DEFAULT, **kwargs):
         # self.model_prefixes = model_prefixes
         # self._endswith = endwsith
         self.debug = self._set_debug(**kwargs)
+        self._cmap_options = cmap_options
 
-        self._inspect_modules_all = []
-        self._inspect_models = []
-        self._inspect_models_grpby = {}
-        self.find_inspect_models()
+        self._inspect_models = self.get_subclasses_from_base(self.BASE_PEAK)
 
         self.valid_models = []
         self._invalid_models = []
-        self.validation_inspect_models()
+        self.valid_models, self._invalid_models = self.validation_inspect_models(inspect_models=self._inspect_models)
+        self.selected_models = self.filter_valid_models(self.valid_models)
+        self.selected_models = self.sort_selected_models(self.selected_models)
 
-        # self._skipped_models = {}
-        # self.selected_models = [()]
-        # self.model_constructor()
-        self.lmfit_models = []
-        self.options = ()
-        self.extra_assignments()
+        self.lmfit_models = self.assign_colors_to_lmfit_mod_inst(self.selected_models)
+        self.add_model_names_var_names(self.lmfit_models)
+
+        self.model_dict = self.get_model_dict(self.lmfit_models)
+        self.options = self.model_dict.keys()
+
+        # self.options = ()
+        # self.extra_assignments()
 
     def _set_debug(self, **value):
         _debug = self.debug
@@ -87,54 +101,67 @@ class PeakModelValidator():
                 _debug = bool(value.get('debug', False))
         return _debug
 
-    def find_inspect_models(self):
-        _all_subclasses = self.BASE_PEAK.subclasses
-        self._inspect_modules_all = _all_subclasses
+    def get_subclasses_from_base(self, _BaseClass):
+        ''' Finds subclasses of the BasePeak metaclass, these should give already valid models'''
+
+        _all_subclasses = []
+        if inspect.isclass(_BaseClass):
+            if hasattr(_BaseClass,'subclasses'):
+                _all_subclasses = _BaseClass.subclasses
+            elif hasattr(_BaseClass,'__subclassess__'):
+                _all_subclasses = _BaseClass.__subclasses__
+            else:
+                warn(f'\nNo baseclasses were found for {str(_BaseClass)}:\n missing attributes', NotFoundAnyModelsWarning)
+        else:
+            warn(f'\nNo baseclasses were found for {str(_BaseClass)}:\n is not a class', NotFoundAnyModelsWarning)
+
+        if not _all_subclasses:
+            warn(f'\nNo baseclasses were found in inspected modules for {str(_BaseClass)}:\n', NotFoundAnyModelsWarning)
+
+        return _all_subclasses
+
+            # {", ".join(self._standard_modules)}
+        # elif not self._inspect_models:
+            # warn(f'\nNo base models were found in:\n {", ".join([str(i) for i in self._inspect_modules_all])}.\n', NotFoundAnyModelsWarning)
+        # assert self._inspect_models, 'inspect.getmembers found 0 models, change the search parameters for _standard_modules or BASE_PEAK'
+    def _inspect_modules_for_classes(self):
+        ''' Optional method Inspect other modules for subclasses'''
+        pass
+        # self._inspect_modules_all = _all_subclasses
         # [cl for i in (inspect.getmembers(mod, inspect.isclass)
                                 # for mod in self._standard_modules)
-                                     # for cl in i]
-        self._inspect_models = _all_subclasses
-                                # [a for a in _all_subclasses
-                                # if issubclass(a,self.BASE_PEAK)
-                                # and a is not self.BASE_PEAK]
-        self._inspect_models_grpby = groupby(self._inspect_models, key=lambda x:x.__module__)
+                                      # for cl in i]
 
-        if not self._inspect_modules_all:
-            warn(f'\nNo classes were found in inspected modules:\n', NotFoundAnyModelsWarning)
-            # {", ".join(self._standard_modules)}
-        elif not self._inspect_models:
-            warn(f'\nNo base models were found in:\n {", ".join([str(i) for i in self._inspect_modules_all])}.\n', NotFoundAnyModelsWarning)
-        # assert self._inspect_models, 'inspect.getmembers found 0 models, change the search parameters for _standard_modules or BASE_PEAK'
 
-    def validation_inspect_models(self):
+    def validation_inspect_models(self, inspect_models: list= []):
+        ''' Validates each member of a list for making a valid model instance'''
         _model_validations = []
+        valid_models = []
 
-        for ngr,gr in  self._inspect_models_grpby:
-            for m in gr:
-                try:
-                    _succes, _inst, _msg = self.validate_model_instance(m)
-                except Exception as e:
-                    _msg = f'Unexpected error for validate model instance : {e}\n'
-                    _succes, _inst = False, m
-                finally:
-                    _args = (_succes,ngr, _inst, _msg)
-                    if self.debug:
-                        print(_args)
+        for model in  inspect_models:
+            _module = model.__module__
+            try:
+                _succes, _inst, _msg = self.validate_model_instance(model)
+            except Exception as e:
+                _succes, _inst = False, model
+                _msg = f'Unexpected error for validate model instance : {e}\n'
+            finally:
+                _args = (_succes,_module, _inst, _msg)
+                _model_validations.append(self.ModelValidation(*_args))
+                if self.debug:
+                    print(_args)
 
+        _invalid_models = [i for i in _model_validations if not i.valid]
+        valid_models = [i for i in _model_validations if i.valid]
 
-                    _model_validations.append(self._modvalid(*_args))
+        if not valid_models:
+            warn(f'\nNo valid models were found in:\n {", ".join([str(i) for i in inspect_models])}\
+                \t\nOnly invalid models: {", ".join([str(i) for i in _invalid_models])}.\n', NotFoundAnyModelsWarning)
 
-        self._invalid_models = [i for i in _model_validations if not i.valid]
-        self.valid_models = [i for i in _model_validations if i.valid]
-        self.selected_models = self.filter_valid_models(self.valid_models)
-        self.selected_models = self.sort_selected_models(self.selected_models)
-                    # self._invalid_models.add((False, m, _msg))
-        if not self.valid_models:
-            warn(f'\nNo valid models were found in:\n {", ".join([str(i) for i in self._inspect_modules_all])}\
-                \t\nOnly invalid models: {", ".join([str(i) for i in self._invalid_models])}.\n', NotFoundAnyModelsWarning)
+        return valid_models, _invalid_models
 
     def filter_valid_models(self, value):
-        ''' Optional extra filters for valid model selection'''
+        ''' Optional method for extra filters on valid model selection'''
         return value
         # self._skipped_models = set(self._bad_models + self._skip_models)
         # if self.standard_model_selection:
@@ -145,6 +172,7 @@ class PeakModelValidator():
     def sort_selected_models(self, value):
         ''' Sorting the selected valid models for color assigment etc..'''
         _sorted = value
+        _setting_key = None
         try:
             _setting_key = [i for i in self.BASE_PEAK._fields if 'param_hints' in i]
             if value:
@@ -175,54 +203,58 @@ class PeakModelValidator():
 
         for field in self.BASE_PEAK._fields:
             if not hasattr( _inst,field):
-                return (False, value,'instance {_inst} has no attr {field}.\n')
+                return (False, value,f'instance {_inst} has no attr {field}.\n')
             if not getattr(_inst, field):
-                return (False, value,'instance {_inst}, {field} is None.\n')
+                return (False, value,f'instance {_inst}, {field} is None.\n')
             if 'param_hints' in field:
                 _settings = getattr(_inst, field)
                 _center = _settings.get('center', None)
                 if not _center:
-                    return (False, value,'instance {_inst}, settings {_settings} center is None.\n')
+                    return (False, value,f'instance {_inst}, settings {_settings} center is None.\n')
         return (True, _inst,f'{_inst} is a valid model')
 
-    def extra_assignments(self):
+    def get_cmap_list(self, lst, cmap_options = ()):
 
-        if self.selected_models:
-            self.assign_colors_to_mod_inst()
-            self.add_model_names_var_names()
-        # self.add_standard_init_params()
-            self.set_options()
+        try:
+            _short, _long = cmap_options
+            _cmap = plt.get_cmap(_short if not len(lst) > 10 else _long)
+        except Exception as e:
+            _short, _long = self.CMAP_OPTIONS_DEFAULT
+            _cmap = plt.get_cmap(_short if not len(lst) > 10 else _long)
+        return _cmap
 
-    def assign_colors_to_mod_inst(self):
-        self.cmap_set = plt.get_cmap('Dark2' if not len(self.selected_models) > 10 else 'tab20')
-
-        for n, _arg in enumerate(self.selected_models):
+    def assign_colors_to_lmfit_mod_inst(self, selected_models: list):
+        cmap_get = self.get_cmap_list(selected_models, cmap_options = self._cmap_options)
+        lmfit_models = []
+        for n, _arg in enumerate(selected_models):
             _m_inst = _arg.model_inst
             _m_inst._modelvalidation = _arg
-            _m_inst.color =  ', '.join([str(i) for i in self.cmap_set(n)])
+            _m_inst.color =  ', '.join([str(i) for i in cmap_get(n)])
             # _m_inst._funcname = str(m).split('__main__.')[-1][:-2]
             _m_inst._lenpars = len(_m_inst.peak_model.param_names)
-            self.lmfit_models.append(_m_inst)
-        self.lmfit_models= sorted(self.lmfit_models, key= lambda x: x._lenpars)
+            lmfit_models.append(_m_inst)
+        return lmfit_models
+        # self.lmfit_models= sorted(self.lmfit_models, key= lambda x: x._lenpars)
         # self.lmfit_models = _mod_inst
 
     def add_standard_init_params(self):
         self.standard_init_params = Parameters()
         self.standard_init_params.add_many(*BasePeak._params_guesses_base)
 
-    def add_model_names_var_names(self):
-        _modvars = {i.peak_model.name : i.peak_model.param_names for i in self.lmfit_models}
-        self.modpars = _modvars
+    def add_model_names_var_names(self, lmfit_models):
+        _mod_param_names = {i.peak_model.name : i.peak_model.param_names for i in lmfit_models}
+        return _mod_param_names
+
 
     def get_df_models_parameters(self):
         _models = pd.DataFrame([(i.model.name,len(i.peak_model.param_names),', '.join(i.peak_model.param_names))
                                     for i in self.lmfit_models],columns=['Model_EEC','model_lenpars','model_parnames'])
         return _models
 
-    def set_options(self):
-        _options = {i.__class__.__name__ : i for i in self.lmfit_models}
-        self.model_dict = _options
-        self.options = _options.keys()
+    def get_model_dict(self, lmfit_models):
+        model_dict = {i.__class__.__name__ : i for i in lmfit_models}
+        return model_dict
+
 
     def get_dict(self):
         return {i.__module__+', '+i.__class__.__name__ : i  for i in self.lmfit_models}

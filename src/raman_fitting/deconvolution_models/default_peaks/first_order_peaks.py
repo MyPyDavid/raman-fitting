@@ -10,7 +10,8 @@ __all__ = ['G_peak', 'D_peak', 'D2_peak', 'D3_peak', 'D5_peak', 'Si1_peak']
 # ====== FIRST ORDER PEAKS ======= #
 
 class G_peak(metaclass=BasePeak):
-    '''Graphite belongs to the P63/mmc (D46h) space group. If considering only a graphene plane, at
+    '''
+    Graphite belongs to the P63/mmc (D46h) space group. If considering only a graphene plane, at
     the Ã point of the Brillouin zone, there are six normal modes that possess only one mode (doubly
     degenerate in plane) with a E2g representation, which is Raman active
     G ; Ideal graphitic lattice (E2g-symmetry)
@@ -29,7 +30,8 @@ class G_peak(metaclass=BasePeak):
 
 
 class D_peak(metaclass=BasePeak):
-    ''' D or D1 ; Disordered graphitic lattice (graphene layer edges,A1gsymmetry)
+    '''
+    D or D1 ; Disordered graphitic lattice (graphene layer edges,A1gsymmetry)
     A defective graphite presents other bands that can be as intense as the G band at D=1350 and D'=1615 cm-1
     These bands are activated by defects due to the breaking of the crystal symmetry that relax the Raman selection rules.
     Für D1: 1340-1350
@@ -46,7 +48,8 @@ class D_peak(metaclass=BasePeak):
 
 
 class D2_peak(metaclass=BasePeak):
-    '''D2 or D' ; Right next to the G peak, sometimes not obvious as G peak split.
+    '''
+    D2 or D' ; Right next to the G peak, sometimes not obvious as G peak split.
     Disordered graphitic lattice (surface graphene layers,E2g-symmetry)
     j.molstruc.2010.12.065
     '''
@@ -61,7 +64,8 @@ class D2_peak(metaclass=BasePeak):
 
 
 class D3_peak(metaclass=BasePeak):
-    ''' D3 or D'' or A or Am ; Between the D and G peak, sometimes too broad.
+    '''
+    D3 or D'' or A or Am ; Between the D and G peak, sometimes too broad.
     For amorphous carbon (Gaussian[26]or Lorentzian[3,18,27]line shape).
     Für D3: 1495-1515
     '''
@@ -75,7 +79,8 @@ class D3_peak(metaclass=BasePeak):
              'amplitude' : {'value' : 25,'min' : 1E-02, 'max' : 500}}
 
 class D4_peak(metaclass=BasePeak):
-    ''' D4 or I ; Below D band, a shoulder sometimes split with D5 band.
+    '''
+    D4 or I ; Below D band, a shoulder sometimes split with D5 band.
     Disordered graphitic lattice (A1gsymmetry)[10],polyenes[3,27], ionic impurities
     D4 peak at 1212 cm−1
     Jurkiewicz, K., Pawlyta, M., Zygadło, D. et al. J Mater Sci (2018) 53: 3509. https://doi.org/10.1007/s10853-017-1753-7
@@ -92,7 +97,8 @@ class D4_peak(metaclass=BasePeak):
 
 
 class D5_peak(metaclass=BasePeak):
-    '''D5 peak at 1110 cm−1. At lowest should of D peak, below D4.
+    '''
+    D5 peak at 1110 cm−1. At lowest should of D peak, below D4.
     Ref: Jurkiewicz, K., Pawlyta, M., Zygadło, D. et al. J Mater Sci (2018) 53: 3509. https://doi.org/10.1007/s10853-017-1753-7
     '''
 
@@ -106,7 +112,8 @@ class D5_peak(metaclass=BasePeak):
 
 
 class Si1_peak(metaclass=BasePeak):
-    '''===== Extra peak at ca. 960 cm-1 presumably from Si substrate 2nd order === not from Nafion...
+    '''
+    ===== Extra peak at ca. 960 cm-1 presumably from Si substrate 2nd order === not from Nafion...
     => Either cut the Spectra 1000-2000
     => Place an extra Gaussian peak at 960 in the fit
     '''

@@ -9,7 +9,9 @@ __all__ = ['D4D4_peak', 'D1D1_peak', 'GD1_peak', 'D2D2_peak']
 
 # ====== SECOND ORDER PEAKS ======= #
 class D4D4_peak(metaclass=BasePeak):
-    '''2nd order D4 peak '''
+    '''
+    2nd order D4 peak
+    '''
 
     def __init__(self):
         self.peak_type = 'Lorentzian'
@@ -20,7 +22,8 @@ class D4D4_peak(metaclass=BasePeak):
                 'amplitude' : {'value' : 2,'min' : 1E-03, 'max' : 100}}
 
 class D1D1_peak(metaclass=BasePeak):
-    '''2nd order D(1) peak, aka 2D
+    '''
+    2nd order D(1) peak, aka 2D
     2450 cm􀀀1 band, which has been attributed recently to a D + D”
     band by Couzi et al. [61], the D + D’ (in literature, the wrong D + G label is often found [62]), the
     2D’ bands and the 2D + G band.
@@ -36,7 +39,9 @@ class D1D1_peak(metaclass=BasePeak):
             'amplitude' : {'value' : 14,'min' : 1E-03, 'max' : 100}}
 
 class GD1_peak(metaclass=BasePeak):
-    '''2nd order G+D(1) peak '''
+    '''
+    2nd order G+D(1) peak
+    '''
 #        D2D2_mod = VoigtModel(prefix='D2D2_')
     def __init__(self):
         self.peak_type = 'Lorentzian'
@@ -46,9 +51,10 @@ class GD1_peak(metaclass=BasePeak):
             'sigma' : {'value' : 50,'min' : 1, 'max' : 200},
             'amplitude' : {'value' : 10,'min' : 1E-03, 'max' : 100}}
 
-
 class D2D2_peak(metaclass=BasePeak):
-    '''2nd order D2 peak, aka 2D2'''
+    '''
+    2nd order D2 peak, aka 2D2
+    '''
 #        D2D2_mod = VoigtModel(prefix='D2D2_')
 
     def __init__(self):

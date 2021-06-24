@@ -34,24 +34,34 @@ class Fitter:
 
     @spectra.setter
     def spectra(self, value):
+        ''' Checks if value is dict or else takes a dict from class instance value'''
 
         _errtxt = (f'This assignment {value} does not contain valid spectra')
         if type(value) == dict:
             _data = value
+            # if not _data:
+                # self.start_fit = False
         elif type(value).__name__ == 'SpectrumDataCollection':
             _data = value.mean_data
             _fit_lbl = 'mean'
+            # if not _data:
+                # self.start_fit = False
         elif type(value).__name__ == 'SpectrumDataLoader':
             _data = value.clean_df
             _fit_lbl = 'int'
-        elif type(value) == pd.DataFrame:
+            # if _data.empty:
+                # self.start_fit = False
+        elif isinstance(value, pd.DataFrame):
             raise AttributeError
             # TODO implement self.sense_windowname(value)
         else:
             raise ValueError(_errtxt)
 
         _specs = {k:val for k,val in _data.items() if k in self.fit_windows and type(val) == pd.DataFrame}
-        assert bool(_specs), _errtxt
+        # assert bool(_specs), _errtxt
+        if not _specs:
+            self.start_fit = False
+
         self._spectra = _specs
         self.FitResults = {}
         self.info = {}
@@ -61,7 +71,7 @@ class Fitter:
     def fit_delegator(self):
 
         if self.start_fit:
-            self.fit_models(self.models.second_order)
+            self.fit_models(self.models.second_order) # second order should go first
             self.fit_models(self.models.first_order)
 
     def fit_models(self, model_selection):
@@ -81,29 +91,37 @@ class Fitter:
                 logger.warning(f'{self._qcnm} fit_model failed for {modname}: {model}, because:\n {e}')
         self.FitResults.update(**_fittings)
 
-    def run_fit(self, model, _data, **kws):
+    def run_fit(self, model, _data, method='leastsq', **kws):
         # TODO improve fitting loop so that starting parameters from modelX and modelX+Si are shared, faster...
         _fit_res, _param_res = {}, {}
         init_params = model.make_params()
         x, y = _data.ramanshift, _data[kws.get('_int_lbl')]
-        out = model.fit(y,init_params,x=x,method='leastsq') # 'leastsq'
+        out = model.fit(y,init_params,x=x, method = method) # 'leastsq'
         for k,val in kws.items():
-            setattr(out,k,val)
+            if not hasattr(out, k):
+                _attrkey = k
+            elif not hasattr(out, f'_{k}'):
+                _attrkey = f'_{k}'
+            else:
+                _attrkey = None
+            if _attrkey:
+                setattr(out, _attrkey, val)
         return out
 
     def get_int_label(self, value):
-        cols = [i for i in value.columns if not 'ramanshift' in i]
-        if len(cols) == 0:
-            _lbl = ''
-        if len(cols) == 1:
-            _lbl = cols[0]
-        elif len(cols) > 1:
-            if any('mean' in i for i in cols):
-                _lbl = [i for i in cols if 'mean' in i][0]
-            elif any('int' in i for i in cols):
-                _lbl = [i for i in cols if 'int' in i][0]
-            else:
-                _lbl =''
+        _lbl =''
+        if isinstance(value,pd.DataFrame):
+            cols = [i for i in value.columns if not 'ramanshift' in i]
+            if len(cols) == 0:
+                _lbl = ''
+            if len(cols) == 1:
+                _lbl = cols[0]
+            elif len(cols) > 1:
+                if any('mean' in i for i in cols):
+                    _lbl = [i for i in cols if 'mean' in i][0]
+                elif any('int' in i for i in cols):
+                    _lbl = [i for i in cols if 'int' in i][0]
+
         return _lbl
 
 

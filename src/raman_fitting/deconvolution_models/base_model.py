@@ -5,7 +5,8 @@ from warnings import warn
 from lmfit import Model
 
 import logging
-logger = logging.getLogger('pyramdeconv')
+from .. import __package_name__
+logger = logging.getLogger(__package_name__)
 
 
 _SUBSTRATE_PEAK = 'Si1_peak'
@@ -47,10 +48,10 @@ class InitializeModels():
     def get_peak_collection(self, func):
         try:
             peak_collection = func()
-            logger.warning(f'{self._cqnm} collection of peaks validated:\n{peak_collection}')
+            logger.debug(f'{self._cqnm} collection of peaks validated with {func}:\n{peak_collection}')
 
-        except Exception:
-            logger.warning(f'{self._cqnm} failure in PeakModelValidator initialization')
+        except Exception as e:
+            logger.error(f'{self._cqnm} failure in call {func}.\n\t{e}')
             peak_collection = []
         return peak_collection
 

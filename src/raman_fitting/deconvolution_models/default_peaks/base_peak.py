@@ -26,9 +26,35 @@ class BasePeakWarning(UserWarning): # pragma: no cover
     #%%
 
 class BasePeak(type):
-    '''Base class for typical intensity peaks found the raman spectra.\
-    Several peaks combined are used as a model (composed in the fit_models module)\
-        to fit a certain region of the spectrum.'''
+    '''
+    Base class for easier definition of typical intensity peaks found in the
+    raman spectra.
+
+    This metaclass takes a class definition with only class attributes
+    or init attributes,
+    or even only keywords arguments.
+    It validates the assigned attributes in the defined class
+    according to the values set here in _fields.
+
+    Sort of wrapper for lmfit.model definition.
+    Several of these peaks combined are used to make the lmfit CompositeModel
+    (composed in the fit_models module), which will be used for the fit
+    on certain regions of the spectrum.
+
+
+    --------
+    Example usage
+    --------
+
+    class New_peak(metaclass=BasePeak):
+        "New peak child class for easier definition"
+
+        param_hints = { 'center': {'value': 2435,'min': 2400, 'max': 2550}}
+        peak_type = 'Voigt' #'Voigt'
+        peak_name ='R2D2'
+
+    New_peak().peak_model == <lmfit.Model: Model(voigt, prefix='R2D2_')>
+    '''
 
     _fields = ['peak_name','peak_type','param_hints']
     _sources = ('kwargs', 'cls_dict', 'init')
@@ -158,6 +184,7 @@ class BasePeak(type):
 
     @classmethod
     def _cleanup_init_dict(cls, _dict):
+        ''' cleans up the __init__ dictionary from defined class'''
         _dkeys = list(_dict.keys())
         _result = {}
         while _dkeys:
@@ -173,6 +200,7 @@ class BasePeak(type):
 
     @classmethod
     def _set_other_methods(cls, cls_object):
+        ''' sets other methods found in this baseclass on the defined cls object'''
         _other_methods = [i for i in dir(cls)
                           if not i.startswith('_')
                           and not i == 'mro']
@@ -203,7 +231,7 @@ class BasePeak(type):
 
     @property
     def peak_type(self):
-        '''The peak type property should be in PEAK_TYPE_OPTIONS'''
+        '''This property (str) should be assigned and in self.PEAK_TYPE_OPTIONS'''
         return self._peak_type
 
     @peak_type.setter
@@ -227,13 +255,15 @@ class BasePeak(type):
 
     @property
     def peak_model(self):
-        '''The peak model property is constructed from peak name and param hints'''
+        '''
+        This property is an instance of lmfit.Model,
+        constructed from peak_name and param_hints setters
+        '''
         # if hasattr(self, '_peak_model'):
         return self._peak_model
 
     @peak_model.setter
     def peak_model(self,value):
-        '''The peak model property is constructed from peak name and param hints'''
 
         if issubclass(value.__class__, Model):# or value == None:
             self._peak_model = value
@@ -242,13 +272,13 @@ class BasePeak(type):
 
     @property
     def param_hints(self):
-        '''The params_hints property is constructed param hints'''
+        '''This property is dict of dicts and sets the initial values for the parameters'''
         # if hasattr(self, '_peak_model'):
         return self._param_hints
 
     @param_hints.setter
     def param_hints(self,value):
-        '''The peak model property is constructed from peak name and param hints'''
+
         param_hints_ = self.param_hints_constructor(value)
         # print(f'== inside params hints {self}, {value}, {param_hints_}')
         model = self.call_make_model_from_params(param_hints_)
@@ -264,6 +294,7 @@ class BasePeak(type):
 
     # @classmethod
     def make_model_and_set_param_hints(self, prefix_, peak_type_, param_hints_):
+        ''' constructs the lmfit model from defined fields'''
         try:
             # prefix_set = self.peak_name if hasattr(self,'peak_name') else ''
             # breakpoint()
@@ -278,6 +309,7 @@ class BasePeak(type):
 
     # @classmethod
     def type_to_model_chooser(self, value, prefix_):
+        ''' chooses the type of peak model from string value and sets the prefix'''
         model = None
         if value:
             _val_upp = value.upper()
@@ -295,7 +327,7 @@ class BasePeak(type):
 
     @property
     def peak_name(self):
-        '''This is the name that the peak Model will get as prefix'''
+        '''This is the name that the peak_model will get as prefix'''
         if self._peak_name:
             if not self._peak_name.endswith('_'):
                 self._peak_name = self._peak_name + '_'
@@ -304,7 +336,6 @@ class BasePeak(type):
 
     @peak_name.setter
     def peak_name(self, value : str, maxlen = 20):
-        '''This is the name that the peak will get as prefix'''
         if len(value) < maxlen:
             prefix_set = value + '_'
             if hasattr(self,'peak_model'):
