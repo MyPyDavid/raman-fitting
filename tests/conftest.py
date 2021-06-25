@@ -7,8 +7,11 @@ Configuration file for pytest and commonly used fixtures
 import pandas
 import pytest
 
-# import raman_fitting
-print(f'pytest: {__name__},file: {__file__}')
+
+import importlib
+# rname = importlib.util.resolve_name('raman_fitting', None)
+# importlib.import_module('raman_fitting')
+print(f'pytest: {__name__},file: {__file__}\n name:')
 # Incremental tests
 
 

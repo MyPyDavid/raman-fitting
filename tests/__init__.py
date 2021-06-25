@@ -15,4 +15,11 @@ run commands examples
 
     pytest --cov --cov-report=term-missing
 
+with coverage only:
+    coverage run -m unittest discover
+    coverage combine
+    coverage xml
+    coverage report -m
+    coverage report -m --skip-covered
+
 '''

@@ -13,7 +13,7 @@ NAME = 'raman_fitting'
 VERSION = '0.6.3'
 DESCRIPTION = 'Python framework for the batch processing and deconvolution of raman spectra.'
 URL = 'https://github.com/MyPyDavid/raman-fitting.git'
-EMAIL = 'mypydavid@github.com'
+EMAIL = 'wdz.wallace@protonmail.com'
 AUTHOR = 'David Wallace'
 REQUIRES_PYTHON = '>=3.7.0'
 
