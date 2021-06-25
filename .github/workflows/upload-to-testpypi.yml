@@ -44,6 +44,7 @@ jobs:
       - name: Test with unittest
         run: |
           cd tests
+          python3 -m pip install pytest pytest-cov coverage
           python3 -m unittest discover
           cd ..
 
