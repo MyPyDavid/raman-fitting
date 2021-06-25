@@ -63,7 +63,7 @@ setup(
     use_scm_version={
         'local_scheme': 'dirty-tag',
         'write_to': f'src/{NAME}/_version.py',
-        'fallback_version': '0.6.4',
+        'fallback_version': '0.7.0',
     },
     # version=VERSION,
     description=DESCRIPTION,
