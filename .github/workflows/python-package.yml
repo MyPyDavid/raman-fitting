@@ -14,12 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     -  name: Echo local environment
-      run: |
-         echo "Hello $GITHUB_ACTOR, running workflow for $GITHUB_REPOSITORY "
-
+       run: |
+         echo "Hello $GITHUB_ACTOR, running workflow for $GITHUB_REPOSITORY"
 
   build:
-
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
