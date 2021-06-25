@@ -8,7 +8,14 @@ __status__ = 'Development'
 __future_version_name__ = 'pyramdeconv'
 __current_version_name__ = 'raman_fitting'
 __package_name__ = __current_version_name__
-__version__ = '0.6.3'
+
+
+
+try:
+    from ._version import version
+    __version__ = version
+except:
+    __version__ = '0.6.7'
 
 
 from raman_fitting.config import config
