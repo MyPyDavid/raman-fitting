@@ -10,7 +10,7 @@ from importlib.resources import read_text
 
 # Package meta-data.
 NAME = 'raman_fitting'
-VERSION = '0.6.3'
+# VERSION = '0.6.3'
 DESCRIPTION = 'Python framework for the batch processing and deconvolution of raman spectra.'
 URL = 'https://github.com/MyPyDavid/raman-fitting.git'
 EMAIL = 'wdz.wallace@protonmail.com'
@@ -62,8 +62,8 @@ setup(
     name=NAME,
     use_scm_version={
         'local_scheme': 'dirty-tag',
-        'write_to': f'src/{NAME}/_version.py',
-        'fallback_version': '0.6.4',
+        'write_to': 'src/raman_fitting/_version.py',
+        'fallback_version': '0.6.5',
     },
     # version=VERSION,
     description=DESCRIPTION,
@@ -90,6 +90,7 @@ setup(
     },
     install_requires=_list_requirements(ROOT_DIR),
     tests_require=['pytest', 'pytest-cov'],
+    setup_requires=['setuptools_scm'],
     extras_require={
         'dev': [
             'isort',

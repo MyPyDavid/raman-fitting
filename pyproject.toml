@@ -1,11 +1,11 @@
 [build-system]
 requires = [
-    "setuptools>=42",
+    "setuptools>=45",
     "wheel",
-    "setuptools_scm[toml]>=3.4",
+    "setuptools_scm[toml]>=6.0",
 ]
 
 [tool.setuptools_scm]
 write_to = "src/raman_fitting/_version.py"
 local_scheme = 'dirty-tag'
-fallback_version = '0.6.4'
+fallback_version = '0.6.5'
