@@ -1,4 +1,5 @@
 [![CI GH actions](https://github.com/MyPyDavid/raman-fitting/actions/workflows/python-package.yml/badge.svg)](https://github.com/MyPyDavid/raman-fitting/actions/workflows/python-package.yml)
+[![codecov](https://codecov.io/gh/MyPyDavid/raman-fitting/branch/main/graph/badge.svg?token=II9JZAODJY)](https://codecov.io/gh/MyPyDavid/raman-fitting)
 
 
 # raman-fitting
