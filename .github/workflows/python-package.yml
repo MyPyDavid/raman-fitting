@@ -29,8 +29,8 @@ jobs:
     
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip  setuptools wheel
-        python -m pip install flake8 pytest
+        python3 -m pip install --upgrade pip  setuptools wheel
+        python3 -m pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     
     - name: Lint with flake8
@@ -42,22 +42,33 @@ jobs:
         
     - name: Build wheels
       run: |
-        python setup.py sdist bdist_wheel
+        python3 setup.py sdist bdist_wheel
         # install the package in editable mode for the coverage report
-        python -m pip install -e ./
+        # python -m pip install -e ./
+        # Install the package from setup.py
+          python3 setup.py install
   
     
     - name: Install dependencies for coverage report
       run: |
-        python -m pip install pytest pytest-cov coverage
+        python3 -m pip install pytest pytest-cov coverage
      
     - name: Generate coverage report
       run: |
         pytest --cov --cov-report=xml
-        # had problems with coverage therefore pytest --cov is used here 
+        # there were problems with coverage therefore pytest --cov is used here 
         # coverage xml
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v1
+    
+    - name: Build and Upload to TestPyPI
+      run: |
+          # python3 setup.py sdist bdist_wheel
+          python3 -m twine upload dist/*
+      env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TWINE_TEST_TOKEN }}
+          TWINE_REPOSITORY: testpypi
    #   with:
    # - name: Test with pytest
    #   run: |
