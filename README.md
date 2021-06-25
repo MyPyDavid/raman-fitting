@@ -51,6 +51,28 @@ Test the package after installation in the python interpreter with the api comma
 import raman_fitting
 raman_fitting.make_examples()
 ```
+### Usage
+
+Place your data files in the default location or change this default setting in the config:
+``` bash
+home/.raman_fitting/datafiles
+```
+and run in a terminal
+``` bash
+raman_fitting 
+# default run mode is normal
+```
+The fitting process will start on all the files found in the datafiles folder.
+
+The raman data files should be .txt files with two columns of data values.
+The first column should contain the raman shift values and the second one the intensity.
+Filenames will be parsed into a sampleID and position, in order to take the mean of the measured intensity of several positions on the same sample.
+
+An example of filename formatting and parsing result: 
+``` python
+samplename1_pos1.txt => sampleID = 'samplename1', position = 1
+sample2-100_3.txt => sampleID = 'sample2-100', position = 3
+```
 
 ### Dependencies
 
