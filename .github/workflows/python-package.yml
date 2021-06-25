@@ -10,14 +10,8 @@ on:
     branches: [ main ]
 
 jobs:
- # echo:
- #   runs-on: ubuntu-latest
- #   steps:
- #   -  name: Echo local environment
- #      run: |
- #        echo "Hello $GITHUB_ACTOR, running workflow for $GITHUB_REPOSITORY"
-
-  build:
+ 
+ build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -45,16 +39,13 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    
-  #  - name: Install dependencies for wheels
-  #    run: |
-  #      python -m pip install setuptools wheel
-    
+        
     - name: Build wheels
       run: |
         python setup.py sdist bdist_wheel
+        # install the package in editable mode for the coverage report
         python -m pip install -e ./
-  # install the package in editable mode for the coverage report
+  
     
     - name: Install dependencies for coverage report
       run: |
@@ -63,51 +54,11 @@ jobs:
     - name: Generate coverage report
       run: |
         pytest --cov --cov-report=xml
-   #    coverage xml
+        # had problems with coverage therefore pytest --cov is used here 
+        # coverage xml
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v1
    #   with:
    # - name: Test with pytest
    #   run: |
    #     pytest
-   # skip pytest for now and use unittests
-
-
-  unittests:
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash -l {0}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version : [3.8]
-        # [3.7, 3.8, 3.9]
-        include:
-          - python-version: 3.7
-            toxenv: "py37-cover,report" #,codecov"
-          - python-version: 3.8
-            toxenv: "py38-cover,report" #,codecov"
-          - python-version: 3.9
-            toxenv: "py39-cover,report" #,codecov"
-        exclude:
-          # TODO py39 on windows has errors so we exclude it for now
-          - os: windows-latest
-            python-version: 3.9
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade setuptools tox 
-        pip --version
-        virtualenv --version
-        tox --version
-    - name: Test with tox
-      run: |
-        tox -v
-      env:
-        TOXENV: ${{ matrix.toxenv }}
-        # MPLBACKEND: "Agg"
