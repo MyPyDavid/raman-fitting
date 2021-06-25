@@ -10,7 +10,7 @@ from importlib.resources import read_text
 
 # Package meta-data.
 NAME = 'raman_fitting'
-VERSION = '0.6.2'
+VERSION = '0.6.3'
 DESCRIPTION = 'Python framework for the batch processing and deconvolution of raman spectra.'
 URL = 'https://github.com/MyPyDavid/raman-fitting.git'
 EMAIL = 'mypydavid@github.com'
