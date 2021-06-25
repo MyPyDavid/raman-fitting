@@ -55,7 +55,7 @@ jobs:
      
     - name: Generate coverage report
       run: |
-        pytest --cov --cov-report=xml
+        pytest --cov=./ --cov-report=xml
         # there were problems with coverage therefore pytest --cov is used here 
         # coverage xml
     - name: Upload Coverage to Codecov
