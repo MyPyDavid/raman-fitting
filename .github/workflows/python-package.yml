@@ -53,7 +53,7 @@ jobs:
     - name: Build wheels
       run: |
         python setup.py sdist bdist_wheel
-        python -m pip install -e $GITHUB_REPOSITORY
+        python -m pip install -e ../raman-fitting/
     
     - name: Install dependencies for coverage report
       run: |
