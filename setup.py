@@ -63,7 +63,7 @@ setup(
     use_scm_version={
         'local_scheme': 'dirty-tag',
         'write_to': f'src/{NAME}/_version.py',
-        'fallback_version': '0.6.3',
+        'fallback_version': '0.6.4',
     },
     # version=VERSION,
     description=DESCRIPTION,
@@ -99,7 +99,7 @@ setup(
             'pydocstyle',
             'bump2version',
         ],
-        }
+        },
     include_package_data=True,
     license='MIT license',
     classifiers=[
