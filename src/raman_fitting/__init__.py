@@ -10,10 +10,10 @@ __current_version_name__ = 'raman_fitting'
 __package_name__ = __current_version_name__
 
 from raman_fitting.config import config
-VERSION_PATH = config.PACKAGE_ROOT / 'VERSION'
-with open(VERSION_PATH, 'r') as version_file:
+# VERSION_PATH = config.PACKAGE_ROOT / 'VERSION.txt'
+# with open(VERSION_PATH, 'r') as version_file:
     # TODO change version definitino
-    __version__ = version_file.read().strip()
+    # __version__ = version_file.read().strip()
 
 
 import logging
@@ -40,8 +40,8 @@ if sys.version_info[0] != 3:
     sys.exit(1)
 
 # Let users know if they're missing any hard dependencies
-hard_dependencies = ("numpy", "pandas", "scipy", "matplotlib")
-soft_dependencies = {'lmfit'}
+hard_dependencies = ("numpy", "pandas", "scipy", "matplotlib", "lmfit")
+soft_dependencies = {}
 missing_dependencies = []
 
 import importlib

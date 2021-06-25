@@ -5,11 +5,13 @@ import io
 from pathlib import Path
 
 from setuptools import find_packages, setup
+from importlib.resources import read_text
 
 
 # Package meta-data.
 NAME = 'raman_fitting'
-DESCRIPTION = 'Package for the batch processing and deconvolution of raman spectra.'
+VERSION = '0.6.2'
+DESCRIPTION = 'Python framework for the batch processing and deconvolution of raman spectra.'
 URL = 'https://github.com/MyPyDavid/raman-fitting.git'
 EMAIL = 'mypydavid@github.com'
 AUTHOR = 'David Wallace'
@@ -46,17 +48,19 @@ except FileNotFoundError:
 
 # Load the package's __version__.py module as a dictionary.
 
-PACKAGE_DIR = ROOT_DIR / 'src' / NAME
-about = {}
-with open(PACKAGE_DIR / 'VERSION') as f:
-    _version = f.read().strip()
-    about['__version__'] = _version
+# PACKAGE_DIR = ROOT_DIR / 'src' / NAME
+# about = {}
+# _version  = read_text(NAME,'VERSION.txt')
+# about['__version__'] = _version
+# with open(PACKAGE_DIR / 'VERSION.txt') as f:
+    # _version = f.read().strip()
+
 
 
 # Where the magic happens:
 setup(
     name=NAME,
-    version=about['__version__'],
+    version=VERSION,
     description=DESCRIPTION,
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -73,14 +77,14 @@ setup(
     package_dir={'': 'src'},
     py_modules=[path.name.suffix for path
                 in Path('./src').glob('*.py')],
-    package_data={'': ['VERSION','datafiles/example_files/*.txt']},
+    package_data={'': ['VERSION.txt','datafiles/example_files/*.txt']},
     entry_points={
         'console_scripts': [
             f'{NAME} = {NAME}.cli:main'
         ]
     },
     install_requires=_list_requirements(ROOT_DIR),
-    tests_require=['pytest'],
+    tests_require=['pytest', 'pytest-cov'],
     extras_require={},
     include_package_data=True,
     license='MIT license',
@@ -93,7 +97,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy'
+        'Programming Language :: Python :: Implementation :: PyPy',
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Physics',
         'Topic :: Scientific/Engineering :: Chemistry',

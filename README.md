@@ -37,10 +37,10 @@ Install the repository from the folder wherein the repo was cloned or downloaded
 The required dependencies should be installed automatically as well.
 ``` bash
 # regular install
-pip install raman-fitting/
+python -m pip install raman-fitting/
 
-# develop mode
-pip install -e raman-fitting/
+# editable/develop mode
+python -m pip install -e raman-fitting/
 ```
 Test the package after installation with the following cli command.
 ``` bash

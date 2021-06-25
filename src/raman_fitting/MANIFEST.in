@@ -7,7 +7,6 @@ recursive-include ./raman_fitting/*
 
 include raman_fitting/datafiles/example_files/*.txt
 
-include raman_fitting/VERSION
 
 include ./requirements.txt
 exclude *.log
