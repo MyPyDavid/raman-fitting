@@ -53,7 +53,8 @@ jobs:
     - name: Build wheels
       run: |
         python setup.py sdist bdist_wheel
-        python -m pip install -e ../raman-fitting/
+        python -m pip install -e ./
+  # install the package in editable mode for the coverage report
     
     - name: Install dependencies for coverage report
       run: |
