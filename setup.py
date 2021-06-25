@@ -60,7 +60,12 @@ except FileNotFoundError:
 # Where the magic happens:
 setup(
     name=NAME,
-    version=VERSION,
+    use_scm_version={
+        'local_scheme': 'dirty-tag',
+        'write_to': f'src/{NAME}/_version.py',
+        'fallback_version': '0.6.3',
+    },
+    # version=VERSION,
     description=DESCRIPTION,
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -85,7 +90,16 @@ setup(
     },
     install_requires=_list_requirements(ROOT_DIR),
     tests_require=['pytest', 'pytest-cov'],
-    extras_require={},
+    extras_require={
+        'dev': [
+            'isort',
+            'pylint',
+            'flake8',
+            'autopep8',
+            'pydocstyle',
+            'bump2version',
+        ],
+        }
     include_package_data=True,
     license='MIT license',
     classifiers=[
