@@ -10,12 +10,12 @@ on:
     branches: [ main ]
 
 jobs:
-  echo:
-    runs-on: ubuntu-latest
-    steps:
-    -  name: Echo local environment
-       run: |
-         echo "Hello $GITHUB_ACTOR, running workflow for $GITHUB_REPOSITORY"
+ # echo:
+ #   runs-on: ubuntu-latest
+ #   steps:
+ #   -  name: Echo local environment
+ #      run: |
+ #        echo "Hello $GITHUB_ACTOR, running workflow for $GITHUB_REPOSITORY"
 
   build:
     runs-on: ubuntu-latest
@@ -58,9 +58,7 @@ jobs:
     - name: Install dependencies for coverage report
       run: |
         python -m pip install pytest pytest-cov coverage
-      with:
-        fail_ci_if_error: false
-    
+     
     - name: Generate coverage report
       run: |
         pytest --cov --cov-report=xml
