@@ -10,6 +10,14 @@ on:
     branches: [ main ]
 
 jobs:
+  echo:
+    runs-on: ubuntu-latest
+    steps:
+    -  name: Echo local environment
+      run: |
+         echo "Hello $GITHUB_ACTOR, running workflow for $GITHUB_REPOSITORY "
+
+
   build:
 
     runs-on: ubuntu-latest
@@ -47,7 +55,7 @@ jobs:
     - name: Build wheels
       run: |
         python setup.py sdist bdist_wheel
-        python -m pip install $GITHUB_REPOSITORY
+        python -m pip install -e $GITHUB_REPOSITORY
     
     - name: Install dependencies for coverage report
       run: |
