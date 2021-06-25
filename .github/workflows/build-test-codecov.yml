@@ -44,9 +44,9 @@ jobs:
       run: |
         python3 setup.py sdist bdist_wheel
         # install the package in editable mode for the coverage report
-        # python -m pip install -e ./
+        python -m pip install -e ./
         # Install the package from setup.py
-          python3 setup.py install
+        # python3 setup.py install
   
     
     - name: Install dependencies for coverage report
@@ -55,7 +55,7 @@ jobs:
      
     - name: Generate coverage report
       run: |
-        pytest --cov=./ --cov-report=xml
+        pytest --cov --cov-report=xml --cov-report=term-missing
         # there were problems with coverage therefore pytest --cov is used here 
         # coverage xml
     - name: Upload Coverage to Codecov
