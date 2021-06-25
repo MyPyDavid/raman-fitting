@@ -82,7 +82,7 @@ setup(
     package_dir={'': 'src'},
     py_modules=[path.name.suffix for path
                 in Path('./src').glob('*.py')],
-    package_data={'': ['VERSION.txt','datafiles/example_files/*.txt']},
+    package_data={'': ['datafiles/example_files/*.txt']},
     entry_points={
         'console_scripts': [
             f'{NAME} = {NAME}.cli:main'
