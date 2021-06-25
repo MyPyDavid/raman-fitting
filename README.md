@@ -1,3 +1,6 @@
+[![CI GH actions](https://github.com/MyPyDavid/raman-fitting/actions/workflows/python-package.yml/badge.svg)](https://github.com/MyPyDavid/raman-fitting/actions/workflows/python-package.yml)
+
+
 # raman-fitting
  A Python framework that performs a deconvolution on typical parts of interest on the spectrum of carbonaceous materials.
  The deconvolutions are done with models which are composed of collections of lineshapes or peaks that typically assigned to these spectra in scientific literature.
