@@ -78,7 +78,7 @@ An example of filename formatting and parsing result:
 samplename1_pos1.txt => sampleID = 'samplename1', position = 1
 sample2-100_3.txt => sampleID = 'sample2-100', position = 3
 ```
-current version is v0.7.0
+current version is v0.6.4
 ### Dependencies
 
 - python >= 3.7

@@ -15,7 +15,7 @@ try:
     from ._version import version
     __version__ = version
 except:
-    __version__ = '0.7.0'
+    __version__ = '0.6.4'
 
 
 from raman_fitting.config import config
