@@ -41,6 +41,7 @@ jobs:
     
     - name: Run setup and install
       run: |
+        python -m pip install wheel
         python setup.py sdist bdist_wheel
     
     - name: Generate Coverage Report
