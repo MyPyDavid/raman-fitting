@@ -47,26 +47,42 @@ python -m pip install raman-fitting/
 # editable/develop mode
 python -m pip install -e raman-fitting/
 ```
-Test the package after installation with the following cli command.
+
+### Usage
+
+#### Post installation test run 
+
+In order to test the package after installation, please try the following cli command in a terminal
 ``` bash
 raman_fitting -M make_examples
 ```
-Test the package after installation in the python interpreter with the api commands.
+or these commands in the python interpreter.
 ``` python
 import raman_fitting
 raman_fitting.make_examples()
 ```
-### Usage
+This test run should yield the resulting plots and files in the following folder. Where home means the local user home directory depending on the OS.
+``` bash
+home/.raman_fitting/example_results
+```
 
+#### Fitting your own datafiles
 Place your data files in the default location or change this default setting in the config.
 ``` bash
 home/.raman_fitting/datafiles
 ```
 The following command will attempt the indexing, preprocessing, fitting and plottig on all the files found in this folder.
 ``` bash
+# default run mode is "normal" means over all the files found in the index
 raman_fitting
-# default run mode is normal
+
+# If you add a lot of files, try to check if the index is properly constructed before fitting them with:
+raman_fitting -M make_index 
+
+# Location of index
+home/.raman_fitting/datafiles/results/raman_fitting_index.csv
 ```
+
 #### Datafiles
 
 The raman data files should be .txt files with two columns of data values.
