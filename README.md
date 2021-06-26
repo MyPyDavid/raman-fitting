@@ -76,7 +76,8 @@ The following command will attempt the indexing, preprocessing, fitting and plot
 # default run mode is "normal" means over all the files found in the index
 raman_fitting
 
-# If you add a lot of files, try to check if the index is properly constructed before fitting them with:
+# If you add a lot of files, try to check if the index is properly constructed
+before fitting them.
 raman_fitting -M make_index 
 
 # Location of index
@@ -87,7 +88,8 @@ home/.raman_fitting/datafiles/results/raman_fitting_index.csv
 
 The raman data files should be .txt files with two columns of data values.
 The first column should contain the Raman shift values and the second one the measured intensity.
-Filenames will be parsed into a sampleID and position, in order to take the mean of the measured intensity of several positions on the same sample.
+Filenames will be parsed into a sampleID and position, in order to take the mean of the measured intensity 
+of several positions on the same sample.
 
 An example of filename formatting and parsing result:
 ``` python
