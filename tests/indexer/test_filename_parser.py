@@ -14,18 +14,18 @@ class TestBasePeak(unittest.TestCase):
                      'testDW38C_pos1', 'testDW38C_pos2',
                      'testDW38C_pos3', 'testDW38C_pos4']
 
-    def test_PathParser(self):
-        _dfpath = Path(__file__).parent.parent.parent / 'src' / 'raman_fitting' / 'datafiles'
+    # def test_PathParser(self):
+    #     _dfpath = Path(__file__).parent.parent.parent / 'src' / 'raman_fitting' / 'datafiles'
 
-        _fls = list(_dfpath.rglob('*.txt'))
-        _res = []
-        for fn in _fls:
-            _res.append(PathParser(fn))
-        sIDs = [i.parse_result['SampleID'] for i in _res]
-        self.assertEqual(sIDs, self.sIDs_expected)
+    #     _fls = list(_dfpath.rglob('*.txt'))
+    #     _res = []
+    #     for fn in _fls:
+    #         _res.append(PathParser(fn))
+    #     sIDs = [i.parse_result['SampleID'] for i in _res]
+    #     self.assertEqual(sIDs, self.sIDs_expected)
 
-    def test_empty(self):
-        PathParser('')
+    # def test_empty(self):
+    #     PathParser('')
 
 
 if __name__ == '__main__':
