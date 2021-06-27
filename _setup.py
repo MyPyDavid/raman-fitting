@@ -55,8 +55,6 @@ except FileNotFoundError:
 # with open(PACKAGE_DIR / 'VERSION.txt') as f:
     # _version = f.read().strip()
 
-
-
 # Where the magic happens:
 setup(
     name=NAME,
