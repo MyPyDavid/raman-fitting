@@ -8,8 +8,10 @@ logger = logging.getLogger('pyramdeconv')
 
 import pandas as pd
 
-from .filename_parser import parse_filepath_to_sid_and_pos
-from ..config import config
+from .filename_parser import PathParser
+# parse_filepath_to_sid_and_pos
+from ..config import config, filepaths
+ # get_directory_paths_for_run_mode
 # from .index_selection import index_selection
 
 __all__= ['MakeRamanFilesIndex']
@@ -27,18 +29,20 @@ class MakeRamanFilesIndex:
     index_file_sample_cols = ('FileStem','SampleID','SamplePos','SampleGroup', 'FilePath')
     index_file_stat_cols = ('FileCreationDate', 'FileCreation','FileModDate', 'FileMod', 'FileHash')
 
-    INDEX_FILE_NAME = 'index.csv'
+    # INDEX_FILE_NAME = 'index.csv'
 
     debug = False
+
+    # RESULTS_DIR = config.RESULTS_DIR,
+    #              DATASET_DIR = config.DATASET_DIR,
+    #              INDEX_FILE = config.INDEX_FILE,
 
 
 
     def __init__(self,
                  force_reload = True,
                  run_mode = 'normal',
-                 RESULTS_DIR = config.RESULTS_DIR,
-                 DATASET_DIR = config.DATASET_DIR,
-                 INDEX_FILE = config.INDEX_FILE,
+
                  extra_dataset_dirs = [],
                  **kwargs):
 
@@ -49,13 +53,13 @@ class MakeRamanFilesIndex:
         self.run_mode = run_mode
         self._extra_dataset_dirs = extra_dataset_dirs
 
-        self.RESULTS_DIR = RESULTS_DIR
-        self.DATASET_DIR = DATASET_DIR
-        self.INDEX_FILE = INDEX_FILE
+        self._dest_dirs = filepaths.get_directory_paths_for_run_mode(run_mode, **kwargs)
+        for k,val in self._dest_dirs.items():
+            setattr(self,k,val)
+
         # self.get_index_file_path(dest_dir = self.RESULTS_DIR)
         self.raman_files = self.find_files(data_dir=self.DATASET_DIR)
         # self.choose_dirs()
-
         self.index = pd.DataFrame()
         if 'normal' in run_mode and not self.debug and not self.force_reload:
             self.index = self.load_index()
@@ -89,46 +93,53 @@ class MakeRamanFilesIndex:
 
         return raman_files_raw
 
-    def parse_filename(self,ramanfilepath):
-        ''' parses a filename into relevant parts for indexer. SampleID, SamplePosition and SampleGroup.'''
-        try:
-            _res = parse_filepath_to_sid_and_pos(ramanfilepath)
-        except Exception as e:
-            logger.warning(f'Error parse_filename for {ramanfilepath} \n{e}')
-            _res = ()
-            self._error_parse_filenames.append((ramanfilepath,e))
-        return _res
+    # def parse_filename(self,ramanfilepath):
+    #     ''' parses a filename into relevant parts for indexer. SampleID, SamplePosition and SampleGroup.'''
+    #     try:
+    #         _res = parse_filepath_to_sid_and_pos(ramanfilepath)
+    #     except Exception as e:
+    #         logger.warning(f'Error parse_filename for {ramanfilepath} \n{e}')
+    #         _res = ()
+    #         self._error_parse_filenames.append((ramanfilepath,e))
+    #     return _res
 
-    @staticmethod
-    def get_file_stats(ramanfilepath, col_names = ()):
-        ''' get status metadata from a file'''
-        fstat = ramanfilepath.stat()
-        ct, mt = pd.to_datetime(fstat.st_ctime,unit='s'), pd.to_datetime(fstat.st_mtime,unit='s')
-        ct_date, mt_date = ct.date(),mt.date()
-        filehash = hashlib.md5(ramanfilepath.read_text(encoding='utf-8').encode('utf-8')).hexdigest()
-        filestat_out = ct_date, ct, mt_date, mt, filehash
-        if len(col_names) == len(filestat_out):
-            filestat_out =  dict(zip(col_names, filestat_out))
-        return filestat_out
+    # @staticmethod
+    # def get_file_stats(ramanfilepath, col_names = ()):
+    #     ''' get status metadata from a file'''
+    #     fstat = ramanfilepath.stat()
+    #     ct, mt = pd.to_datetime(fstat.st_ctime,unit='s'), pd.to_datetime(fstat.st_mtime,unit='s')
+    #     ct_date, mt_date = ct.date(),mt.date()
+    #     filehash = hashlib.md5(ramanfilepath.read_text(encoding='utf-8').encode('utf-8')).hexdigest()
+    #     filestat_out = ct_date, ct, mt_date, mt, filehash
+    #     if len(col_names) == len(filestat_out):
+    #         filestat_out =  dict(zip(col_names, filestat_out))
+    #     return filestat_out
 
     def make_index(self):
         ''' loops over the files and scrapes the index data from each file'''
     #    ridx = namedtuple('Raman_index_row', file_sample_cols+file_stat_cols)
         raman_files = self.raman_files
+        # breakpoint()
         # self.find_files(data_dir=self.DATASET_DIR)
         self._error_parse_filenames = []
-        RF_index = []
+        pp_collection = []
         for file in raman_files:
-            _fname = self.parse_filename(file)
-            _fstat = self.get_file_stats(file)
-            RF_index.append((_fname + _fstat))
+            try:
+                pp_res = PathParser(Path(file))
+            except Exception as e:
+                logger.warning(f'{self._cqnm} unexpected error for calling PathParser on\n{file}')
+                self._error_parse_filenames.append([file, e])
+            # _fname = self.parse_filename(file)
+            # _fstat = self.get_file_stats(file)
+            pp_collection.append(pp_res)
         # RF_indexed = [(self.parse_filename(i)+self.get_file_stats(i)) for i in raman_files ]
 
-        RF_index_DF = pd.DataFrame(RF_index,columns = self.index_file_sample_cols+self.index_file_stat_cols).drop_duplicates(subset=['FileHash'])
+        RF_index_DF = pd.DataFrame([i.parse_result for i in pp_collection])
+        # pd.DataFrame(RF_index,columns = self.index_file_sample_cols+self.index_file_stat_cols).drop_duplicates(subset=['FileHash'])
 
         RF_index_DF = RF_index_DF.assign(**{'DestDir' : [self.RESULTS_DIR.joinpath(sGrp) for sGrp in RF_index_DF.SampleGroup.to_numpy()]})
 
-        logger.info(f'{self._cqnm} successfully made index {len(RF_index)} from {len(raman_files)} files')
+        logger.info(f'{self._cqnm} successfully made index {len(RF_index_DF)} from {len(raman_files)} files')
         if self._error_parse_filenames:
             logger.info(f'{self._cqnm} errors for filename parser {len(self._error_parse_filenames)} from {len(raman_files)} files')
 
@@ -173,13 +184,23 @@ class MakeRamanFilesIndex:
     def reload_index(self):
         ''' restarts the index creation from scratch and export.'''
         logger.info(f'{self._cqnm} starting reload index.')
+        index = pd.DataFrame()
         try:
             logger.info(f'{self._cqnm} making index.')
-            index = self.make_index()
-            self.export_index(index)
+
+            try:
+
+                index = self.make_index()
+            except Exception as e:
+                logger.error(f'{self._cqnm} make index error:\n\t{e}')
+
+            try:
+                self.export_index(index)
+            except Exception as e:
+                logger.error(f'{self._cqnm} export after make index error:\n\t{e}')
+
         except Exception as e:
-            index = pd.DataFrame()
-            logger.error(f'{self._cqnm} error reload index {e})')
+            logger.error(f'{self._cqnm} reload index error:\n\t{e}')
         return index
 
     def index_selection(self, index=pd.DataFrame(), default_selection: str='', **kwargs):
@@ -245,12 +266,12 @@ class MakeRamanFilesIndex:
         return index_selection
 
     def __repr__(self):
-        return f'{self._cqnm} with index ({len(self.index)}'
+        return f'{self._cqnm} with index ({len(self.index)})'
     def __len__(self):
         return len(self.index)
 
 if __name__ == "__main__":
     try:
-        RamanIndex = MakeRamanFilesIndex()
+        RamanIndex = MakeRamanFilesIndex(run_mode ='make_examples')
     except Exception as e:
         logger.error(f'Raman Index error: {e}')

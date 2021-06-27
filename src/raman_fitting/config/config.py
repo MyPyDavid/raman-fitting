@@ -27,7 +27,8 @@ TESTS_RESULTS_DIR = PACKAGE_HOME / "test_results"
 DATASET_DIR = PACKAGE_HOME / "datafiles"
 RESULTS_DIR =  PACKAGE_HOME/ "results"
 # Storage file of the index
-INDEX_FILE = RESULTS_DIR / f"{__package_name__}_index.csv"
+INDEX_FILE_NAME = f"{__package_name__}_index.csv"
+INDEX_FILE = RESULTS_DIR / INDEX_FILE_NAME
 # Optional local configuration file
 LOCAL_CONFIG_FILE = PACKAGE_HOME / "local_config.py"
 

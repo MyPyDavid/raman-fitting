@@ -1,4 +1,5 @@
 '''
+Overview of commands used for testing and coverage
 run commands examples
         pytest --cov=app
     --cov check if it is folder or package
