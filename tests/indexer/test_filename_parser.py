@@ -27,14 +27,6 @@ class TestBasePeak(unittest.TestCase):
     def test_empty(self):
         PathParser('')
 
-def _test():
-
-    _res = []
-    for fn in _fls:
-        _res.append(PathParser(fn))
-    return _res
-
-
 
 if __name__ == '__main__':
     unittest.main()

@@ -70,7 +70,7 @@ def check_and_make_dirs(dest_dirs: dict ={}):
         #     sys.exit()
         # raise FileNotFoundError(f'This directory does not exist:\n{DATASET_DIR}')
     else:
-        logger.warning(f'No datafiles directory was set for{run_mode}. Exiting...')
+        logger.warning(f'No datafiles directory was set for . Exiting...')
 
     RESULTS_DIR = dest_dirs.get('RESULTS_DIR', None)
     if RESULTS_DIR:

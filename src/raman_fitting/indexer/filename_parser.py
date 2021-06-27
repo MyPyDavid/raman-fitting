@@ -53,7 +53,6 @@ class PathParser(Path):
         # FIX ME store fullpath in a str or not?
         _parse_res = (self.stem, self)
         return self.make_dict_from_keys('index_file_path_keys', _parse_res)
-        dict(zip(index_file_path_keys, ))
 
     def parse_sample_with_checks(self):
         ''' parse the sID, position and sgrpID from stem'''
@@ -199,20 +198,4 @@ class PathParser(Path):
             _keys = [f'{_keys_attr}_{n}' for n,i in enumerate(_result)]
         return dict(zip(_keys, _result))
 
-
-
-
-
         # return filestat_out
-
-
-    def get_dict(self):
-        if self.parse_result:
-            self.parse_resultindex_file_sample_cols
-
-    # print(_res)
-if __name__ == '__main__':
-    _res = _test()
-    df = pd.DataFrame([i.parse_result for i in _res])
-    print(df)
-    print(df.SampleGroup.values)
