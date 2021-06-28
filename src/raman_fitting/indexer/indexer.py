@@ -4,15 +4,18 @@ from pathlib import Path
 import hashlib
 import logging
 
-logger = logging.getLogger('pyramdeconv')
+
 
 import pandas as pd
 
 from .filename_parser import PathParser
 # parse_filepath_to_sid_and_pos
 from ..config import config, filepaths
+from .. import __package_name__
  # get_directory_paths_for_run_mode
 # from .index_selection import index_selection
+
+logger = logging.getLogger(__package_name__)
 
 __all__= ['MakeRamanFilesIndex']
 
@@ -25,20 +28,18 @@ class MakeRamanFilesIndex:
     finds a list of files,
 
     """
-
-    index_file_sample_cols = ('FileStem','SampleID','SamplePos','SampleGroup', 'FilePath')
-    index_file_stat_cols = ('FileCreationDate', 'FileCreation','FileModDate', 'FileMod', 'FileHash')
-
+    # index_file_sample_cols = {'FileStem': 'string',
+    #                           'SampleID': 'string',
+    #                           'SamplePos': 'int64',
+    #                           'SampleGroup': 'string',
+    #                           'FilePath': 'string')
+    # index_file_stat_cols = ('FileCreationDate' , 'FileCreation','FileModDate', 'FileMod', 'FileHash')
     # INDEX_FILE_NAME = 'index.csv'
-
     debug = False
 
     # RESULTS_DIR = config.RESULTS_DIR,
     #              DATASET_DIR = config.DATASET_DIR,
     #              INDEX_FILE = config.INDEX_FILE,
-
-
-
     def __init__(self,
                  force_reload = True,
                  run_mode = 'normal',
@@ -61,13 +62,12 @@ class MakeRamanFilesIndex:
         self.raman_files = self.find_files(data_dir=self.DATASET_DIR)
         # self.choose_dirs()
         self.index = pd.DataFrame()
+        self._error_parse_filenames = []
         if 'normal' in run_mode and not self.debug and not self.force_reload:
             self.index = self.load_index()
 
         else:
             self.index = self.reload_index()
-
-
 
         self.index_selection = self.index_selection(self.index, **self._kwargs)
 
@@ -121,40 +121,51 @@ class MakeRamanFilesIndex:
         raman_files = self.raman_files
         # breakpoint()
         # self.find_files(data_dir=self.DATASET_DIR)
-        self._error_parse_filenames = []
         pp_collection = []
         for file in raman_files:
             try:
                 pp_res = PathParser(Path(file))
+                pp_collection.append(pp_res)
             except Exception as e:
-                logger.warning(f'{self._cqnm} unexpected error for calling PathParser on\n{file}')
+                logger.warning(f'{self._cqnm} unexpected error for calling PathParser on\n{file}.\n{e}')
                 self._error_parse_filenames.append([file, e])
             # _fname = self.parse_filename(file)
             # _fstat = self.get_file_stats(file)
-            pp_collection.append(pp_res)
         # RF_indexed = [(self.parse_filename(i)+self.get_file_stats(i)) for i in raman_files ]
 
-        RF_index_DF = pd.DataFrame([i.parse_result for i in pp_collection])
+        index= pd.DataFrame([i.parse_result for i in pp_collection])
+        index = self._extra_assign_destdir_and_set_paths(index)
         # pd.DataFrame(RF_index,columns = self.index_file_sample_cols+self.index_file_stat_cols).drop_duplicates(subset=['FileHash'])
-
-        RF_index_DF = RF_index_DF.assign(**{'DestDir' : [self.RESULTS_DIR.joinpath(sGrp) for sGrp in RF_index_DF.SampleGroup.to_numpy()]})
-
-        logger.info(f'{self._cqnm} successfully made index {len(RF_index_DF)} from {len(raman_files)} files')
+        logger.info(f'{self._cqnm} successfully made index {len(index)} from {len(raman_files)} files')
         if self._error_parse_filenames:
             logger.info(f'{self._cqnm} errors for filename parser {len(self._error_parse_filenames)} from {len(raman_files)} files')
+        return index
 
-        return RF_index_DF
+    def _extra_assign_destdir_and_set_paths(self, index: pd.DataFrame):
+        ''' assign the DestDir column to index and sets column values as object type'''
 
+        if hasattr(index,'SampleGroup'):
+            index = index.assign(**{'DestDir' :
+                                    [self.RESULTS_DIR.joinpath(sGrp) for sGrp in index.SampleGroup.to_numpy()]
+                                    })
+        _path_dtypes_map = {k: val for k,val in PathParser.index_dtypes.items() if 'Path' in val}
+        for k, val in _path_dtypes_map.items():
+            if hasattr(index, k):
+                if 'Path' in val:
+                    index[k] = [Path(i) for i in index[k].to_numpy()]
+        return index
 
     def export_index(self, index):
         ''' saves the index to a defined Index file'''
         if not index.empty:
-            if self.INDEX_FILE.parent.exists():
-                pass
-            else:
+            if not self.INDEX_FILE.parent.exists():
                 logger.info(f'{self._cqnm} created parent dir: {self.INDEX_FILE.parent}')
                 self.INDEX_FILE.parent.mkdir(exist_ok=True, parents=True)
+
             index.to_csv(self.INDEX_FILE)
+
+            _dtypes = index.dtypes.to_frame('dtypes')
+            _dtypes.to_csv(self._dtypes_filepath())
 
             logger.info(f'{self._cqnm} Succesfully Exported Raman Index file to:\n\t{self.INDEX_FILE}\nwith len({len(index)}).')
         else:
@@ -164,14 +175,26 @@ class MakeRamanFilesIndex:
         ''' loads the index from from defined Index file'''
         if self.INDEX_FILE.exists():
             try:
-                index = pd.read_csv(self.INDEX_FILE)
+
+                _dtypes = pd.read_csv(self._dtypes_filepath(),index_col=[0]).to_dict()['dtypes']
+
+                _dtypes_datetime = {k: val for k,val in _dtypes.items() if 'datetime' in val or k.endswith('Date') }
+
+                _dtypes_no_datetime = {k: val for k,val in _dtypes.items() if k not in _dtypes_datetime.keys()}
+
+                index = pd.read_csv(self.INDEX_FILE,
+                                    index_col=[0],
+                                    dtype=_dtypes_no_datetime,
+                                    parse_dates=list(_dtypes_datetime.keys())
+                                    )
+                index = self._extra_assign_destdir_and_set_paths(index)
+
                 logger.info(f'Succesfully imported Raman Index file from {self.INDEX_FILE}, with len({len(index)})')
-                if not len(self.index) == self.raman_files:
+                if not len(self.index) == (len(self.raman_files) + len(self._error_parse_filenames)):
                     logger.error(f''''Error in load_index from {self.INDEX_FILE},
                                  \nlength of loaded index not same as number of raman files
                                  \n starting reload index ... ''')
                     self.index = self.reload_index()
-
 
             except Exception as e:
                 logger.error(f'Error in load_index from {self.INDEX_FILE},\n{e}\n starting reload index ... ')
@@ -185,11 +208,11 @@ class MakeRamanFilesIndex:
         ''' restarts the index creation from scratch and export.'''
         logger.info(f'{self._cqnm} starting reload index.')
         index = pd.DataFrame()
+
         try:
             logger.info(f'{self._cqnm} making index.')
 
             try:
-
                 index = self.make_index()
             except Exception as e:
                 logger.error(f'{self._cqnm} make index error:\n\t{e}')
@@ -201,6 +224,7 @@ class MakeRamanFilesIndex:
 
         except Exception as e:
             logger.error(f'{self._cqnm} reload index error:\n\t{e}')
+
         return index
 
     def index_selection(self, index=pd.DataFrame(), default_selection: str='', **kwargs):
@@ -264,6 +288,10 @@ class MakeRamanFilesIndex:
             sys.exit()
 
         return index_selection
+
+    def _dtypes_filepath(self):
+        _dtypes_filepath = self.INDEX_FILE.with_name(self.INDEX_FILE.stem+'_dtypes'+self.INDEX_FILE.suffix)
+        return _dtypes_filepath
 
     def __repr__(self):
         return f'{self._cqnm} with index ({len(self.index)})'
