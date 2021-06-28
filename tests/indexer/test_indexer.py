@@ -18,6 +18,9 @@ class TestIndexer(unittest.TestCase):
 
     def setUp(self):
 
+        _example_path = Path(example_files.__path__[0])
+        _example_files_contents = list(Path(_example_path).rglob('*txt'))
+
         self._example_files =[i for i in _example_files_contents ]
 
         self.RamanIndex = MakeRamanFilesIndex(run_mode ='make_examples')
