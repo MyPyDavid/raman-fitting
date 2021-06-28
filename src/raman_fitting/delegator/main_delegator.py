@@ -2,6 +2,7 @@
 import sys
 from pathlib import Path
 from itertools import starmap, repeat
+import pandas as pd
 
 import logging
 
@@ -38,8 +39,6 @@ class prdError(Exception):
 
 class MainDelegatorError(prdError):
     """ Raised when a method in the main delegator fails."""
-
-
 
 class MainDelegator():
     # TODO Add flexible input handling for the cli, such a path to dir, or list of files
@@ -84,20 +83,6 @@ class MainDelegator():
                                        **kwargs)
         logger.info(f'{self} index prepared with len {len(RF_index)}')
         return RF_index
-        # self._make_rf_index = _make_rf_index
-        # return _make_rf_index
-
-
-    def test_positions(self, sGrp_grp,nm, grp_cols = ['FileStem','SamplePos','FilePath']):
-#        grp_cols = ['FileStem','SamplePos','FileCreationDate']
-        if sGrp_grp.FileStem.nunique() != sGrp_grp.SamplePos.nunique():
-            logger.warning(f'{sGrp_grp[grp_cols]}')
-            logger.warning(f'Unique files and positions not matching for {nm}')
-            return sGrp_grp.groupby(grp_cols),grp_cols
-        else:
-            return sGrp_grp.groupby(grp_cols),grp_cols
-
-
 
     def run_delegator(self, **kwargs):
         # TODO remove self.set_models() removed InitModels
@@ -125,7 +110,6 @@ class MainDelegator():
                     logger.info(f'{self._cqnm}. starting run generator.')
                     self._run_gen(**self.kwargs)
                 else:
-
                     pass
                 # info raman loop finished because index is empty
             elif self.run_mode == 'DEBUG':
@@ -143,10 +127,9 @@ class MainDelegator():
             else:
                 logger.warning(f'Debug run mode {self.run_mode} not recognized')
             # TODO get testing from index and run
-            pass
         else:
             logger.warning(f'Debug run mode "{self.run_mode}" not recognized not in ')
-            pass # warning run mode not understood
+            # warning run mode not recognized
 
     def initialize_models(self):
         try:
@@ -230,6 +213,11 @@ class MainDelegator():
             logger.warning(f'{self._cqnm} process_sample_wrapper exception on call {fn}: {e}')
             self._failed_samples.append((e, args, kwargs))
 
+    def test_positions(self, sGrp_grp, nm, grp_cols = ['FileStem','SamplePos','FilePath']):
+        if sGrp_grp.FileStem.nunique() != sGrp_grp.SamplePos.nunique():
+            logger.warning(f'{sGrp_grp[grp_cols]} Unique files and positions not matching for {nm}')
+        return sGrp_grp.groupby(grp_cols),grp_cols
+
     def process_sample(self, *args, **kwargs):
         '''
         Loops over individual Sample positions (files) from a SampleID and performs the
@@ -262,7 +250,7 @@ class MainDelegator():
         return f'Maindelegator: run_mode = {self.run_mode}, {", ".join([f"{k} = {str(val)}" for k,val in self.kwargs.items()])}'
 
 
-def add_make_sample_group_destdirs(sample_grp):
+def add_make_sample_group_destdirs(sample_grp: pd.DataFrame):
 
     dest_grp_dir = Path(sample_grp.DestDir.unique()[0])  # takes one destination directory from Sample Groups
     dest_fit_plots = dest_grp_dir.joinpath('Fitting_Plots')

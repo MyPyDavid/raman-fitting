@@ -2,6 +2,7 @@
 
 import sys
 import logging
+from pathlib import Path
 
 
 from .. import __package_name__
@@ -48,7 +49,10 @@ def get_directory_paths_for_run_mode(run_mode: str = '', **kwargs):
 
     INDEX_FILE = RESULTS_DIR / config.INDEX_FILE_NAME
 
-    dest_dirs = {'RESULTS_DIR': RESULTS_DIR, 'DATASET_DIR': DATASET_DIR, 'INDEX_FILE': INDEX_FILE}
+    dest_dirs = {'RESULTS_DIR': Path(RESULTS_DIR),
+                 'DATASET_DIR': Path(DATASET_DIR),
+                 'INDEX_FILE': Path(INDEX_FILE)
+                 }
 
     if kwargs:
         dest_dirs = override_from_kwargs(dest_dirs, **kwargs)
