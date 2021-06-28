@@ -1,6 +1,5 @@
 import unittest
 import pytest
-import importlib_resources
 import datetime
 
 # from raman_fitting.deconvolution_models import first_order_peaks

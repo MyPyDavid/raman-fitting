@@ -1,6 +1,8 @@
 import unittest
 import pytest
-import importlib_resources
+
+from pathlib import Path
+from importlib import resources
 import datetime
 
 # from raman_fitting.deconvolution_models import first_order_peaks
@@ -15,9 +17,8 @@ from raman_fitting.datafiles import example_files
 class TestIndexer(unittest.TestCase):
 
     def setUp(self):
-        _example_files_contents = importlib_resources.contents(example_files)
-        _example_path = importlib_resources.files(example_files)
-        self._example_files =[i for i in _example_files_contents if i.endswith('txt')]
+
+        self._example_files =[i for i in _example_files_contents ]
 
         self.RamanIndex = MakeRamanFilesIndex(run_mode ='make_examples')
 

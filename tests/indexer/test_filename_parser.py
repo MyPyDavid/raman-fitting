@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 # import importlib
-import importlib_resources
+from importlib import resources
 
 import pytest
 # from raman_fitting.deconvolution_models import first_order_peaks
@@ -31,9 +31,11 @@ class TestFilenameParser(unittest.TestCase):
     result_attr = 'parse_result'
 
     def setUp(self):
-        _example_files_contents = importlib_resources.contents(example_files)
-        _example_path = importlib_resources.files(example_files)
-        self.datafiles = list(filter(lambda x: x.endswith('.txt'), _example_files_contents))
+        _example_path = Path(example_files.__path__[0])
+        _example_files_contents = list(Path(_example_path).rglob('*txt'))
+
+        self.datafiles = _example_files_contents
+        # list(filter(lambda x: x.endswith('.txt'), _example_files_contents))
         _pathparsers = []
         for fn in self.datafiles:
             _pathparsers.append(PathParser(_example_path.joinpath(fn)))
