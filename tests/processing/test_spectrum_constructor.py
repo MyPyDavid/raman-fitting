@@ -15,9 +15,12 @@ def _testing():
     spcoll = SpectrumDataCollection(sample_spectra)
     self = spcoll
 
+
 # class SpectrumData():
 def _testing():
-    spectrum_data = SpectrumDataLoader(file = meannm[-1], run_kwargs = _spectrum_position_info_kwargs, ovv = meangrp)
+    spectrum_data = SpectrumDataLoader(
+        file=meannm[-1], run_kwargs=_spectrum_position_info_kwargs, ovv=meangrp
+    )
     self = spectrum_data
     self._despike.Z_t
     self._despike.input_intensity

@@ -15,16 +15,14 @@ from raman_fitting.datafiles import example_files
 
 
 class TestIndexer(unittest.TestCase):
-
     def setUp(self):
 
         _example_path = Path(example_files.__path__[0])
-        _example_files_contents = list(Path(_example_path).rglob('*txt'))
+        _example_files_contents = list(Path(_example_path).rglob("*txt"))
 
-        self._example_files =[i for i in _example_files_contents ]
+        self._example_files = [i for i in _example_files_contents]
 
-        self.RamanIndex = MakeRamanFilesIndex(run_mode ='make_examples')
-
+        self.RamanIndex = MakeRamanFilesIndex(run_mode="make_examples")
 
     def test_MakeRamanFilesIndex_make_examples(self):
 
@@ -38,17 +36,13 @@ class TestIndexer(unittest.TestCase):
             _setload = set(_loaded_index[col].values)
 
             _setindex = set(self.RamanIndex.index[col].values)
-            if all(isinstance(i,datetime.date) for i in list(_setindex)):
+            if all(isinstance(i, datetime.date) for i in list(_setindex)):
                 # Convert pandas, np.datetime to normal dt
                 _setload = set([pd.to_datetime(i).date() for i in list(_setload)])
 
             self.assertEqual(_setload, _setindex)
 
 
-
-
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
     self = TestIndexer()

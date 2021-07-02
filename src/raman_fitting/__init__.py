@@ -2,27 +2,28 @@
 # flake8: noqa
 # isort:skip_file
 
-__author__ = 'David Wallace'
-__docformat__ = 'restructuredtext'
-__status__ = 'Development'
-__future_version_name__ = 'pyramdeconv'
-__current_version_name__ = 'raman_fitting'
+__author__ = "David Wallace"
+__docformat__ = "restructuredtext"
+__status__ = "Development"
+__future_version_name__ = "pyramdeconv"
+__current_version_name__ = "raman_fitting"
 __package_name__ = __current_version_name__
-
 
 
 try:
     from ._version import version
+
     __version__ = version
 except:
-    __version__ = '0.6.7'
+    __version__ = "0.6.7"
 
 
 from raman_fitting.config import config
+
 # VERSION_PATH = config.PACKAGE_ROOT / 'VERSION.txt'
 # with open(VERSION_PATH, 'r') as version_file:
-    # TODO change version definitino
-    # __version__ = version_file.read().strip()
+# TODO change version definitino
+# __version__ = version_file.read().strip()
 
 
 import logging
@@ -30,7 +31,7 @@ import sys
 import warnings
 
 # Configure logger for use in package
-logger = logging.getLogger(__package_name__ )
+logger = logging.getLogger(__package_name__)
 logger.setLevel(logging.DEBUG)
 # from raman_fitting.config import logging_config
 # logger.addHandler(logging_config.get_console_handler())
@@ -54,6 +55,7 @@ soft_dependencies = {}
 missing_dependencies = []
 
 import importlib
+
 for dependency in hard_dependencies:
     if not importlib.util.find_spec(dependency):
         missing_dependencies.append(dependency)

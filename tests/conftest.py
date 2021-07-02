@@ -9,9 +9,10 @@ import pytest
 
 
 import importlib
+
 # rname = importlib.util.resolve_name('raman_fitting', None)
 # importlib.import_module('raman_fitting')
-print(f'pytest: {__name__},file: {__file__}\n name:')
+print(f"pytest: {__name__},file: {__file__}\n name:")
 # Incremental tests
 
 
@@ -21,10 +22,12 @@ def pytest_runtest_makereport(item, call):
             parent = item.parent
             parent._previousfailed = item
 
+
 def pytest_runtest_setup(item):
     if "incremental" in item.keywords:
         previousfailed = getattr(item.parent, "_previousfailed", None)
         if previousfailed is not None:
             pytest.xfail("previous test failed (%s)" % previousfailed.name)
+
 
 # Global fixtures

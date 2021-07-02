@@ -10,10 +10,10 @@ import numpy as np
 # from raman_fitting.processing.slicer import SpectraInfo
 # from raman_fitting.processing.cleaner import SpectrumCleaner
 
+
 def _testing():
     spec_raw = sample_spectra[1]
     spec = spec_raw
-    windowname = '1st_order'
-    
-    spec = norm_spec
+    windowname = "1st_order"
 
+    spec = norm_spec
