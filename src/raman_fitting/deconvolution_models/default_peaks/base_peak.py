@@ -1,4 +1,7 @@
 # from collections import OrderedDict
+
+from keyword import iskeyword as _iskeyword
+
 from functools import partialmethod
 
 import inspect
@@ -14,17 +17,16 @@ from lmfit import Parameter, Parameters
 # print('name: ',__name__,'file: ', __file__, __package__)
 
 if __name__ in ("__main__"):  #'base_peak'
-    from raman_fitting.utils.coordinators import FieldsCoordinator
+    from raman_fitting.utils.coordinators import FieldsTracker as FieldsTracker
 else:
-    from ...utils.coordinators import FieldsCoordinator
+    from ...utils.coordinators import FieldsTracker
 
 # __all__ = [Base]
 
 
+#%%
 class BasePeakWarning(UserWarning):  # pragma: no cover
     pass
-
-    #%%
 
 
 class BasePeak(type):
@@ -32,22 +34,35 @@ class BasePeak(type):
     Base class for easier definition of typical intensity peaks found in the
     raman spectra.
 
+    The goal of is this metaclass is to be able to more easily write
+    peak class definitions (for possible user input). It tries to find three
+    fields in the definition namely: peak_name, peak_type and the param hints.
+
+    peak_name:
+        arbitrary name as prefix for the peak
+    peak_type:
+        defines the lineshape of the peak, the following options are implemented:
+        "Lorentzian", "Gaussian", "Voigt"
+    params_hints:
+        initial values for the parameters of the peak, at least
+        a value for the center position of the peak should be given.
+
+
     This metaclass takes a class definition with only class attributes
-    or init attributes,
-    or even only keywords arguments.
+    or init attributes,or even only keywords arguments.
     It validates the assigned attributes in the defined class
     according to the values set here in _fields.
 
     Sort of wrapper for lmfit.model definition.
     Several of these peaks combined are used to make the lmfit CompositeModel
-    (composed in the fit_models module), which will be used for the fit
-    on certain regions of the spectrum.
+    (composed in the fit_models module), which will be used for the fit.
 
 
     --------
     Example usage
     --------
 
+    "Example class definition with attributes"
     class New_peak(metaclass=BasePeak):
         "New peak child class for easier definition"
 
@@ -56,10 +71,20 @@ class BasePeak(type):
         peak_name ='R2D2'
 
     New_peak().peak_model == <lmfit.Model: Model(voigt, prefix='R2D2_')>
+
+    "Example class definition with keyword arguments"
+
+    New_peak = BasePeak('new',(),{},
+        peak_name='R2D2',
+        peak_type= 'Lorentzian',
+        param_hints = { 'center': {'value': 2435,'min': 2400, 'max': 2550}}
+    )
+    New_peak()
+
     """
 
     _fields = ["peak_name", "peak_type", "param_hints"]
-    _sources = ("kwargs", "cls_dict", "init")
+    _sources = ("user_input", "kwargs", "cls_dict", "init", "class_name")
     _synonyms = {
         "peak_name": [],
         "peak_type": [],
@@ -67,7 +92,7 @@ class BasePeak(type):
     }
 
     PEAK_TYPE_OPTIONS = ["Lorentzian", "Gaussian", "Voigt"]
-    PARAM_HINTS_ARGS = inspect.signature(Parameter).parameters.keys()
+
     # ('value', 'vary', 'min', 'max', 'expr') # optional
     default_settings = {"gamma": {"value": 1, "min": 1e-05, "max": 70, "vary": False}}
     # _intern = list(super.__dict__.keys())+['__module__','_kwargs']
@@ -78,28 +103,61 @@ class BasePeak(type):
     # def __call__(cls, *args, **kwargs):
     #     print(f'Request received to create an instance of class: {cls}...')
     def __prepare__(name, bases, **kwargs):
-
+        """prepare method only for debugging"""
         if "debug" in kwargs.keys():
             if kwargs.get("debug", False):
                 print(f"__prepare ,name {name}, bases{bases}, kwargs {kwargs}")
         # kwargs.update({'debug': False})
         return kwargs
 
-    def __new__(mcls, name, bases, cls_dict, **kwargs):
-        if "debug" in kwargs.keys() or cls_dict.keys():
-            if kwargs.get("debug", False) or cls_dict.get("debug", False):
-                mcls._debug = True
-                print(
-                    f"Called __new ({mcls} ),name {name}, bases{bases}, cls_dict {cls_dict.keys()} kwargs {kwargs}"
-                )
+    def __new__(mcls, name, *_, **kwargs):
+
+        # print(
+        #             f"Called __new ,_args {_}"
+        #         )
+        if _:
+
+            if len(_) == 2:
+                # default arg __new__ input
+                bases, cls_dict = _
+        else:
+            bases = ()
+            cls_dict = {}
+
+        if kwargs.get("debug", False):
+            mcls._debug = True
+        if cls_dict.get("debug", False):
+            mcls._debug = True
+        if mcls._debug:
+            print(
+                f"Called __new ({mcls} ),name {name}, bases{bases}, cls_dict {cls_dict.keys()} kwargs {kwargs}"
+            )
         # print(f'vars: {vars(cls)}')
+
+        # From namdedtuple source:
+        # test input arguments names
+        for name_ in [name] + list(kwargs.keys()):
+            if type(name_) is not str:
+                raise TypeError("Class name and keywords names must be strings")
+            if not name_.isidentifier():
+                raise ValueError(
+                    "Class name and keywords names must be valid "
+                    f"identifiers: {name_!r}"
+                )
+            if _iskeyword(name_):
+                raise ValueError(
+                    "Class name and keywords names cannot be a " f"keyword: {name_!r}"
+                )
 
         # Init the fco which check and stores the values for each field
         # when fco.status == True then the green light for class initialization is given
-        fco = FieldsCoordinator(fields=mcls._fields, sources=mcls._sources)
+        fco = FieldsTracker(fields=mcls._fields, sources=mcls._sources)
 
         # First thing add input from source kwargs to fco
         fco.multi_store("kwargs", **kwargs)
+
+        # Also add input class name to fco
+        fco.multi_store("class_name", **{"peak_name": name})
         # kwargs_ = {k : val for k,val in cls_dict.items() if k in cls_object._fields}
         _cls_dict_field_kwargs = {}
         # Second thing, check class dict for field values,
@@ -119,16 +177,22 @@ class BasePeak(type):
                         field
                     ] = _obj  # stores property in cls_dict before init so it will be set as a property for cls instance
 
-        # Fourth: replace init with newly defined function
-        def init_(self, *args, **kwargs):
-            # print(f'child __init__ mod called {self}, {kwargs}')
+        # Third: Define the 'new' init for the class, which sets the values from the fco results
+        def _init_subclass_replacement(self, *args, **kwargs):
+            if self._debug:
+                print(f"child __init__ mod called {self}, {kwargs}")
             # super()
             if hasattr(self, "fco"):
                 for k, val in self.fco.results.items():
                     setattr(self, k, val["value"])
-                    # print(f'child __init__ setattr called {k}, {val}')
+                    if self._debug:
+                        print(f"fco child __init__ setattr called {k}, {val}")
 
-        # Third thing, check class __init__ for setting of field valuesm and delete from cls dict
+            # if hasattr(self, 'peak_model'):
+            setattr(self, "create_peak_model", self.create_peak_model)
+            setattr(self, "peak_model", self.create_peak_model())
+
+        # Fourth thing, check class __init__ for setting of field values and delete from cls dict
         if "__init__" in cls_dict.keys():
             cls_init_part_obj = partialmethod(cls_dict["__init__"])
 
@@ -165,9 +229,13 @@ class BasePeak(type):
             )
             fco.multi_store("init", **_cls_init_part_fco_dict)
 
+            cls_dict["_original_init_"] = cls_dict["__init__"]
+
             del cls_dict["__init__"]
         else:
-            cls_dict["__init__"] = init_
+            pass
+
+        cls_dict["__init__"] = _init_subclass_replacement
 
         if fco.status:
             pass
@@ -178,30 +246,35 @@ class BasePeak(type):
                 BasePeakWarning,
             )
 
+        if mcls._debug:
+            print(
+                f"Calling super__new__() ({mcls} ),name {name}, bases{bases}, cls_dict {cls_dict.keys()}"
+            )
         cls_object = super().__new__(
             mcls, name, bases, cls_dict
         )  # ,*args, **{**_attrs_found, **kwargs})
-
-        setattr(cls_object, "__init__", init_)
+        if mcls._debug:
+            print(f"Called super__new__() ({mcls} ),cls_object: {cls_object}")
+        # setattr(cls_object, "__init__", init_)
         setattr(cls_object, "_fields", mcls._fields)
+        setattr(cls_object, "_debug", mcls._debug)
         setattr(cls_object, "fco", fco)
-
         setattr(cls_object, "PEAK_TYPE_OPTIONS", mcls.PEAK_TYPE_OPTIONS)
-        setattr(cls_object, "PARAM_HINTS_ARGS", mcls.PARAM_HINTS_ARGS)
 
-        # print(f'__new cls obj new init set: {cls_object.__init__}')
-        # print(f'__new cls dict init set: {cls_dict.get("__init__", None)}')
         cls_object = mcls._set_other_methods(cls_object)
-        # print(f'__new__ instance {cls_object} end,\n {dir(cls_object)}')
         return cls_object
 
-    def __init__(self, name, bases, cls_dict, *args, **kwargs):
-        # print(f"__init_ base called ({self} with args {args} and kwargs {kwargs})")
+    def __init__(self, name, *args, **kwargs):
+        # bases, cls_dict removed and kept only *args
+        # print(f"__init_ base called ({self} with name '{name}' args {args} and kwargs {kwargs})")
         # subclassess are appended here
         if self not in self.subclasses:
             self.subclasses.append(self)
-        super().__init__(name, bases, cls_dict, *args, **kwargs)
+        # super().__init__(name)
         # print(f"__init_ super called ({self.__init__})")
+
+    # def __init_subclass__(self, **kwargs):
+    #     print(f"__init_subclass called ({self}")
 
     @classmethod
     def _cleanup_init_dict(cls, _dict):
@@ -236,25 +309,12 @@ class BasePeak(type):
         for method in _other_methods:
             # print(f'__new setting method {method}')
             _mcls_obj = getattr(cls, method)
-            if method.endswith("__"):
+            if method.endswith("__") and not method.startswith("__"):
                 method = f"__{method}"
 
             if not isinstance(_mcls_obj, property):
+                # print(f'__new setting {method} on {_mcls_obj} is callable')
                 setattr(cls_object, method, _mcls_obj)
-            # if callable(_mcls_obj):
-            # pass
-            # print(f'__new setting {method} {_mcls_obj} is callable')
-            # print(f'__new setting {method} {_mcls_obj} is NOT callable')
-            # try:
-            #     # print(f'__new setting {method} with {_get}')
-            #     pass
-            #         # print(f'__new setting method SUCCES {method}, {_mcls_obj}')
-            # except AttributeError as e:
-            #     cls._fail_register.append((method, e))
-            #     # print(f'__new setting method FAILED {method}, {e}')
-            # except TypeError as e:
-            #     cls._fail_register.append((method, e))
-            #     # print(f'__new setting method FAILED TypeError {method}, {e}')
         return cls_object
 
     @property
@@ -265,14 +325,17 @@ class BasePeak(type):
     @peak_type.setter
     def peak_type(self, value: str):
         """The peak type property should be in PEAK_TYPE_OPTIONS"""
+        if not isinstance(value, str):
+            raise TypeError(f'The value "{value}" is not a string.')
+        value_ = None
         if any([value.upper() == i.upper() for i in self.PEAK_TYPE_OPTIONS]):
             # self.type_to_model_chooser(value)
-            self._peak_type = value
+            value_ = value
         elif any([i.upper() in value.upper() for i in self.PEAK_TYPE_OPTIONS]):
             _opts = [i for i in self.PEAK_TYPE_OPTIONS if i.upper() in value.upper()]
             if len(_opts) == 1:
                 value_ = _opts[0]
-                self._peak_type = value_
+
                 warn(
                     f"Peak type misspelling mistake check {value}, forgiven and fixed with {value_}",
                     BasePeakWarning,
@@ -289,82 +352,90 @@ class BasePeak(type):
             raise ValueError(
                 f'The value "{value}" for "peak_type" is not in {self.PEAK_TYPE_OPTIONS}.'
             )
+        if value_:
+            self._peak_type = value_
+            self.fco.store("user_input", "peak_type", value)
+            # self.set_peak_model_from_fields()
+            self.peak_model = self.create_peak_model()
 
     @property
     def peak_model(self):
-        """
-        This property is an instance of lmfit.Model,
-        constructed from peak_name and param_hints setters
-        """
-        # if hasattr(self, '_peak_model'):
-        return self._peak_model
+        if not hasattr(self, "_peak_model"):
+            self.create_peak_model()
+        else:
+            return self._peak_model
 
     @peak_model.setter
     def peak_model(self, value):
-
-        if issubclass(value.__class__, Model):  # or value == None:
-            self._peak_model = value
+        """
+        This property is an instance of lmfit.Model,
+        constructed from peak_type, peak_name and param_hints setters
+        """
+        if not isinstance(value, Model):
+            self._peak_model = self.create_peak_model()
         else:
-            raise TypeError(
-                f"Value {value} {type(value)} is not of type lmfit.Model or None"
-            )
+            self._peak_model = value
+
+    def create_peak_model(self):
+        _peak_model = None
+        if self.fco.status:
+            if all(hasattr(self, field) for field in self._fields):
+
+                try:
+                    create_model_kwargs = dict(
+                        peak_name=self.peak_name,
+                        peak_type=self.peak_type,
+                        param_hints=self.param_hints,
+                    )
+
+                    if hasattr(self, "create_model_kwargs"):
+                        _orig_kwargs = self.create_model_kwargs
+
+                    _peak_model = LMfitModelConstructorMethods.create_peak_model_from_name_type_param_hints(
+                        **create_model_kwargs
+                    )
+                    self.create_model_kwargs = create_model_kwargs
+                    # model = self.make_model_and_set_param_hints(prefix_, peak_type_, param_hints_)
+                except Exception as e:
+                    print(f"try make models:\n{self}, \n\t {e}")
+            else:
+                pass
+        else:
+            pass
+            print(f"missing field {self.fco.missing} {self},\n")
+        return _peak_model
 
     @property
     def param_hints(self):
         """This property is dict of dicts and sets the initial values for the parameters"""
         # if hasattr(self, '_peak_model'):
-        return self._param_hints
+        if hasattr(self, "_param_hints"):
+            if isinstance(self._param_hints, Parameters):
+                return self._param_hints
+            else:
+                raise TypeError(
+                    f"{self.__class__.__name__} self._param_hints is not instance of Parameters"
+                )
 
     @param_hints.setter
-    def param_hints(self, value):
-
-        param_hints_ = self.param_hints_constructor(value)
-        # print(f'== inside params hints {self}, {value}, {param_hints_}')
-        model = self.call_make_model_from_params(param_hints_)
-        self.peak_model = model
+    def param_hints(self, value, **kwargs):
+        # print(f'paramhints: val:{value},\nkw:{kwargs}')
+        if isinstance(value, Parameters):
+            param_hints_ = value
+        else:
+            dict_ = {}
+            if isinstance(value, dict):
+                dict_ = {**dict_, **value}
+            if kwargs:
+                dict_ = {**dict_, **kwargs}
+            # print(f'paramhints: {self},\n {dict_}')
+            param_hints_ = LMfitModelConstructorMethods.param_hints_constructor(
+                param_hints=dict_, default_settings=self.default_settings
+            )
         self._param_hints = param_hints_
-
-    # @classmethod
-    def call_make_model_from_params(self, param_hints_):
-        prefix_ = self.peak_name if hasattr(self, "peak_name") else ""
-        peak_type_ = self.peak_type if hasattr(self, "peak_type") else ""
-        model = self.make_model_and_set_param_hints(prefix_, peak_type_, param_hints_)
-        return model
-
-    # @classmethod
-    def make_model_and_set_param_hints(self, prefix_, peak_type_, param_hints_):
-        """constructs the lmfit model from defined fields"""
-        try:
-            # prefix_set = self.peak_name if hasattr(self,'peak_name') else ''
-            # breakpoint()
-            model = self.type_to_model_chooser(peak_type_, prefix_)
-            model = self.set_model_params_hints(model, param_hints_)
-            model._metadata = (self.__class__, prefix_, peak_type_, param_hints_)
-            # model = self.model_set_param_hints_delegator(model)
-            return model
-        except Exception as e:
-            warn(f"make model and set param hints failed \n {e}", BasePeakWarning)
-            return None
-
-    # @classmethod
-    def type_to_model_chooser(self, value, prefix_):
-        """chooses the type of peak model from string value and sets the prefix"""
-        model = None
-        if value:
-            _val_upp = value.upper()
-            if "Lorentzian".upper() in _val_upp:
-                model = LorentzianModel(prefix=prefix_)
-            elif "Gaussian".upper() in _val_upp:
-                model = GaussianModel(prefix=prefix_)
-            elif "Voigt".upper() in _val_upp:
-                model = VoigtModel(prefix=prefix_)
-            else:
-                raise NotImplementedError(
-                    f'This peak type or model "{value}" has not been implemented.'
-                )
-            # if model and hasattr(self, '_input_param_hints'):
-            # model = self.set_model_params_hints(model, self.input_param_hints)
-        return model
+        self.fco.store("user_input", "param_hints", param_hints_)
+        if not isinstance(self, BasePeak):
+            self.peak_model = self.create_peak_model()
 
     @property
     def peak_name(self):
@@ -372,94 +443,21 @@ class BasePeak(type):
         if self._peak_name:
             if not self._peak_name.endswith("_"):
                 self._peak_name = self._peak_name + "_"
-
         return self._peak_name
 
     @peak_name.setter
     def peak_name(self, value: str, maxlen=20):
         if len(value) < maxlen:
             prefix_set = value + "_"
-            if hasattr(self, "peak_model"):
-                try:
-                    self.peak_model.prefix = prefix_set
-                except Exception as e:
-                    warn(
-                        f"Peak name can not be set as prefix on model \n{e}",
-                        BasePeakWarning,
-                    )
             self._peak_name = value
+            # print(f"peak_name set:{value}")
+            self.fco.store("user_input", "peak_name", value)
+            self.peak_model = self.create_peak_model()
+            # self.set_peak_model_from_fields()
         else:
             raise ValueError(
                 f'The value "{value}" for peak_name is too long({len(value)}) (max. {maxlen}).'
             )
-
-    def param_hints_constructor(self, value):
-        """
-        This setter validates and converts the input parameter settings (dict) argument
-        for the lmfit Parameters class.
-        """
-        params = Parameters()
-
-        if hasattr(self, "default_settings"):
-            try:
-                _default_params = [
-                    Parameter(k, **val) for k, val in self.default_settings.items()
-                ]
-                params.add_many(*_default_params)
-            except Exception as e:
-                raise ValueError(
-                    f"Unable to create a Parameter from default_parameters {self.default_settings}:\n{e}"
-                )
-
-        if not isinstance(value, dict):
-            raise TypeError(
-                f"input_param_hints should be of type dictionary not {type(value)}"
-            )
-
-        else:
-            _valid_parlst = []
-            for k, val in value.items():
-                try:
-                    _par = Parameter(k, **val)
-                    _valid_parlst.append(_par)
-                except Exception as e:
-                    raise ValueError(
-                        f"Unable to create a Parameter from {k} and {val}:\n{e}"
-                    )
-            if _valid_parlst:
-                try:
-                    params.add_many(*_valid_parlst)
-                except Exception as e:
-                    raise ValueError(
-                        f"Unable to add many Parameters from {_valid_parlst}:\n{e}"
-                    )
-        return params
-
-    def set_model_params_hints(self, model, param_hints_):
-        _error = ""
-        if issubclass(model.__class__, Model) and issubclass(
-            param_hints_.__class__, Parameters
-        ):
-            try:
-                for pname, par in param_hints_.items():
-                    try:
-                        _par_hint_dict = {
-                            pn: getattr(par, pn, None)
-                            for pn in self.PARAM_HINTS_ARGS
-                            if getattr(par, pn, None)
-                        }
-                        # _par_hint_dict = {k: val for k, val in _par_hint_dict.items() if val}
-                        model.set_param_hint(**_par_hint_dict)
-                    except Exception as e:
-                        _error += f"Error in make_model_hints, check param_hints for {pname} with {par}, {e}"
-                # return model
-            except Exception as e:
-                _error += f"Error in make_model_hints, check param_hints \n{e}"
-        else:
-            _error += f"TypeError in make_model_hints, check {param_hints_} or {model}"
-        if _error:
-            warn("Errors found in setting of param hints: {_error}", BasePeakWarning)
-        return model
 
     def repr__(self):
         _repr = f"{self.__class__.__name__}"
@@ -488,6 +486,152 @@ class BasePeak(type):
             self.peak_model.print_param_hints()
         else:
             print(f"No model set for: {self}")
+
+
+#%%
+
+#%%
+# LMfitModelConstructorMethods.create_peak_model_from_name_type_param_hints(peak_model= new.peak_model)
+# new.peak_name
+#%%
+class LMfitModelConstructorMethods:
+
+    PARAMETER_ARGS = inspect.signature(Parameter).parameters.keys()
+
+    @classmethod
+    def create_peak_model_from_name_type_param_hints(
+        cls,
+        peak_model: Model = None,
+        peak_name: str = None,
+        peak_type: str = None,
+        param_hints: Parameter = None,
+    ):
+
+        if peak_model:
+            param_hints_ = peak_model.make_params()
+            peak_name_ = peak_model.prefix
+            peak_type_ = peak_model.func.__name__
+
+            if peak_name:
+                if peak_name != peak_name_:
+                    raise Warning("changed name of peak model")
+                    peak_model.prefix = peak_name
+            else:
+                peak_name = peak_name_
+
+            if peak_type:
+                if peak_type != peak_type_:
+                    raise Warning("changed type of peak model")
+                    peak_model = cls.make_model_from_peak_type_and_name(
+                        peak_name=peak_name, peak_type=peak_type
+                    )
+
+            if param_hints:
+                if param_hints != param_hints_:
+                    peak_model = cls.set_params_hints_on_model(peak_model, param_hints)
+            else:
+                peak_model = cls.set_params_hints_on_model(peak_model, param_hints_)
+
+        else:
+
+            if peak_name:
+                pass
+            else:
+                raise Warning(
+                    "no peak_name given for create_peak_model, peak_name will be default"
+                )
+            if peak_type:
+                peak_model = cls.make_model_from_peak_type_and_name(
+                    peak_name=peak_name, peak_type=peak_type
+                )
+                if param_hints:
+                    peak_model = cls.set_params_hints_on_model(peak_model, param_hints)
+
+        return peak_model
+
+    def make_model_from_peak_type_and_name(peak_type="Lorentzian", peak_name=""):
+        """returns the lmfit model instance according to the chosen peak type and sets the prefix from peak_name"""
+        model = None
+        if peak_type:
+            _val_upp = peak_type.upper()
+            if "Lorentzian".upper() in _val_upp:
+                model = LorentzianModel(prefix=peak_name)
+            elif "Gaussian".upper() in _val_upp:
+                model = GaussianModel(prefix=peak_name)
+            elif "Voigt".upper() in _val_upp:
+                model = VoigtModel(prefix=peak_name)
+            else:
+                raise NotImplementedError(
+                    f'This peak type or model "{peak_type}" has not been implemented.'
+                )
+        return model
+
+    def param_hints_constructor(param_hints: dict = {}, default_settings: dict = {}):
+        """
+        This method validates and converts the input parameter settings (dict) argument
+        into a lmfit Parameters class instance.
+        """
+        params = Parameters()
+
+        if default_settings:
+            try:
+                _default_params = [
+                    Parameter(k, **val) for k, val in default_settings.items()
+                ]
+                params.add_many(*_default_params)
+            except Exception as e:
+                raise ValueError(
+                    f"Unable to create a Parameter from default_parameters {default_settings}:\n{e}"
+                )
+        if not isinstance(param_hints, dict):
+            raise TypeError(
+                f"input_param_hints should be of type dictionary not {type(param_hints)}"
+            )
+        else:
+            _valid_parlst = []
+            for k, val in param_hints.items():
+                try:
+                    _par = Parameter(k, **val)
+                    _valid_parlst.append(_par)
+                except Exception as e:
+                    raise ValueError(
+                        f"Unable to create a Parameter from {k} and {val}:\n{e}"
+                    )
+            if _valid_parlst:
+                try:
+                    params.add_many(*_valid_parlst)
+                except Exception as e:
+                    raise ValueError(
+                        f"Unable to add many Parameters from {_valid_parlst}:\n{e}"
+                    )
+        return params
+
+    @classmethod
+    def set_params_hints_on_model(cls, model, param_hints_):
+        _error = ""
+        if issubclass(model.__class__, Model) and issubclass(
+            param_hints_.__class__, Parameters
+        ):
+            try:
+                for pname, par in param_hints_.items():
+                    try:
+                        _par_hint_dict = {
+                            pn: getattr(par, pn, None)
+                            for pn in cls.PARAMETER_ARGS
+                            if getattr(par, pn, None)
+                        }
+                        # _par_hint_dict = {k: val for k, val in _par_hint_dict.items() if val}
+                        model.set_param_hint(**_par_hint_dict)
+                    except Exception as e:
+                        _error += f"Error in make_model_hints, check param_hints for {pname} with {par}, {e}"
+                # return model
+            except Exception as e:
+                _error += f"Error in make_model_hints, check param_hints \n{e}"
+        else:
+            _error += f"TypeError in make_model_hints, check types of model {type(model)} param_hints_{type(param_hints_)}"
+        if _error:
+            warn("Errors found in setting of param hints: {_error}", BasePeakWarning)
+        return model
 
 
 #%%

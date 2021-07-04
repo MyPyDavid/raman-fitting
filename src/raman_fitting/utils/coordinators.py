@@ -2,11 +2,11 @@ from collections import OrderedDict
 from warnings import warn
 
 
-class FieldsCoordinatorWarning(UserWarning):
+class FieldsTrackerWarning(UserWarning):
     pass
 
 
-class FieldsCoordinator:
+class FieldsTracker:
     """
     Keeps check of the fields from multiple sources,
     allows to store values in dict
@@ -74,10 +74,12 @@ class FieldsCoordinator:
             _fval = _src.get(field, None)
             if _fval:
                 _fsvals.update({source: _fval})
-        if not dict in map(type, _fsvals.values()):
-            _setvals = set(_fsvals.values())
-        else:
-            _setvals = _fsvals.values()
+        # if _fsvals:
+        #     if not dict in map(type, _fsvals.values()):
+        #         breakpoint()
+        #         _setvals = set(_fsvals.values())
+        #     else:
+        _setvals = _fsvals.values()
         _setsources = set(_fsvals.keys())
         _lstsources = list(_setsources)
         if len(_setvals) == 1:
@@ -88,7 +90,7 @@ class FieldsCoordinator:
                 _src = list(_fsvals.keys())[0]
                 warn(
                     f"Field {field} has multiple sources {_setsources}, one value ",
-                    FieldsCoordinatorWarning,
+                    FieldsTrackerWarning,
                 )
             _result = {_src: _fval}
         elif len(_setvals) > 1:
@@ -96,7 +98,7 @@ class FieldsCoordinator:
             _firstval = list(_fsvals.items())[0]
             warn(
                 f"Field {field} has multiple sources {_setsources}, different values follow order of sources ",
-                FieldsCoordinatorWarning,
+                FieldsTrackerWarning,
             )
             _result = {_firstval[0]: _firstval[1]}
         return _result
@@ -111,6 +113,7 @@ class FieldsCoordinator:
             self._set_results()
 
     def store(self, source, field, val):
+        """store one value: source, field, val"""
         if source in self.sources and field in self.fields and val:
             _src = getattr(self, source)
             _fval = _src.get(field, None)
@@ -119,24 +122,22 @@ class FieldsCoordinator:
             elif _fval == val:
                 warn(
                     f"Redefinition of {field} in {source} ignored",
-                    FieldsCoordinatorWarning,
+                    FieldsTrackerWarning,
                 )
             elif _fval != val:
                 _src[field] = val
                 warn(
                     f"Overwriting of {field} in {source} with new value! {_fval} is not {val}",
-                    FieldsCoordinatorWarning,
+                    FieldsTrackerWarning,
                 )
             else:
-                warn(f"Store {source} {val} unexpected", FieldsCoordinatorWarning)
+                warn(f"Store {source} {val} unexpected", FieldsTrackerWarning)
 
             setattr(self, source, _src)
             self._set_results()
         else:
             warn(
                 f"Store in {source} at {field} not in {self.sources} or not in {self.fields} or not {val}, ignored.",
-                FieldsCoordinatorWarning,
+                FieldsTrackerWarning,
             )
             pass  # store values not recognized
-
-    #%%

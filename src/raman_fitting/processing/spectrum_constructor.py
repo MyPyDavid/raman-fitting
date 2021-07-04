@@ -34,6 +34,8 @@ class SpectrumDataLoader:
     Raman Spectrum Loader Dataclass, reads in the file and constructs a spectrum from the data.
     """
 
+    # TODO Fix this class, simplify
+
     _fields = ("ramanshift", "intensity")
     # _spectrum_grp_cols = ['PAR_file','Segment #',EvRHE, 'RPM_DAC']
     file: Path = field(default=Path(Path.cwd().joinpath("empty.txt")))

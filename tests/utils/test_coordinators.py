@@ -1,13 +1,13 @@
 import unittest
 
-from raman_fitting.utils.coordinators import FieldsCoordinator, FieldsCoordinatorWarning
+from raman_fitting.utils.coordinators import FieldsTracker, FieldsTrackerWarning
 
 
-class TestFieldsCoordinator(unittest.TestCase):
+class TestFieldsTracker(unittest.TestCase):
     def testFCO(self):
 
         #%%
-        fco = FieldsCoordinator(
+        fco = FieldsTracker(
             fields=["peak_name", "peak_type", "param_hints"],
             sources=("kwargs", "cls_dict", "init"),
         )

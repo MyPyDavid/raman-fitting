@@ -1,7 +1,8 @@
 """ Default peaks used for 1st order deconvolution"""
+import attr
 
 if __name__ == "__main__":
-    from raman_fitting.deconvolution_models.base_peak import BasePeak
+    from raman_fitting.deconvolution_models.default_peaks.base_peak import BasePeak
 else:
     from .base_peak import BasePeak
 
@@ -10,7 +11,35 @@ __all__ = ["G_peak", "D_peak", "D2_peak", "D3_peak", "D5_peak", "Si1_peak"]
 # ====== FIRST ORDER PEAKS ======= #
 
 
+# =============================================================================
+#
+class Gattr_peak:
+
+    """
+    Graphite belongs to the P63/mmc (D46h) space group. If considering only a graphene plane, at
+    the Ã point of the Brillouin zone, there are six normal modes that possess only one mode (doubly
+    degenerate in plane) with a E2g representation, which is Raman active
+    G ; Ideal graphitic lattice (E2g-symmetry)
+    G peak center stable over different laser wavelengths. Influenced by potential, HSO4 adsorption (or ionization of G- and G+),
+    magnetic fields, pressure
+    Für G: 1580-1590 D5 und D2 weiß ich nicht
+    """
+
+    def __init__(self):
+        self.peak_type = "Lorentzian"
+        self.peak_name = "G"
+        self.input_param_settings = {
+            "center": {"value": 1571, "min": 1545, "max": 1595},
+            "sigma": {"value": 30, "min": 5, "max": 150},
+            "amplitude": {"value": 35, "min": 5, "max": 500},
+        }
+
+
+# =============================================================================
+
+
 class G_peak(metaclass=BasePeak):
+
     """
     Graphite belongs to the P63/mmc (D46h) space group. If considering only a graphene plane, at
     the Ã point of the Brillouin zone, there are six normal modes that possess only one mode (doubly

@@ -3,11 +3,14 @@ import copy
 import unittest
 import pytest
 
+from lmfit import Model
+
 # from raman_fitting.deconvolution_models import first_order_peaks
 import raman_fitting
 from raman_fitting.deconvolution_models.default_peaks.base_peak import (
     BasePeak,
     BasePeakWarning,
+    LMfitModelConstructorMethods,
 )
 
 
@@ -62,11 +65,7 @@ class TestBasePeak(unittest.TestCase):
             eb.peak_name = 10 * "emptytest"
         assert _error_message_contains(excinfo, "value for peak_name is too long 90")
 
-        with pytest.raises(AttributeError) as excinfo:
-            eb.peak_model
-        assert _error_message_contains(
-            excinfo, "type object empty no attribute _peak_model"
-        )
+        self.assertFalse(eb.peak_model)
 
         #%%
 
@@ -100,13 +99,14 @@ class TestBasePeak(unittest.TestCase):
             _error_message_contains(excinfo, "value for peak_name is too long 90")
         )
 
-        with pytest.raises(AttributeError) as excinfo:
-            eb.peak_model
-        self.assertTrue(
-            _error_message_contains(
-                excinfo, "type object empty no attribute _peak_model"
-            )
-        )
+        self.assertFalse(eb.peak_model)
+        # with pytest.raises(AttributeError) as excinfo:
+        #     eb.peak_model
+        # self.assertTrue(
+        #     _error_message_contains(
+        #         excinfo, "type object empty no attribute _peak_model"
+        #     )
+        # )
 
         with pytest.raises(ValueError) as excinfo:
             eb.peak_type = "VoigtLorentzian"
@@ -150,41 +150,40 @@ class TestBasePeak(unittest.TestCase):
 
         td1 = TestD1peak()
         peakmod = "<lmfit.Model: Model(voigt, prefix='D1D1_')>"
-        td1.peak_model = td1.peak_model
         self.assertEqual(str(td1.peak_model), peakmod)
         _class_str = f"TestD1peak, {peakmod}, center : 2600 < 2650 > 2750"
         self.assertIn(_class_str, str(td1))
         td1.peak_name = "R2D2"
         self.assertEqual(td1.peak_model.prefix, "R2D2_")
 
-        _def_param = td1.param_hints_constructor({})
-        _def_key = list(BasePeak.default_settings.keys())[0]
-        _def_param[_def_key].value == BasePeak.default_settings[_def_key]["value"]
+        # _def_param = td1.param_hints_constructor({})
+        # _def_key = list(BasePeak.default_settings.keys())[0]
+        # _def_param[_def_key].value == BasePeak.default_settings[_def_key]["value"]
 
-        _def_param = td1.param_hints_constructor(
-            td1.fco.register["init"]["param_hints"]
-        )
-        self.assertEqual(_def_param["amplitude"].value, 14)
+        # _def_param = td1.param_hints_constructor(
+        #     td1.fco.register["init"]["param_hints"]
+        # )
+        # self.assertEqual(_def_param["amplitude"].value, 14)
 
-        with pytest.raises(TypeError) as excinfo:
-            _def_param = td1.param_hints_constructor("fail")
-        self.assertTrue(
-            _error_message_contains(
-                excinfo,
-                "input_param_hints should be of type dictionary not <class 'str'>",
-            )
-        )
+        # with pytest.raises(TypeError) as excinfo:
+        #     _def_param = td1.param_hints_constructor("fail")
+        # self.assertTrue(
+        #     _error_message_contains(
+        #         excinfo,
+        #         "input_param_hints should be of type dictionary not <class 'str'>",
+        #     )
+        # )
 
-        _err_hints = copy.copy(td1.fco.register["init"]["param_hints"])
-        _err_hints["center"] = (1, 2, 3, 4)
+        # _err_hints = copy.copy(td1.fco.register["init"]["param_hints"])
+        # _err_hints["center"] = (1, 2, 3, 4)
 
-        with pytest.raises(ValueError) as excinfo:
-            _def_param = td1.param_hints_constructor(_err_hints)
-        self.assertTrue(
-            _error_message_contains(
-                excinfo, " Unable to create a Parameter from center and (1, 2, 3, 4):"
-            )
-        )
+        # with pytest.raises(ValueError) as excinfo:
+        #     _def_param = td1.param_hints_constructor(_err_hints)
+        # self.assertTrue(
+        #     _error_message_contains(
+        #         excinfo, " Unable to create a Parameter from center and (1, 2, 3, 4):"
+        #     )
+        # )
 
     #%%
     def test_base_class_good_with_init(self):
@@ -328,7 +327,40 @@ class TestBasePeak(unittest.TestCase):
         # print(nci)
         # print(self.__dict__)
 
+    def test_base_with_only_keyword_args(self):
+        new = BasePeak("newPeak", **{"noname": 2, "debug": False, "peak_type": "Voigt"})
+        new.param_hints = {"center": {"value": 200}}
+        newinst = new()
+        _newinst_str = "newPeak, <lmfit.Model: Model(voigt, prefix='newPeak_')>, center : -inf < 200 > inf"
+        self.assertEqual(str(newinst), _newinst_str)
+
+
+class TestLMfitModelConstructorMethods(unittest.TestCase):
+
+    LMfit = LMfitModelConstructorMethods
+
+    def test_make_model_from_peak_type_and_name(self):
+
+        model = self.LMfit.make_model_from_peak_type_and_name(
+            peak_type="Voigt", peak_name="lmfitpeak"
+        )
+        self.assertTrue(isinstance(model, Model))
+        self.assertEqual(model.prefix, "lmfitpeak")
+
+        with pytest.raises(NotImplementedError) as excinfo:
+            model = self.LMfit.make_model_from_peak_type_and_name(peak_type="FalsePeak")
+        self.assertTrue(
+            _error_message_contains(
+                excinfo,
+                " This peak type or model 'FalsePeak' has not been implemented.",
+            )
+        )
+
+
+# self = TestLMfitModelConstructorMethods()
+
 
 #%%
 if __name__ == "__main__":
     unittest.main()
+    self = TestBasePeak()
