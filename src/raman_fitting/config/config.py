@@ -20,12 +20,14 @@ TESTS_DATASET_DIR = PACKAGE_ROOT / "datafiles" / "example_files"
 
 
 # Home dir from pathlib.Path for storing the results
-PACKAGE_HOME = pathlib.Path.home() / f".{__package_name__}" # pyramdeconv is the new version package name
+PACKAGE_HOME = (
+    pathlib.Path.home() / f".{__package_name__}"
+)  # pyramdeconv is the new version package name
 
 TESTS_RESULTS_DIR = PACKAGE_HOME / "test_results"
 
 DATASET_DIR = PACKAGE_HOME / "datafiles"
-RESULTS_DIR =  PACKAGE_HOME/ "results"
+RESULTS_DIR = PACKAGE_HOME / "results"
 # Storage file of the index
 INDEX_FILE_NAME = f"{__package_name__}_index.csv"
 INDEX_FILE = RESULTS_DIR / INDEX_FILE_NAME
@@ -36,11 +38,24 @@ LOCAL_CONFIG_FILE = PACKAGE_HOME / "local_config.py"
 # ADAPT to your own configurations
 if LOCAL_CONFIG_FILE.is_file():
     try:
-        from .local_config import DATASET_DIR, RESULTS_DIR, INDEX_FILE  # PACKAGE_ROOT, MODEL_DIR are not locally configurated
-        print(f' Importing settings from local config...','\n',f'RESULTS_DIR : {RESULTS_DIR}','\n',f'From file: {__name__}')
+        from .local_config import (
+            DATASET_DIR,
+            RESULTS_DIR,
+            INDEX_FILE,
+        )  # PACKAGE_ROOT, MODEL_DIR are not locally configurated
+
+        print(
+            f" Importing settings from local config...",
+            "\n",
+            f"RESULTS_DIR : {RESULTS_DIR}",
+            "\n",
+            f"From file: {__name__}",
+        )
 
     except Exception as e:
-        print(f'Failed importing settings from local config...{RESULTS_DIR} because {e}')
+        print(
+            f"Failed importing settings from local config...{RESULTS_DIR} because {e}"
+        )
 
 # import configparser
 # config = configparser.ConfigParser()

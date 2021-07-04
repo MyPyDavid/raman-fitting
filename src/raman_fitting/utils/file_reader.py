@@ -1,11 +1,10 @@
-''' Class for reading in files, can be extended for other than txt formats'''
+""" Class for reading in files, can be extended for other than txt formats"""
 
 from pathlib import Path
 import numpy as np
 
 
-class FileReader():
-
+class FileReader:
     def __init__(self, file_path=Path()):
         self._file_path = file_path
         self.read_in()
@@ -15,7 +14,9 @@ class FileReader():
         i = 0
         while not ramanshift.any():
             try:
-                ramanshift, intensity_raw = np.loadtxt(self._filepath, usecols=(0, 1), unpack=True, skiprows=i)
+                ramanshift, intensity_raw = np.loadtxt(
+                    self._filepath, usecols=(0, 1), unpack=True, skiprows=i
+                )
                 print(self._filepath, len(ramanshift), len(intensity_raw))
                 self._skiprows = i
                 self._read_succes = True

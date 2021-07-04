@@ -4,4 +4,4 @@ def inc(x):
 
 
 def test_answer():
-    assert 'PyTestsNonZero' == 'PyTestsNonZero'
+    assert "PyTestsNonZero" == "PyTestsNonZero"
