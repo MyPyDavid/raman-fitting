@@ -98,7 +98,7 @@ sample2-100_3.txt => sampleID = 'sample2-100', position = 3
 ```
 ### Version
 
-The current version is v0.6.8
+The current version is v0.6.9
 
 ### Dependencies
 
