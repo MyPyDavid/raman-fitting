@@ -72,7 +72,7 @@ Place your data files in the default location or change this default setting in 
 ``` bash
 home/.raman_fitting/datafiles
 ```
-The following command will attempt the indexing, preprocessing, fitting and plottig on all the files found in this folder.
+The following command will attempt the indexing, preprocessing, fitting and plotting on all the files found in this folder.
 ``` bash
 # default run mode is "normal" means over all the files found in the index
 raman_fitting
