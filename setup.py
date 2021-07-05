@@ -5,11 +5,10 @@ from setuptools import setup
 
 setup(
     use_scm_version=True,
-    setup_requires=['setuptools_scm'],
-    package_dir={"": "src"},
-)
-
-
+    setup_requires=['setuptools_scm', 'setuptools_scm_git_archive'],
+    )
+    # package_dir={"": "src"},
+# )
 
 # "write_to_template": textwrap.dedent(
 #             """
