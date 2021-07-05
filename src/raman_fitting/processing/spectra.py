@@ -4,6 +4,7 @@ Created on Mon Jul  5 21:48:10 2021
 @author: DW
 
 UNDER CONSTRUCTION
+
 new design for the building of core spectra ojbects
 # TODO implement
 """
@@ -39,7 +40,7 @@ class SingleSpectrum(Spectrum):
 
 class MeanSpectra(Spectrum):
 
-    def __init__(self, sampleID=sampleID):
+    def __init__(self, sampleID=''):
         '''
         take sampleID and look up in the index or database
         for the mean data of the different positions

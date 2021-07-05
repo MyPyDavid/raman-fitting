@@ -7,6 +7,12 @@ from warnings import warn
 from pathlib import Path
 import hashlib
 
+import logging
+from .. import __package_name__
+logger = logging.getLogger(__package_name__)
+
+
+#%%
 class DataParser:
     '''
     Possible class to read in data from differnt file types
@@ -43,9 +49,9 @@ class DataParser:
                 _text = filepath.read_text(encoding="utf-8")
             except Exception as e:
                 _text - "read_error"
-                logger.warning(f"{self._qcnm} file read text error => skipped.\n{e}")
+                logger.warning(f"file read text error => skipped.\n{e}")
         else:
             _text = "max_size"
-            logger.warning(f"{self._qcnm} file too large => skipped")
+            logger.warning(f" file too large => skipped")
         filehash = hashlib.md5(_text.encode("utf-8")).hexdigest()
         return _text, filehash
