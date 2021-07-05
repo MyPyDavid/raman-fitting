@@ -1,5 +1,6 @@
-[![CI GH actions](https://github.com/MyPyDavid/raman-fitting/actions/workflows/build-test-codecov.yml/badge.svg)](https://github.com/MyPyDavid/raman-fitting/actions/workflows/build-test-codecov.yml)
-[![codecov](https://codecov.io/gh/MyPyDavid/raman-fitting/branch/main/graph/badge.svg?token=II9JZAODJY)](https://codecov.io/gh/MyPyDavid/raman-fitting)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
+[![CI GH actions](https://github.com/MyPyDavid/raman-fitting/actions/workflows/build-test-codecov.yml/badge.svg)](https://github.com/MyPyDavid/raman-fitting/actions/workflows/build-test-codecov.yml) 
+[![codecov](https://codecov.io/gh/MyPyDavid/raman-fitting/branch/main/graph/badge.svg?token=II9JZAODJY)](https://codecov.io/gh/MyPyDavid/raman-fitting) 
 [![Test & Upload to TestPyPI](https://github.com/MyPyDavid/raman-fitting/actions/workflows/upload-to-testpypi.yml/badge.svg)](https://github.com/MyPyDavid/raman-fitting/actions/workflows/upload-to-testpypi.yml)
 
 
