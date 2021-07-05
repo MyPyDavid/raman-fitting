@@ -52,13 +52,24 @@ jobs:
       #    python3 -m pip install pytest pytest-cov coverage
       #    python3 -m unittest discover
       #    cd ..
-
-      # Upload to TestPyPI
-      - name: Build and Upload to TestPyPI 📦
+      - name: Check to TestPyPI 📦
         run: |
           python3 -m pip install twine
-          python3 -m twine upload dist/*
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TWINE_TEST_TOKEN }}
-          TWINE_REPOSITORY: testpypi
+          twine check dist/*
+      
+      # Upload to TestPyPI
+      - name: Publish package to TestPyPI 📦
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.TWINE_TEST_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
+      
+      #- name: Build and Upload to TestPyPI 
+      # run: |
+      #    python3 -m pip install twine
+      #    python3 -m twine upload dist/*
+      #  env:
+      #    TWINE_USERNAME: __token__
+      #    TWINE_PASSWORD: ${{ secrets.TWINE_TEST_TOKEN }}
+      #    TWINE_REPOSITORY: testpypi
