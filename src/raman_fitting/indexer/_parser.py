@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 
 
-class Parser:
+class Parser: # pragma: no cover
     """
     Parser class, handles the reading of datafiles
     """

@@ -8,7 +8,7 @@ import pytest
 
 # from raman_fitting.deconvolution_models import first_order_peaks
 import raman_fitting
-from raman_fitting.indexer.filename_parser import PathParser
+from raman_fitting.indexer.filename_parser import PathParser, ParserMethods
 from raman_fitting.datafiles import example_files
 
 
@@ -76,7 +76,7 @@ class TestFilenameParser(unittest.TestCase):
     def test_PP_parse_filepath_to_sid_and_pos(self):
 
         for file, _expected in self.example_parse_expected.items():
-            self.assertEqual(PathParser.parse_filestem_to_sid_and_pos(file), _expected)
+            self.assertEqual(ParserMethods.parse_filestem_to_sid_and_pos(file), _expected)
 
     # def test_PathParser(self):
     #     _dfpath = Path(__file__).parent.parent.parent / 'src' / 'raman_fitting' / 'datafiles'

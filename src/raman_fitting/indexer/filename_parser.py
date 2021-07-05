@@ -5,6 +5,7 @@ import datetime
 import logging
 
 from .. import __package_name__
+from .filedata_parser import DataParser
 
 logger = logging.getLogger(__package_name__)
 
@@ -49,59 +50,43 @@ class PathParser(Path):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self._qcnm = self.__class__.__qualname__
-
         self.stats_ = None
+        self.data = None
+        self.parse_result = self.collect_parse_results(**kwargs)
 
-        self.parse_result = self.collect_parse_results()
-
-    def collect_parse_results(self):
+    def collect_parse_results(self, read_data=False):
         """performs all the steps for parsing the filepath"""
         parse_res_collect = {}
         if self.exists():
             if self.is_file():
                 self.stats_ = self.stat()
-                _filepath = self.parse_filepath()
+                _filepath = self.make_dict_from_keys("index_file_path_keys", (self.stem, self))
                 _sample = self.parse_sample_with_checks()
-                _filestats = self.parse_filestats()
-                _read_text = self.parse_read_text()
-                parse_res_collect = {**_filepath, **_sample, **_filestats, **_read_text}
+                _filestats = self.parse_filestats(self.stats_)
+                if read_data==True:
+                    self.data = DataParser(self)
+
+                parse_res_collect = {**_filepath, **_sample, **_filestats}
             else:
                 logger.warning(f"{self._qcnm} {self} is not a file => skipped")
         else:
             logger.warning(f"{self._qcnm} {self} does not exist => skipped")
         return parse_res_collect
 
-    def parse_filepath(self):
-        # FIX ME store fullpath in a str or not?
-        _parse_res = (self.stem, self)
-        return self.make_dict_from_keys("index_file_path_keys", _parse_res)
-
     def parse_sample_with_checks(self):
         """parse the sID, position and sgrpID from stem"""
         # _parse_res  = ()
         # _parse_res = self._extra_sID_check_if_reference()
-        _parse_res = self.parse_filestem_to_sid_and_pos(self.stem)
+        _parse_res = ParserMethods.parse_filestem_to_sid_and_pos(self.stem)
         if len(_parse_res) == 2:
             sID, position = _parse_res
             sID = self._extra_sID_overwrite_from_mapper_attr(sID)
-            sgrpID = self.parse_sID_to_sgrpID(sID)
+            sgrpID = ParserMethods.parse_sID_to_sgrpID(sID)
             sgrpID = self._extra_sgrID_overwrite_from_parts(
                 sgrpID, mapper=self._extra_sgrpID_name_mapper
             )
             _parse_res = sID, position, sgrpID
         return self.make_dict_from_keys("index_file_sample_keys", _parse_res)
-
-    @staticmethod
-    def parse_sID_to_sgrpID(sID: str, max_len=4):
-        """adding the extra sample Group key from sample ID"""
-
-        _len = len(sID)
-        _maxalphakey = min(
-            [n for n, i in enumerate(sID) if not str(i).isalpha()], default=_len
-        )
-        _maxkey = min((_len, _maxalphakey, max_len))
-        sgrpID = "".join([i for i in sID[0:_maxkey] if i.isalpha()])
-        return sgrpID
 
     def _extra_sgrID_overwrite_from_parts(self, sgrpID: str, mapper: dict = {}):
         if hasattr(self, "parts"):
@@ -112,9 +97,8 @@ class PathParser(Path):
 
     def _extra_sID_overwrite_from_mapper_attr(
         self, sID: str, mapper_attr: str = "_extra_sID_name_mapper"
-    ):
+        ):
         """Takes an sID and potentially overwrites from a mapper dict"""
-
         if hasattr(self, mapper_attr):
             get_map_attr = getattr(self, mapper_attr)
             if isinstance(get_map_attr, dict):
@@ -122,6 +106,29 @@ class PathParser(Path):
                 if _sID_map:
                     sID = _sID_map
         return sID
+
+    def parse_filestats(self, fstat):
+        """get status metadata from a file"""
+        # fstat = self.stats_
+        filestat_out = ParserMethods.parse_fstats(fstat)
+        return self.make_dict_from_keys("index_file_stat_keys", filestat_out)
+        # if len(self.index_file_stat_keys) == len(filestat_out):
+        #     filestat_out =  dict(zip(self.index_file_stat_keys, filestat_out))
+        # return filestat_out
+
+    def make_dict_from_keys(self, _keys_attr: str, _result: tuple):
+        """returns dict from tuples of keys and results"""
+        _keys = ()
+        if hasattr(self, _keys_attr):
+            _keys = getattr(self, _keys_attr)
+        if not len(_result) == len(_keys):
+            # if len not matches make stand in numbered keys
+            _keys = [f"{_keys_attr}_{n}" for n, i in enumerate(_result)]
+        return dict(zip(_keys, _result))
+
+class ParserMethods:
+    ''' Collection of method for parsing a filename'''
+
 
     @staticmethod
     def parse_filestem_to_sid_and_pos(stem: str, seps=("_", " ", "-")):
@@ -174,30 +181,21 @@ class PathParser(Path):
         #         position = 0
         #     else:
         #         position = int(''.join(filter(str.isdigit,split[-1])))
+    @staticmethod
+    def parse_sID_to_sgrpID(sID: str, max_len=4):
+        """adding the extra sample Group key from sample ID"""
 
-    def parse_read_text(self, max_bytes=10 ** 6):
-        """read text introspection into files, might move this to a higher level"""
-        _text = ""
-        if self.stats_.st_size < max_bytes:
-            try:
-                _text = self.read_text(encoding="utf-8")
-            except Exception as e:
-                _text - "read_error"
-                logger.warning(f"{self._qcnm} file read text error => skipped.\n{e}")
-        else:
-            _text = "max_size"
-            logger.warning(f"{self._qcnm} file too large => skipped")
-
-        filehash = hashlib.md5(_text.encode("utf-8")).hexdigest()
-        filetext = _text
-        return self.make_dict_from_keys(
-            "index_file_read_text_keys", (filehash, filetext)
+        _len = len(sID)
+        _maxalphakey = min(
+            [n for n, i in enumerate(sID) if not str(i).isalpha()], default=_len
         )
+        _maxkey = min((_len, _maxalphakey, max_len))
+        sgrpID = "".join([i for i in sID[0:_maxkey] if i.isalpha()])
+        return sgrpID
 
-    def parse_filestats(self):
-        """get status metadata from a file"""
-        fstat = self.stats_
-
+    @staticmethod
+    def parse_fstats(fstat):
+        ''' converting creation time and last mod time to datetime object'''
         c_t = fstat.st_ctime
         m_t = fstat.st_mtime
         c_tdate, m_tdate = c_t, m_t
@@ -211,27 +209,10 @@ class PathParser(Path):
             pass
         except OSError as e:
             pass
+        return c_tdate, c_t, m_tdate, m_t, fstat.st_size
 
-        filestat_out = c_tdate, c_t, m_tdate, m_t, fstat.st_size
-        return self.make_dict_from_keys("index_file_stat_keys", filestat_out)
-        # if len(self.index_file_stat_keys) == len(filestat_out):
-        #     filestat_out =  dict(zip(self.index_file_stat_keys, filestat_out))
-        # return filestat_out
-
-    def make_dict_from_keys(self, _keys_attr: str, _result: tuple):
-        """returns dict from tuples of keys and results"""
-        _keys = ()
-        if hasattr(self, _keys_attr):
-            _keys = getattr(self, _keys_attr)
-        if not len(_result) == len(_keys):
-            # if len not matches make stand in numbered keys
-            _keys = [f"{_keys_attr}_{n}" for n, i in enumerate(_result)]
-        return dict(zip(_keys, _result))
-
-        # return filestat_out
 
     # def _extra_sID_check_if_reference(self, ref_ID = 'Si-ref'):
-
     #     if ref_ID in self.stem:
     #         position = 0
     #         sID = 'Si-ref'
