@@ -39,17 +39,18 @@ jobs:
           # Upgrade pip
           python3 -m pip install --upgrade pip
           # Install build deps
-          python3 -m pip install setuptools wheel 
+          python3 -m pip install setuptools wheel build
           python3 -m pip install setuptools-scm
           # If requirements.txt exists, install from it
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          # Install the package from setup.py
-          #python3 setup.py install
-          python3 -m pip install --upgrade 
           
       - name: 'Builds the package'
         run: |
-          python3 -m build
+          # Install the package from setup.py
+          # python3 setup.py 
+          python3 setup.py sdist bdist_wheel
+          # Install package with build
+          # python3 -m build
       # Tests with unittest
       #- name: Test with unittest
       #  run: |
@@ -60,6 +61,7 @@ jobs:
       - name: Check to TestPyPI 📦
         run: |
           python3 -m pip install twine
+          # Check twine in advance even though gh-action-pypi also does that
           twine check dist/*
       
       # Upload to TestPyPI
