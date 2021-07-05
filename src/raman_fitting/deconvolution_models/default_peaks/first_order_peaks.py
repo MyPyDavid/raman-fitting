@@ -18,7 +18,8 @@ class G_peak(metaclass=BasePeak):
     the Ã point of the Brillouin zone, there are six normal modes that possess only one mode (doubly
     degenerate in plane) with a E2g representation, which is Raman active
     G ; Ideal graphitic lattice (E2g-symmetry)
-    G peak center stable over different laser wavelengths. Influenced by potential, HSO4 adsorption (or ionization of G- and G+),
+    G peak center stable over different laser wavelengths.
+    Influenced by potential, HSO4 adsorption (or ionization of G- and G+),
     magnetic fields, pressure
     Für G: 1580-1590 D5 und D2 weiß ich nicht
     """

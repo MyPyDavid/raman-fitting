@@ -9,3 +9,4 @@ requires = [
 write_to = "src/raman_fitting/_version.py"
 local_scheme = 'dirty-tag'
 fallback_version = '0.6.9'
+#"write_to": "src/raman_fitting/_version.py"

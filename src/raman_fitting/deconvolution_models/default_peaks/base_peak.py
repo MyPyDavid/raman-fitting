@@ -501,34 +501,28 @@ class LMfitModelConstructorMethods:
         peak_type: str = None,
         param_hints: Parameter = None,
     ):
-
         if peak_model:
             param_hints_ = peak_model.make_params()
             peak_name_ = peak_model.prefix
             peak_type_ = peak_model.func.__name__
-
             if peak_name:
                 if peak_name != peak_name_:
                     raise Warning("changed name of peak model")
                     peak_model.prefix = peak_name
             else:
                 peak_name = peak_name_
-
             if peak_type:
                 if peak_type != peak_type_:
                     raise Warning("changed type of peak model")
                     peak_model = cls.make_model_from_peak_type_and_name(
                         peak_name=peak_name, peak_type=peak_type
                     )
-
             if param_hints:
                 if param_hints != param_hints_:
                     peak_model = cls.set_params_hints_on_model(peak_model, param_hints)
             else:
                 peak_model = cls.set_params_hints_on_model(peak_model, param_hints_)
-
         else:
-
             if peak_name:
                 pass
             else:
@@ -541,7 +535,6 @@ class LMfitModelConstructorMethods:
                 )
                 if param_hints:
                     peak_model = cls.set_params_hints_on_model(peak_model, param_hints)
-
         return peak_model
 
     def make_model_from_peak_type_and_name(peak_type="Lorentzian", peak_name=""):

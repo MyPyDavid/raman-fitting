@@ -80,7 +80,6 @@ class TestFilenameParser(unittest.TestCase):
 
     # def test_PathParser(self):
     #     _dfpath = Path(__file__).parent.parent.parent / 'src' / 'raman_fitting' / 'datafiles'
-
     #     _fls = list(_dfpath.rglob('*.txt'))
     #     _res = []
     #     for fn in _fls:

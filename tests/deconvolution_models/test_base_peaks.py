@@ -16,7 +16,6 @@ from raman_fitting.deconvolution_models.default_peaks.base_peak import (
 
 #%%
 
-
 def _error_message_contains(excinfo, testmsg: str, verbose: bool = False):
     _fltr_str = [
         i if not i in ["(", ")"] else " "
@@ -35,9 +34,7 @@ def _error_message_contains(excinfo, testmsg: str, verbose: bool = False):
         print(_cl_str_split)
     return _test
 
-
 #%%
-
 
 class TestBasePeak(unittest.TestCase):
 
