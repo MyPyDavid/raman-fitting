@@ -56,6 +56,7 @@ jobs:
       # Upload to TestPyPI
       - name: Build and Upload to TestPyPI 📦
         run: |
+          python3 -m pip install twine
           python3 -m twine upload dist/*
         env:
           TWINE_USERNAME: __token__
