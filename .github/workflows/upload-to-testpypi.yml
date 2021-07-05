@@ -43,14 +43,14 @@ jobs:
           python3 -m pip install setuptools-scm
           # If requirements.txt exists, install from it
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-                    
           
       - name: 'Builds the package'
         run: |
           # Install the package from setup.py
           # python3 setup.py 
+          python3 setup.py sdist bdist_wheel
           # Install package with build
-          python3 -m build
+          # python3 -m build
       # Tests with unittest
       #- name: Test with unittest
       #  run: |
