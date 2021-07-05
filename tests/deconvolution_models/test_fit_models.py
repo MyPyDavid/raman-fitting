@@ -24,19 +24,15 @@ from raman_fitting.deconvolution_models.fit_models import Fitter, PrepareParams
 #     print(f'pytest file {__file__}, {__name__} error {e}')
 
 
-
-
-
 class TestFitter(unittest.TestCase):
-
     def test_empty_Fitter(self):
         ft = Fitter({})
         self.assertFalse(ft.start_fit)
         self.assertEqual(ft.spectra, {})
         ft.fit_delegator()
 
-class TestPrepareParams(unittest.TestCase):
 
+class TestPrepareParams(unittest.TestCase):
     def test_empty_PrepareParams(self):
         # pp =
         with self.assertRaises(AttributeError):
@@ -49,5 +45,5 @@ def _testing():
     self = prep
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,4 +1,4 @@
-'''
+"""
 Overview of commands used for testing and coverage
 run commands examples
         pytest --cov=app
@@ -23,4 +23,4 @@ with coverage only:
     coverage report -m
     coverage report -m --skip-covered
 
-'''
+"""
