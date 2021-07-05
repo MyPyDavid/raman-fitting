@@ -23,6 +23,8 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Fetch all history for all tags and branches
         run: git fetch --prune --unshallow
 
@@ -32,7 +34,7 @@ jobs:
           python-version: 3.8 
 
       # Installs and upgrades pip, installs other dependencies and installs the package from setup.py
-      - name: "Installs and upgrades pip, installs other dependencies and builds the package"
+      - name: "Installs and upgrades pip and installs other dependencies"
         run: |
           # Upgrade pip
           python3 -m pip install --upgrade pip
@@ -43,7 +45,10 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           # Install the package from setup.py
           #python3 setup.py install
-          python3 -m pip install --upgrade build
+          python3 -m pip install --upgrade 
+          
+      - name: 'Builds the package'
+        run: |
           python3 -m build
       # Tests with unittest
       #- name: Test with unittest
