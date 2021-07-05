@@ -22,23 +22,28 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      - name: Fetch all history for all tags and branches
+        run: git fetch --prune --unshallow
 
-      # Sets up python3
+      - name: Set up python 3.8
       - uses: actions/setup-python@v2
         with:
           python-version: 3.8 
 
       # Installs and upgrades pip, installs other dependencies and installs the package from setup.py
-      - name: "Installs and upgrades pip, installs other dependencies and installs the package from setup.py"
+      - name: "Installs and upgrades pip, installs other dependencies and builds the package"
         run: |
           # Upgrade pip
           python3 -m pip install --upgrade pip
           # Install build deps
-          python3 -m pip install setuptools wheel twine
+          python3 -m pip install setuptools wheel 
+          python3 -m pip install setuptools-scm
           # If requirements.txt exists, install from it
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           # Install the package from setup.py
-          python3 setup.py install
+          #python3 setup.py install
+          python3 -m pip install --upgrade build
+          python3 -m build
 
       # Tests with unittest
       - name: Test with unittest
@@ -51,8 +56,6 @@ jobs:
       # Upload to TestPyPI
       - name: Build and Upload to TestPyPI
         run: |
-          python3 -m pip install --upgrade build
-          python3 -m build
           python3 -m twine upload dist/*
         env:
           TWINE_USERNAME: __token__
