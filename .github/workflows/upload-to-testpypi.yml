@@ -45,14 +45,13 @@ jobs:
           #python3 setup.py install
           python3 -m pip install --upgrade build
           python3 -m build
-
       # Tests with unittest
-      - name: Test with unittest
-        run: |
-          cd tests
-          python3 -m pip install pytest pytest-cov coverage
-          python3 -m unittest discover
-          cd ..
+      #- name: Test with unittest
+      #  run: |
+      #    cd tests
+      #    python3 -m pip install pytest pytest-cov coverage
+      #    python3 -m unittest discover
+      #    cd ..
 
       # Upload to TestPyPI
       - name: Build and Upload to TestPyPI 📦
