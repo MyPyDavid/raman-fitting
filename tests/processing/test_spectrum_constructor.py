@@ -8,15 +8,15 @@ Created on Fri May 14 09:01:57 2021
 """
 
 import unittest
-import pytest
 from pathlib import Path
 
+import pytest
 
+from raman_fitting.datafiles import example_files
 from raman_fitting.processing.spectrum_constructor import (
     SpectrumDataCollection,
     SpectrumDataLoader,
 )
-from raman_fitting.datafiles import example_files
 
 
 class TestSpectrumDataLoader(unittest.TestCase):

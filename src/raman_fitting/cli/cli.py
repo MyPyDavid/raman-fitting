@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import pathlib
 import argparse
-
+import pathlib
 
 # def _testing():
 #     args = parser.parse_args(['-M', 'debug'])

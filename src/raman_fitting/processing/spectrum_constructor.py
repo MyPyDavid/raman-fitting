@@ -7,22 +7,19 @@ Created on Mon May  3 11:10:59 2021
 """
 
 import copy
+import logging
 from collections import namedtuple
-from typing import Dict, List
-
-
-from pathlib import Path
 from dataclasses import dataclass, field
 from operator import itemgetter
-import logging
+from pathlib import Path
+from typing import Dict, List
 
 import numpy as np
 import pandas as pd
 
-
-from .cleaner import SpectrumMethods, Despiker, BaselineSubtractorNormalizer
-from .spectrum_template import SpectrumWindows, SpecTemplate
 from .. import __package_name__
+from .cleaner import BaselineSubtractorNormalizer, Despiker, SpectrumMethods
+from .spectrum_template import SpecTemplate, SpectrumWindows
 
 # from .parser import Parser
 logger = logging.getLogger(__package_name__)

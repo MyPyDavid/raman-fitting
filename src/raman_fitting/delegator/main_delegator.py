@@ -1,41 +1,39 @@
 # pylint: disable=W0614,W0401,W0611,W0622,C0103,E0401,E0402
+import logging
 import sys
+from itertools import repeat, starmap
 from pathlib import Path
-from itertools import starmap, repeat
+
 import pandas as pd
 
-import logging
-
-
 if __name__ == "__main__":
+    from config import config
+    from deconvolution_models.fit_models import Fitter, InitializeModels
+    from export.exporter import Exporter
     from indexer.indexer import MakeRamanFilesIndex
+    from processing.spectrum_constructor import (
+        SpectrumDataCollection,
+        SpectrumDataLoader,
+    )
 
     # from processing.cleaner import SpectrumCleaner
     from processing.spectrum_template import SpectrumTemplate
-    from processing.spectrum_constructor import (
-        SpectrumDataLoader,
-        SpectrumDataCollection,
-    )
-    from deconvolution_models.fit_models import InitializeModels, Fitter
-    from export.exporter import Exporter
-    from config import config
 
 else:
-    from ..indexer.indexer import MakeRamanFilesIndex
-
-    # from processing.cleaner import SpectrumCleaner
-    from ..processing.spectrum_template import SpectrumTemplate
-    from ..processing.spectrum_constructor import (
-        SpectrumDataLoader,
-        SpectrumDataCollection,
-    )
-    from ..deconvolution_models.fit_models import InitializeModels, Fitter
-    from ..export.exporter import Exporter
+    from .. import __package_name__
     from ..cli.cli import RUN_MODES
     from ..config import config
     from ..config.filepaths import get_directory_paths_for_run_mode
+    from ..deconvolution_models.fit_models import Fitter, InitializeModels
+    from ..export.exporter import Exporter
+    from ..indexer.indexer import MakeRamanFilesIndex
+    from ..processing.spectrum_constructor import (
+        SpectrumDataCollection,
+        SpectrumDataLoader,
+    )
 
-    from .. import __package_name__
+    # from processing.cleaner import SpectrumCleaner
+    from ..processing.spectrum_template import SpectrumTemplate
 
 logger = logging.getLogger(__package_name__)
 # from raman_fitting.indexer.indexer import OrganizeRamanFiles

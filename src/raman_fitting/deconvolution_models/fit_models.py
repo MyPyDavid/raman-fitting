@@ -1,10 +1,8 @@
+import datetime as dt
+import logging
 from collections import OrderedDict, namedtuple
 
-import datetime as dt
 import pandas as pd
-
-
-import logging
 
 logger = logging.getLogger("pyramdeconv")
 

@@ -3,43 +3,42 @@ Created on Mon Jul  5 21:09:06 2021
 
 @author: DW
 """
-from warnings import warn
-from pathlib import Path
 import hashlib
-
 import logging
+from pathlib import Path
+from warnings import warn
+
 from .. import __package_name__
+
 logger = logging.getLogger(__package_name__)
 
 
 #%%
 class DataParser:
-    '''
+    """
     Possible class to read in data from differnt file types
     before a Spectrum is constructed from the data.
     Not in use since text is directly loaded into Spectrum in
     the SpectrumConstructor
     # TODO Add conversion into DataFrame
-    '''
+    """
 
-    supported_types = ['.txt']
-
+    supported_types = [".txt"]
 
     def __init__(self, filepath: Path):
         self.filepath = filepath
-
 
     def data_parser(self):
         if self.filepath.exists():
             _suffix = self.filepath.suffix
             if _suffix in self.support_types:
-                if _suffix == '.txt':
+                if _suffix == ".txt":
                     _rawdata, _rawdatahash = self.read_text(self.filepath)
             else:
-                warn('Filetype not supported')
+                warn("Filetype not supported")
 
         else:
-            warn('File does not exist')
+            warn("File does not exist")
 
     def read_text(filepath, max_bytes=10 ** 6):
         """read text introspection into files, might move this to a higher level"""

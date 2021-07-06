@@ -5,11 +5,11 @@ Created on Wed Jan 29 14:49:50 2020
 
 @author: DW
 """
+import matplotlib
+import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter, AutoMinorLocator
-import matplotlib.lines as mlines
-import matplotlib
+from matplotlib.ticker import AutoMinorLocator, FormatStrFormatter, MultipleLocator
 
 matplotlib.rcParams.update({"font.size": 14})
 

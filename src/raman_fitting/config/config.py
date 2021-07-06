@@ -1,7 +1,7 @@
-import pathlib
-
 # from .logging_config import get_console_handler
 import logging
+import pathlib
+
 from .. import __package_name__
 
 logger = logging.getLogger(__package_name__)
@@ -38,11 +38,8 @@ LOCAL_CONFIG_FILE = PACKAGE_HOME / "local_config.py"
 # ADAPT to your own configurations
 if LOCAL_CONFIG_FILE.is_file():
     try:
-        from .local_config import (
-            DATASET_DIR,
-            RESULTS_DIR,
-            INDEX_FILE,
-        )  # PACKAGE_ROOT, MODEL_DIR are not locally configurated
+        # PACKAGE_ROOT, MODEL_DIR are not locally configurated
+        from .local_config import DATASET_DIR, INDEX_FILE, RESULTS_DIR
 
         print(
             f" Importing settings from local config...",

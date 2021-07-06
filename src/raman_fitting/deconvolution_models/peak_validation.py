@@ -7,18 +7,15 @@ Created on Wed Apr 28 15:08:26 2021
 """
 
 import inspect
-from warnings import warn
-from itertools import groupby
+import logging
 from collections import namedtuple
-
+from itertools import groupby
 from pathlib import Path
+from warnings import warn
 
 import matplotlib.pyplot as plt
 import pandas as pd
-
 from lmfit import Parameters
-
-import logging
 
 # _file_parent_name = Path(__file__).parent.name
 # print(__name__,__file__,f'name: {_file_parent_name}')
@@ -29,8 +26,8 @@ if __name__ == "__main__":  # or _file_parent_name == 'deconvolution_models':
     # import normalization_peaks
     from default_peaks import BasePeak
 else:
-    from .default_peaks.base_peak import BasePeak
     from .. import __package_name__
+    from .default_peaks.base_peak import BasePeak
 
     logger = logging.getLogger(__package_name__)
 

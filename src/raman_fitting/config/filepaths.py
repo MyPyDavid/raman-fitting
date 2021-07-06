@@ -1,9 +1,8 @@
 """ this module prepares the local file paths for data and results"""
 
-import sys
 import logging
+import sys
 from pathlib import Path
-
 
 from .. import __package_name__
 

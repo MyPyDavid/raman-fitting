@@ -1,8 +1,7 @@
-from pathlib import Path
-import hashlib
 import datetime
-
+import hashlib
 import logging
+from pathlib import Path
 
 from .. import __package_name__
 from .filedata_parser import DataParser
@@ -60,10 +59,12 @@ class PathParser(Path):
         if self.exists():
             if self.is_file():
                 self.stats_ = self.stat()
-                _filepath = self.make_dict_from_keys("index_file_path_keys", (self.stem, self))
+                _filepath = self.make_dict_from_keys(
+                    "index_file_path_keys", (self.stem, self)
+                )
                 _sample = self.parse_sample_with_checks()
                 _filestats = self.parse_filestats(self.stats_)
-                if read_data==True:
+                if read_data == True:
                     self.data = DataParser(self)
 
                 parse_res_collect = {**_filepath, **_sample, **_filestats}
@@ -97,7 +98,7 @@ class PathParser(Path):
 
     def _extra_sID_overwrite_from_mapper_attr(
         self, sID: str, mapper_attr: str = "_extra_sID_name_mapper"
-        ):
+    ):
         """Takes an sID and potentially overwrites from a mapper dict"""
         if hasattr(self, mapper_attr):
             get_map_attr = getattr(self, mapper_attr)
@@ -126,9 +127,9 @@ class PathParser(Path):
             _keys = [f"{_keys_attr}_{n}" for n, i in enumerate(_result)]
         return dict(zip(_keys, _result))
 
-class ParserMethods:
-    ''' Collection of method for parsing a filename'''
 
+class ParserMethods:
+    """Collection of method for parsing a filename"""
 
     @staticmethod
     def parse_filestem_to_sid_and_pos(stem: str, seps=("_", " ", "-")):
@@ -181,6 +182,7 @@ class ParserMethods:
         #         position = 0
         #     else:
         #         position = int(''.join(filter(str.isdigit,split[-1])))
+
     @staticmethod
     def parse_sID_to_sgrpID(sID: str, max_len=4):
         """adding the extra sample Group key from sample ID"""
@@ -195,7 +197,7 @@ class ParserMethods:
 
     @staticmethod
     def parse_fstats(fstat):
-        ''' converting creation time and last mod time to datetime object'''
+        """converting creation time and last mod time to datetime object"""
         c_t = fstat.st_ctime
         m_t = fstat.st_mtime
         c_tdate, m_tdate = c_t, m_t
@@ -210,7 +212,6 @@ class ParserMethods:
         except OSError as e:
             pass
         return c_tdate, c_t, m_tdate, m_t, fstat.st_size
-
 
     # def _extra_sID_check_if_reference(self, ref_ID = 'Si-ref'):
     #     if ref_ID in self.stem:

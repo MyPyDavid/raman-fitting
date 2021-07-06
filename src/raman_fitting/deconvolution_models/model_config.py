@@ -5,10 +5,12 @@ Created on Sun May 30 12:35:58 2021
 """
 if __name__ == "__main__":
     from model_validation import PeakModelValidator
+
     from raman_fitting.config.config import PACKAGE_HOME
 
 else:
     from model_validation import PeakModelValidator
+
     from ..config.config import PACKAGE_HOME
 
 

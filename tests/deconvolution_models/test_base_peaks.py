@@ -1,8 +1,7 @@
 import copy
-
 import unittest
-import pytest
 
+import pytest
 from lmfit import Model
 
 # from raman_fitting.deconvolution_models import first_order_peaks
@@ -13,8 +12,8 @@ from raman_fitting.deconvolution_models.default_peaks.base_peak import (
     LMfitModelConstructorMethods,
 )
 
-
 #%%
+
 
 def _error_message_contains(excinfo, testmsg: str, verbose: bool = False):
     _fltr_str = [
@@ -34,7 +33,9 @@ def _error_message_contains(excinfo, testmsg: str, verbose: bool = False):
         print(_cl_str_split)
     return _test
 
+
 #%%
+
 
 class TestBasePeak(unittest.TestCase):
 

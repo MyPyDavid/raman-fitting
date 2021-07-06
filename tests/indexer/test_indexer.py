@@ -1,17 +1,15 @@
-import unittest
-import pytest
-
-from pathlib import Path
-from importlib import resources
 import datetime
+import unittest
+from importlib import resources
+from pathlib import Path
 
 # from raman_fitting.deconvolution_models import first_order_peaks
 import pandas as pd
-
+import pytest
 
 import raman_fitting
-from raman_fitting.indexer.indexer import MakeRamanFilesIndex
 from raman_fitting.datafiles import example_files
+from raman_fitting.indexer.indexer import MakeRamanFilesIndex
 
 
 class TestIndexer(unittest.TestCase):

@@ -1,9 +1,9 @@
 """ Multiprocessing implementation """
 # flake8: noqa
 
-from os import cpu_count
-from multiprocessing import Pool
 from functools import partial
+from multiprocessing import Pool
+from os import cpu_count
 
 
 class MultiRun:

@@ -1,15 +1,15 @@
 # flake8: noqa
 
 import unittest
+
 import pytest
+from lmfit import Model
 
 import raman_fitting
 from raman_fitting.deconvolution_models.peak_validation import (
-    PeakModelValidator,
     NotFoundAnyModelsWarning,
+    PeakModelValidator,
 )
-
-from lmfit import Model
 
 
 class TestPeakModelValidator(unittest.TestCase):

@@ -3,20 +3,20 @@
 
 import copy
 
-# from collections import namedtuple
-
 import numpy as np
 import pandas as pd
-
 from scipy import signal
 from scipy.stats import linregress
 
+# from collections import namedtuple
+
+
 if __name__ == "__main__":
-    from spectrum_template import SpectrumWindows, SpecTemplate, SpectrumWindowLimits
+    from spectrum_template import SpecTemplate, SpectrumWindowLimits, SpectrumWindows
 
     # pass
 else:
-    from .spectrum_template import SpectrumWindows, SpecTemplate, SpectrumWindowLimits
+    from .spectrum_template import SpecTemplate, SpectrumWindowLimits, SpectrumWindows
 
 
 class SpectrumMethodException(ValueError):

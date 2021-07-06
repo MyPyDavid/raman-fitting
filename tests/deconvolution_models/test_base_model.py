@@ -4,16 +4,14 @@ Created on Sun Jun  6 09:35:02 2021
 @author: DW
 """
 
+import unittest
 from functools import partial
 
-import unittest
 import pytest
-
 from lmfit import Model
 
 import raman_fitting
-
-from raman_fitting.deconvolution_models.base_model import BaseModel, _SUBSTRATE_PEAK
+from raman_fitting.deconvolution_models.base_model import _SUBSTRATE_PEAK, BaseModel
 
 _SUBSTRATE_PREFIX = _SUBSTRATE_PEAK.split("peak")[0]
 

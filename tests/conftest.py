@@ -4,11 +4,10 @@
 """
 Configuration file for pytest and commonly used fixtures
 """
+import importlib
+
 import pandas
 import pytest
-
-
-import importlib
 
 # rname = importlib.util.resolve_name('raman_fitting', None)
 # importlib.import_module('raman_fitting')

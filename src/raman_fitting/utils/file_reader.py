@@ -1,6 +1,7 @@
 """ Class for reading in files, can be extended for other than txt formats"""
 
 from pathlib import Path
+
 import numpy as np
 
 

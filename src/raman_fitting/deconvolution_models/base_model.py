@@ -1,10 +1,10 @@
 """ The member of the validated collection of BasePeaks are here assembled into fitting Models"""
 
+import logging
 from warnings import warn
 
 from lmfit import Model
 
-import logging
 from .. import __package_name__
 
 logger = logging.getLogger(__package_name__)

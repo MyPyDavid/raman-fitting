@@ -1,16 +1,15 @@
 # from collections import OrderedDict
 
-from keyword import iskeyword as _iskeyword
-
-from functools import partialmethod
-
 import inspect
+from functools import partialmethod
+from keyword import iskeyword as _iskeyword
 from warnings import warn
+
+from lmfit import Parameter, Parameters
 
 # import operator
 # from abc import ABC, abstractmethod
-from lmfit.models import VoigtModel, LorentzianModel, GaussianModel, Model
-from lmfit import Parameter, Parameters
+from lmfit.models import GaussianModel, LorentzianModel, Model, VoigtModel
 
 # from lmfit import CompositeModel
 
@@ -112,18 +111,16 @@ class BasePeak(type):
         # kwargs.update({'debug': False})
         return kwargs
 
-    def __new__(mcls, name, *_, **kwargs):
+    def __new__(mcls, name, *args, **kwargs):
 
         # print(
         #             f"Called __new ,_args {_}"
         #         )
-        if _:
-            if len(_) == 2:
-                # default arg __new__ input
-                bases, cls_dict = _
+        if len(args) == 2:
+            # default arg __new__ input
+            bases, cls_dict = args
         else:
-            bases = ()
-            cls_dict = {}
+            bases, cls_dict = (), {}
 
         if kwargs.get("debug", False):
             mcls._debug = True

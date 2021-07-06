@@ -4,8 +4,8 @@
 
 from collections import namedtuple
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 # from raman_fitting.processing.slicer import SpectraInfo
 # from raman_fitting.processing.cleaner import SpectrumCleaner

@@ -8,10 +8,10 @@ Created on Fri May 14 09:12:56 2021
 """
 
 import unittest
-import pytest
 
-from lmfit import Model
 import pandas as pd
+import pytest
+from lmfit import Model
 
 import raman_fitting
 from raman_fitting.deconvolution_models.fit_models import Fitter, PrepareParams

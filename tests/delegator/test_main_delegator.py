@@ -1,18 +1,17 @@
-import unittest
-import pytest
 import datetime
+import unittest
 
 # from raman_fitting.deconvolution_models import first_order_peaks
 import pandas as pd
-
+import pytest
 
 import raman_fitting
+from raman_fitting.datafiles import example_files
+from raman_fitting.deconvolution_models.base_model import InitializeModels
 from raman_fitting.delegator.main_delegator import (
     MainDelegator,
     add_make_sample_group_destdirs,
 )
-from raman_fitting.datafiles import example_files
-from raman_fitting.deconvolution_models.base_model import InitializeModels
 
 
 class TestMainDelegator(unittest.TestCase):
