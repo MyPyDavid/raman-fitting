@@ -52,7 +52,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
+        # windows-latest => gives error in 'if' statetement
         python-version: ["3.8", "3.9"]
         include:
           - os: macos-latest
