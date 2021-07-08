@@ -3,6 +3,7 @@ import textwrap
 
 from setuptools import setup
 
+# all settings for setup are in setup.cfg
 setup(
     use_scm_version=True,
     setup_requires=["setuptools_scm", "setuptools_scm_git_archive"],

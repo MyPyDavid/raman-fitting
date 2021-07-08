@@ -80,9 +80,11 @@ from .api import *
 # added setup.cfg
 # added unittests
 # added README.md
-# add project.tomlm only for
+# add project.toml only for
 # improved logger, each module needs a getlogger(package_name)
-# TODO PLAN: to run the fitting > daemonize for using the package and dropping files in the datafiles folder
+# TODO future daemonize the fitting process for using the package and dropping files in the datafiles folder
 # TODO add docs with Sphinx, readthedocs
-# TODO Build AsyncIO into main delegator processes
+# TODO improve AsyncIO into main delegator processes
 # TODO fix plotting because of DeprecationWarning in savefig
+# TODO add database for spectrum data storage
+# TODO future GUI webinterface

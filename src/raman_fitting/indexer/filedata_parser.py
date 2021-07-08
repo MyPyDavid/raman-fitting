@@ -23,34 +23,63 @@ class DataParser:
     # TODO Add conversion into DataFrame
     """
 
-    supported_types = [".txt"]
+    supported_filetypes = [".txt"]
 
     def __init__(self, filepath: Path):
         self.filepath = filepath
+        
 
-    def data_parser(self):
-        if self.filepath.exists():
-            _suffix = self.filepath.suffix
-            if _suffix in self.support_types:
-                if _suffix == ".txt":
-                    _rawdata, _rawdatahash = self.read_text(self.filepath)
+        self.data = self.data_parser(self.filepath)
+
+    def data_parser(self, filepath):
+        ''' Reads data from file and converts into array object'''
+
+        _data = None
+        _hash = None
+        suffix = ''
+        
+        if filepath.exists():
+            suffix = self.filepath.suffix
+            
+            if suffix in self.supported_filetypes:
+                if suffix == ".txt":
+                    _data = self.read_text(self.filepath)
+                    
+                elif suffix == ".xlsx":
+                    # read excel file input
+                    pass
+                elif suffix == ".csv":
+                    # read csv file input
+                    pass
             else:
                 warn("Filetype not supported")
 
         else:
             warn("File does not exist")
+        return _data, suffix
 
-    def read_text(filepath, max_bytes=10 ** 6):
+    def make_hash_from_data(self, data):
+        _hash = self.get_hash_text(data)
+
+    @staticmethod
+    def read_text(filepath, max_bytes=10 ** 6, encoding="utf-8", errors=None):
         """read text introspection into files, might move this to a higher level"""
-        _text = ""
-        if filepath.stat().st_size < max_bytes:
+        _text = "read_text_method"
+        filesize = filepath.stat().st_size
+        if  filesize < max_bytes:
             try:
-                _text = filepath.read_text(encoding="utf-8")
-            except Exception as e:
-                _text - "read_error"
-                logger.warning(f"file read text error => skipped.\n{e}")
+                _text = filepath.read_text(encoding=encoding, errors=errors)
+            except Exception as exc:
+                # TODO specify which Exceptions are expected
+                _text += "\nread_error"
+                logger.warning(f"file read text error => skipped.\n{exc}")
         else:
-            _text = "max_size"
+            _text += "\nfile_too_large"
             logger.warning(f" file too large => skipped")
-        filehash = hashlib.md5(_text.encode("utf-8")).hexdigest()
-        return _text, filehash
+        
+        return _text
+    
+    @staticmethod
+    def get_hash_text(text, hash_text_encoding="utf-8" ):
+        filehash = hashlib.sha256(text.encode(hash_text_encoding)).hexdigest()
+        return filehash

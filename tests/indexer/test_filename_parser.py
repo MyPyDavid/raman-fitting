@@ -4,7 +4,7 @@ import unittest
 from importlib import resources
 from pathlib import Path
 
-import pytest
+#import pytest
 
 # from raman_fitting.deconvolution_models import first_order_peaks
 import raman_fitting
