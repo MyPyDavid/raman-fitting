@@ -71,7 +71,7 @@ jobs:
       - name: Download wheel artifacts
         uses: actions/download-artifact@v2
         with:
-          name: wheel-*
+          name: wheel-${{ runner.os }}-${{ runner.python-version }}
           path: dist/
 
       - name: Store aggregated wheel artifacts
