@@ -11,7 +11,7 @@ import pytest
 
 # rname = importlib.util.resolve_name('raman_fitting', None)
 # importlib.import_module('raman_fitting')
-print(f"pytest: {__name__},file: {__file__}\n name:")
+# print(f"pytest: {__name__},file: {__file__}\n name:")
 # Incremental tests
 
 

@@ -11,6 +11,7 @@ import logging
 from collections import namedtuple
 from itertools import groupby
 from pathlib import Path
+from typing import Tuple
 from warnings import warn
 
 import matplotlib.pyplot as plt
@@ -66,6 +67,7 @@ class PeakModelValidator:
     )
 
     CMAP_OPTIONS_DEFAULT = ("Dark2", "tab20")
+    fallback_color = (0.4, 0.4, 0.4, 1.0)
 
     debug = False
 
@@ -240,23 +242,49 @@ class PeakModelValidator:
                     )
         return (True, _inst, f"{_inst} is a valid model")
 
-    def get_cmap_list(self, lst, cmap_options=()):
+    @staticmethod
+    def get_cmap_list(
+        lst, cmap_options: Tuple = (), fallback_color: Tuple = ()
+    ) -> Tuple:
 
-        try:
-            _short, _long = cmap_options
-            _cmap = plt.get_cmap(_short if not len(lst) > 10 else _long)
-        except Exception as e:
-            _short, _long = self.CMAP_OPTIONS_DEFAULT
-            _cmap = plt.get_cmap(_short if not len(lst) > 10 else _long)
-        return _cmap
+        cmap = [(0, 0, 0, 1) for i in lst]  # black as fallback default color
+
+        # set fallback color from class
+        if isinstance(fallback_color, tuple):
+            if len(fallback_color) == 4:
+                cmap = [fallback_color for i in lst]
+
+        # set cmap colors from cmap options
+        if cmap_options:
+
+            try:
+                pltcmaps = [plt.get_cmap(cmap) for cmap in cmap_options]
+                # Take shortest colormap but not
+                cmap = min(
+                    [i for i in pltcmaps if len(lst) <= len(i.colors)],
+                    key=lambda x: len(x.colors),
+                    default=cmap,
+                )
+                # if succesfull
+                if "ListedColormap" in str(type(cmap)):
+                    cmap = cmap.colors
+
+            except Exception as exc:
+                logger.warning(f"get_cmap_list error setting cmap colors:{exc}")
+
+        return cmap
 
     def assign_colors_to_lmfit_mod_inst(self, selected_models: list):
-        cmap_get = self.get_cmap_list(selected_models, cmap_options=self._cmap_options)
+        cmap_get = self.get_cmap_list(
+            selected_models,
+            cmap_options=self._cmap_options,
+            fallback_color=self.fallback_color,
+        )
         lmfit_models = []
         for n, _arg in enumerate(selected_models):
             _m_inst = _arg.model_inst
             _m_inst._modelvalidation = _arg
-            _m_inst.color = ", ".join([str(i) for i in cmap_get(n)])
+            _m_inst.color = ", ".join([str(i) for i in cmap_get[n]])
             # _m_inst._funcname = str(m).split('__main__.')[-1][:-2]
             _m_inst._lenpars = len(_m_inst.peak_model.param_names)
             lmfit_models.append(_m_inst)

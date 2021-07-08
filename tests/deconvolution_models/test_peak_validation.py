@@ -45,9 +45,13 @@ class TestPeakModelValidator(unittest.TestCase):
     def test_get_cmap_list(self):
 
         _cmap = self.pmv.get_cmap_list([], cmap_options=())
-        self.assertEqual(_cmap.name, self.pmv.CMAP_OPTIONS_DEFAULT[0])
-        _cmap = self.pmv.get_cmap_list([1] * 50, cmap_options=())
-        self.assertEqual(_cmap.name, self.pmv.CMAP_OPTIONS_DEFAULT[1])
+        self.assertEqual(_cmap, [])
+        _cmap = self.pmv.get_cmap_list(
+            [1] * 50, cmap_options=(), fallback_color=self.pmv.fallback_color
+        )
+        self.assertEqual(_cmap, [self.pmv.fallback_color] * 50)
+        _cmap = self.pmv.get_cmap_list([1] * 5)
+        self.assertEqual(len(_cmap), 5)
 
     def test___getattr__(self):
 

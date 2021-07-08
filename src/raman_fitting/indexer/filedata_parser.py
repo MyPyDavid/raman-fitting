@@ -27,24 +27,23 @@ class DataParser:
 
     def __init__(self, filepath: Path):
         self.filepath = filepath
-        
 
         self.data = self.data_parser(self.filepath)
 
     def data_parser(self, filepath):
-        ''' Reads data from file and converts into array object'''
+        """Reads data from file and converts into array object"""
 
         _data = None
         _hash = None
-        suffix = ''
-        
+        suffix = ""
+
         if filepath.exists():
             suffix = self.filepath.suffix
-            
+
             if suffix in self.supported_filetypes:
                 if suffix == ".txt":
                     _data = self.read_text(self.filepath)
-                    
+
                 elif suffix == ".xlsx":
                     # read excel file input
                     pass
@@ -66,7 +65,7 @@ class DataParser:
         """read text introspection into files, might move this to a higher level"""
         _text = "read_text_method"
         filesize = filepath.stat().st_size
-        if  filesize < max_bytes:
+        if filesize < max_bytes:
             try:
                 _text = filepath.read_text(encoding=encoding, errors=errors)
             except Exception as exc:
@@ -76,10 +75,10 @@ class DataParser:
         else:
             _text += "\nfile_too_large"
             logger.warning(f" file too large => skipped")
-        
+
         return _text
-    
+
     @staticmethod
-    def get_hash_text(text, hash_text_encoding="utf-8" ):
+    def get_hash_text(text, hash_text_encoding="utf-8"):
         filehash = hashlib.sha256(text.encode(hash_text_encoding)).hexdigest()
         return filehash
