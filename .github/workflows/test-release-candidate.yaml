@@ -71,9 +71,6 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: System information
-      run: python .github/workflows/system_info.py
-
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
