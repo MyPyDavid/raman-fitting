@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Test & Upload to TestPyPI
+name: Publish to TestPyPI and PyPI
 
 # Controls when the action will run. 
 on:
@@ -16,8 +16,9 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
-    name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    name: Build Python 🐍 distributions to 📦
+    #if: github.event_name == 'push' && 
+    if: startsWith(github.ref, 'refs/tags')
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -60,8 +61,9 @@ jobs:
       #    cd ..
   publish:
   
-    name: Publish release to PyPI
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    name: Publish 📦 to PyPI and TestPyPI
+    #if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    if: startsWith(github.ref, 'refs/tags')
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
