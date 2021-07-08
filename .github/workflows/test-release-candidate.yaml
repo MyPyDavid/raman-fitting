@@ -96,6 +96,7 @@ jobs:
         # python -m pytest --cov=raman_fitting --cov-report=term-missing --cov-report=xml --cov-config .coveragerc --junitxml=testresults.xml
 
     - name: Upload coverage to Codecov
+      if: false
       uses: codecov/codecov-action@v1
       with:
         flags: unittests
