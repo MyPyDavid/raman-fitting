@@ -55,7 +55,7 @@ jobs:
       - name: Store wheel artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: wheel-${{ os }}-${{ python-version }}
+          name: wheel-${{ runner.os }}-${{ runner.python-version }}
           path: dist/*
           
   publish:
