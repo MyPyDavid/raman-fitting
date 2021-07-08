@@ -62,6 +62,7 @@ jobs:
   
     name: Publish 📦 to PyPI and TestPyPI
     #if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    needs: build
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
