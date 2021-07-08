@@ -17,8 +17,7 @@ jobs:
   build:
     # The type of runner that the job will run on
     name: Build Python 🐍 distributions to 📦
-    #if: github.event_name == 'push' && 
-    if: startsWith(github.ref, 'refs/tags')
+    #if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -52,18 +51,11 @@ jobs:
           # python3 setup.py sdist bdist_wheel
           # Install package with build
           python3 -m build
-      # Tests with unittest
-      #- name: Test with unittest
-      #  run: |
-      #    cd tests
-      #    python3 -m pip install pytest pytest-cov coverage
-      #    python3 -m unittest discover
-      #    cd ..
+          
   publish:
   
     name: Publish 📦 to PyPI and TestPyPI
     #if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    if: startsWith(github.ref, 'refs/tags')
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -87,12 +79,3 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
-
-        #- name: Build and Upload to TestPyPI 
-        # run: |
-        #    python3 -m pip install twine
-        #    python3 -m twine upload dist/*
-        #  env:
-        #    TWINE_USERNAME: __token__
-        #    TWINE_PASSWORD: ${{ secrets.TWINE_TEST_TOKEN }}
-        #    TWINE_REPOSITORY: testpypi
