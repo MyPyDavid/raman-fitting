@@ -24,24 +24,25 @@ https://github.com/MyPyDavid/raman-fitting/wiki
 
 ### Installation
 
-Please install the package from this source, installation from PyPI will follow soon.
-The following commands for installation and testing are based on a linux terminal.
+A release is now available on PyPI, installation can be done with these commands in a terminal.
+``` bash
+# Setting up and activating virtual environment
+python -m venv testenv
+source /testenv/bin/activate
 
+# Installation from PyPI 
+python -m pip install raman_fitting
+```
+
+#### From source installation
+
+The following show how to install the package from this source.
 Download or clone this repository in a certain folder.
 ``` bash
 git clone https://github.com/MyPyDavid/raman-fitting.git
-```
-Set up a virtual environment for python.
-``` bash
-python -m venv testenv
-```
-Activate the virtual environment.
-``` bash
-source /testenv/bin/activate
-```
-Install the repository from the folder wherein the repo was cloned or downloaded.
-The required dependencies should be installed automatically as well.
-``` bash
+
+# set up and activate venv ...
+
 # regular install
 python -m pip install raman-fitting/
 
