@@ -1,0 +1,26 @@
+# Build release overview
+# Reference:
+# https://github.com/pauliacomi/pyGAPS/blob/6bab0653dca40a44d9247c873b180937365ea0d8/.build.info
+
+# This file contains details about how to
+# perform a release of pygaps (mostly for me).
+
+# Create new branch for release (we use git flow)
+# Respect semantic versioning for the releases
+git flow release start x.y.z
+
+# Ensure all tests are passing
+# or use CI provider to run them automatically
+pytest --cov --cov-report xml:coverage.xml
+
+# Run bumpversion to change any version strings
+# scattered throughout the source code
+bumpversion major/minor/patch
+
+# Finish branch
+git flow release finish x.y.z
+
+# Push, including tags
+git push --tags
+
+# Check CI if project has been successfully pushed to pypi
