@@ -1,5 +1,8 @@
 """ Indexer for raman data files """
 import hashlib
+
+# get_directory_paths_for_run_mode
+# from .index_selection import index_selection
 import logging
 import sys
 from pathlib import Path
@@ -11,9 +14,6 @@ from .. import __package_name__
 # parse_filepath_to_sid_and_pos
 from ..config import config, filepaths
 from .filename_parser import PathParser
-
-# get_directory_paths_for_run_mode
-# from .index_selection import index_selection
 
 logger = logging.getLogger(__package_name__)
 

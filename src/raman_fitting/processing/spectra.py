@@ -5,7 +5,12 @@ Created on Mon Jul  5 21:48:10 2021
 
 UNDER CONSTRUCTION
 
-new design for the building of core spectra ojbects
+new design for the building of core spectra objects
+Spectrum
+    SingleSpectrum
+    MultiSpectra
+    MeanSpectrum
+
 # TODO implement
 """
 
@@ -38,7 +43,7 @@ class SingleSpectrum(Spectrum):
         pass
 
 
-class MeanSpectra(Spectrum):
+class MeanSpectrum(Spectrum):
     def __init__(self, sampleID=""):
         """
         take sampleID and look up in the index or database

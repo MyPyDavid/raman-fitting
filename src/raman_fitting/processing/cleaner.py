@@ -31,6 +31,25 @@ class SpectrumMethods:
     data = SpecTemplate
 
     def __init__(self, ramanshift, intensity, label="", **kwargs):
+        """
+
+
+        Parameters
+        ----------
+        ramanshift : array or list
+            collection of the ramanshift values
+        intensity : array or list
+            collection of the intensity values
+        label : TYPE, optional
+            DESCRIPTION. The default is "".
+        **kwargs : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         self.ramanshift = ramanshift
         self.intensity = intensity
         self.label = label
@@ -38,13 +57,12 @@ class SpectrumMethods:
 
     @staticmethod
     def filtered_int(intensity=None):
-        # if hasattr(self, 'intensity') and intensity == None:
-        # _int = self.intensity
-        if len(intensity) > 0:
-            _int = intensity
-        else:
-            raise SpectrumMethodException("no intensity given to filter")
-        int_savgol_fltr = signal.savgol_filter(intensity, 13, 3, mode="nearest")
+
+        try:
+            int_savgol_fltr = signal.savgol_filter(intensity, 13, 3, mode="nearest")
+        except Exception as e:
+            raise SpectrumMethodException(f"no intensity given to filter, {e}")
+            int_savgol_fltr = []
         return int_savgol_fltr
 
 
@@ -78,7 +96,6 @@ class SpectrumSplitter(SpectrumMethods):
 # '''
 # For filtering the intensity of a spectrum
 # '''
-
 
 # def get_filtered(self, intensity):
 
@@ -180,7 +197,7 @@ class Despiker(SpectrumMethods):
     input_intensity : np.ndarray
         The intensity array of which the desipked intensity will be calculated.
     info : dict, optional
-        Extra information from despiking settings are added to this dict.
+        Extra information for despiking settings are added to this dict.
     Attributes
     ---------
     despiked_intensity : np.ndarray
@@ -194,11 +211,21 @@ class Despiker(SpectrumMethods):
     D.A. Whitaker, K. Hayes. Chemometrics and Intelligent Laboratory Systems 179 (2018) 82–84
     """
 
-    def __init__(self, input_intensity, Z_threshold=20, info={}):
+    def __init__(self, input_intensity, Z_threshold=20, moving_window_size=5, info={}):
         self.info = info
         self.Z_threshold = Z_threshold
+        self.moving_window_size = moving_window_size
+
+        self.info.update(
+            {"Z_threshold": Z_threshold, "Z_filter_ma": moving_window_size}
+        )
+
+        # these get populated by the setter
+        self.result = {}
+        self.df = pd.DataFrame()
+
+        # setter
         self.input_intensity = copy.deepcopy(input_intensity)
-        # self.check_input_intensity()
 
     @property
     def input_intensity(self):
@@ -220,16 +247,25 @@ class Despiker(SpectrumMethods):
 
         self.info.update({"input_type": type_test})
         self._input_intensity = int_used
-        self.run_despike()
+        self.run_despike(int_used, self.Z_threshold)
 
-    def run_despike(self):
-        self.calc_Z()
-        self.calc_Z_filtered()
-        self.apply_despike_filter()
-        self.pack_to_df()
+    def run_despike(self, intensity, Z_threshold):
+        Z_t = self.calc_Z(intensity)
+        Z_t_filtered = self.calc_Z_filtered(Z_t, Z_threshold)
 
-    def calc_Z(self):
-        intensity = self.input_intensity
+        i_despiked = self.despike_filter(
+            intensity, Z_t_filtered, moving_window_size=self.moving_window_size
+        )
+
+        keys = ["input_intensity", "Zt", "Z_t_filtered", "despiked_intensity"]
+        values = [intensity, Z_t, Z_t_filtered, i_despiked]
+        _result = dict(zip(keys, values))
+        # print(_result)
+        self.result = _result
+        self.df = pd.DataFrame(_result)
+
+    @staticmethod
+    def calc_Z(intensity):
         dYt = np.append(np.diff(intensity), 0)
         #    dYt = intensity.diff()
         dYt_Median = np.median(dYt)
@@ -239,47 +275,41 @@ class Despiker(SpectrumMethods):
         #    MAD = np.mad(dYt)
         Z_t = (0.6745 * (dYt - dYt_Median)) / dYt_MAD
         #    intensity = blcor.assign(**{'abs_Z_t': Z_t.abs()})
-        self.Z_t = Z_t
+        return Z_t
 
-    def calc_Z_filtered(self):
-        Z_t_filtered = copy.deepcopy(self.Z_t)
-        Z_t_filtered[np.abs(self.Z_t) > self.Z_threshold] = np.nan
+    @staticmethod
+    def calc_Z_filtered(Z_t, Z_threshold):
+        Z_t_filtered = copy.deepcopy(Z_t)
+        Z_t_filtered[np.abs(Z_t) > Z_threshold] = np.nan
         Z_t_filtered[0] = Z_t_filtered[-1] = 0
-        self.Z_t_filtered = Z_t_filtered
-        self.info.update({"Z_threshold": self.Z_threshold})
+        return Z_t_filtered
+        # self.Z_t_filtered = Z_t_filtered
 
     #        Z_threshold = 3.5
     #        Z_t_filtered = [Z_t
     #        Z_t_filtered[Z_filter_indx] = np.nan
     #        y_out,n = intensity,len(intensity)
-
-    def apply_despike_filter(self, ma=5, ignore_lims=(20, 46)):
-        intensity, Z_t_filtered = copy.deepcopy(self.input_intensity), self.Z_t_filtered
+    @staticmethod
+    def despike_filter(
+        intensity, Z_t_filtered, moving_window_size=5, ignore_lims=(20, 46)
+    ):
         n = len(intensity)
         i_despiked = intensity
         spikes = np.where(np.isnan(Z_t_filtered))
         for i in list(spikes[0]):
 
             if i < ignore_lims[0] or i > ignore_lims[1]:
-                w = np.arange(max(1, i - ma), min(n, i + ma))
+                w = np.arange(
+                    max(1, i - moving_window_size), min(n, i + moving_window_size)
+                )
                 w = w[~np.isnan(Z_t_filtered[w])]
-                i_despiked[i] = np.mean(intensity[w])
-            else:
-                pass  # ignored
-        self.info.update({"Z_filter_ma": ma})
-        self.despiked_intensity = i_despiked
-
-    def pack_to_df(self):
-        cols = [
-            self.input_intensity,
-            self.Z_t,
-            self.Z_t_filtered,
-            self.despiked_intensity,
-        ]
-        names = ["input_intensity", "Zt", "Z_t_filtered", "despiked_intensity"]
-        _d = dict(zip(names, cols))
-        self.dict = _d
-        self.df = pd.DataFrame(_d)
+                if intensity[w].any():
+                    i_despiked[i] = np.mean(intensity[w])
+                else:
+                    i_despiked[i] = 0
+            # else:
+            # pass  # ignored
+        return i_despiked
 
     def plot_Z(self):
         # fig,ax = plt.subplots(2)
