@@ -26,8 +26,8 @@ jobs:
       - uses: actions/checkout@v2
         # with:
         # fetch-depth: 0
-      - name: Fetch all history for all tags and branches
-        run: git fetch --prune --unshallow
+      #- name: Fetch all history for all tags and branches
+      #  run: git fetch --prune --unshallow
 
       - name: Set up python 3.8
         uses: actions/setup-python@v2
@@ -51,6 +51,12 @@ jobs:
           # python3 setup.py sdist bdist_wheel
           # Install package with build
           python3 -m build
+      
+      - name: Store wheel artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: wheel-${{ os }}-${{ python-version }}
+          path: dist/*
           
   publish:
   
@@ -59,6 +65,20 @@ jobs:
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - uses: actions/checkout@v2
+
+      - name: Download wheel artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: wheel-*
+          path: dist/
+
+      - name: Store aggregated wheel artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: wheels
+          path: dist/*
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Check to TestPyPI 
         run: |
