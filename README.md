@@ -1,6 +1,6 @@
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
-[![CI GH actions](https://github.com/MyPyDavid/raman-fitting/actions/workflows/build-test-codecov.yml/badge.svg)](https://github.com/MyPyDavid/raman-fitting/actions/workflows/build-test-codecov.yml) 
-[![codecov](https://codecov.io/gh/MyPyDavid/raman-fitting/branch/main/graph/badge.svg?token=II9JZAODJY)](https://codecov.io/gh/MyPyDavid/raman-fitting) 
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![CI GH actions](https://github.com/MyPyDavid/raman-fitting/actions/workflows/build-test-codecov.yml/badge.svg)](https://github.com/MyPyDavid/raman-fitting/actions/workflows/build-test-codecov.yml)
+[![codecov](https://codecov.io/gh/MyPyDavid/raman-fitting/branch/main/graph/badge.svg?token=II9JZAODJY)](https://codecov.io/gh/MyPyDavid/raman-fitting)
 [![Test & Upload to TestPyPI](https://github.com/MyPyDavid/raman-fitting/actions/workflows/upload-to-testpypi.yml/badge.svg)](https://github.com/MyPyDavid/raman-fitting/actions/workflows/upload-to-testpypi.yml)
 
 
@@ -26,17 +26,17 @@ https://github.com/MyPyDavid/raman-fitting/wiki
 
 A release is now available on PyPI, installation can be done with these commands in a terminal.
 ``` bash
-# Setting up and activating virtual environment
+# Setting up and activating a virtual environment
 python -m venv testenv
 source /testenv/bin/activate
 
-# Installation from PyPI 
+# Installation from PyPI
 python -m pip install raman_fitting
 ```
 
 #### From source installation
 
-The following show how to install the package from this source.
+The following shows how to install the package from this source repository.
 Download or clone this repository in a certain folder.
 ``` bash
 git clone https://github.com/MyPyDavid/raman-fitting.git
@@ -52,7 +52,7 @@ python -m pip install -e raman-fitting/
 
 ### Usage
 
-#### Post installation test run 
+#### Post installation test run
 
 In order to test the package after installation, please try the following cli command in a terminal
 ``` bash
@@ -80,7 +80,7 @@ raman_fitting
 
 # If you add a lot of files, try to check if the index is properly constructed
 # before fitting them.
-raman_fitting -M make_index 
+raman_fitting -M make_index
 
 # Location of index
 home/.raman_fitting/datafiles/results/raman_fitting_index.csv
@@ -90,7 +90,7 @@ home/.raman_fitting/datafiles/results/raman_fitting_index.csv
 
 The raman data files should be .txt files with two columns of data values.
 The first column should contain the Raman shift values and the second one the measured intensity.
-Filenames will be parsed into a sampleID and position, in order to take the mean of the measured intensity 
+Filenames will be parsed into a sampleID and position, in order to take the mean of the measured intensity
 of several positions on the same sample.
 
 An example of filename formatting and parsing result:
