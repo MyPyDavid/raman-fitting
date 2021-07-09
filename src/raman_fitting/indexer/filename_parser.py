@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 
 from .. import __package_name__
-from .filedata_parser import DataParser
+from .filedata_parser import SpectrumReader
 
 logger = logging.getLogger(__package_name__)
 
@@ -65,7 +65,7 @@ class PathParser(Path):
                 _sample = self.parse_sample_with_checks()
                 _filestats = self.parse_filestats(self.stats_)
                 if read_data == True:
-                    self.data = DataParser(self)
+                    self.data = SpectrumReader(self)
 
                 parse_res_collect = {**_filepath, **_sample, **_filestats}
             else:

@@ -4,16 +4,18 @@ from collections import OrderedDict, namedtuple
 
 import pandas as pd
 
-logger = logging.getLogger("pyramdeconv")
+from ..processing.spectrum_constructor import SpectrumDataCollection, SpectrumDataLoader
+from .base_model import InitializeModels
 
-
-if __name__ == "__main__":
-    pass
-else:
-    from .base_model import InitializeModels
+logger = logging.getLogger(__name__)
 
 
 class Fitter:
+    """
+    Fitter class for executing the fitting functions and optimizations
+
+    # TODO implement sensing of spectrum for Si samples
+    """
 
     fit_windows = ["1st_order", "2nd_order"]
 
@@ -36,20 +38,14 @@ class Fitter:
         """Checks if value is dict or else takes a dict from class instance value"""
 
         _errtxt = f"This assignment {value} does not contain valid spectra"
-        if type(value) == dict:
+        if isinstance(value, dict):
             _data = value
-            # if not _data:
-            # self.start_fit = False
-        elif type(value).__name__ == "SpectrumDataCollection":
+        elif isinstance(value, SpectrumDataCollection):
             _data = value.mean_data
             _fit_lbl = "mean"
-            # if not _data:
-            # self.start_fit = False
-        elif type(value).__name__ == "SpectrumDataLoader":
+        elif isinstance(value, SpectrumDataLoader):
             _data = value.clean_df
             _fit_lbl = "int"
-            # if _data.empty:
-            # self.start_fit = False
         elif isinstance(value, pd.DataFrame):
             raise AttributeError
             # TODO implement self.sense_windowname(value)

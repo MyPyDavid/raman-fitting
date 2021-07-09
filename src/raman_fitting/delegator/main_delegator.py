@@ -109,7 +109,7 @@ class MainDelegator:
                 logger.warning(f"{self._cqnm} index selection empty")
 
             if self.run_mode == "make_index":
-                logger.warning(
+                logger.info(
                     f"{self._cqnm} Debug run mode {self}. Index loaded {RF_indexer}"
                 )
                 sys.exit(0)
@@ -122,13 +122,15 @@ class MainDelegator:
 
             if self.run_mode in ("normal", "make_examples"):
                 if not self.index.empty:
-                    logger.info(f"{self._cqnm}. starting run generator.")
+                    logger.debug(f"{self._cqnm}. starting run generator.")
+                    # self.index
+
                     self._run_gen(**self.kwargs)
                 else:
                     pass
                 # info raman loop finished because index is empty
             elif self.run_mode == "DEBUG":
-                logger.info(f"Debug run mode {self}. Models initialized {models}")
+                logger.debug(f"Debug run mode {self}. Models initialized {models}")
 
                 try:
                     # self._run_gen() # TODO add extra test runs in tests dir
@@ -179,7 +181,7 @@ class MainDelegator:
                 next(_mygen)
                 _count += 1
             except StopIteration:
-                logger.info(
+                logger.debug(
                     f"{self._cqnm} _run_gen StopIteration after {_count } steps"
                 )
                 # print('StopIteration for mygen')
@@ -216,7 +218,7 @@ class MainDelegator:
             exp_sample = None
             try:
                 logger.debug(
-                    f"{self._cqnm} simple process_sample_wrapper trying:\n\t - {sID_args}"
+                    f"{self._cqnm} simple process_sample_wrapper trying:\n\t - {sID_args[1]}"
                 )
                 exp_sample = self.process_sample(*sID_args, **kwargs)
                 self.export_collect.append(exp_sample)
@@ -259,7 +261,7 @@ class MainDelegator:
         fitting, plotting and exporting.
         """
         logger.info(
-            f"{self._cqnm} process_sample called:\n\t - {args}\n\t - {kwargs.keys()}"
+            f"{self._cqnm} process_sample called:\n\t - {args[0:2]}\n\t - {kwargs.keys()}"
         )
         # self = args[0]
         # args = args[]

@@ -7,6 +7,7 @@ UNDER CONSTRUCTION
 
 new design for the building of core spectra objects
 Spectrum
+
     SingleSpectrum
     MultiSpectra
     MeanSpectrum
@@ -19,6 +20,9 @@ class Spectrum:
     """
     Parent method for SingleSpectrum and MultiSpectrum classes
     """
+
+    def __init__(self):
+        pass
 
     def check_data(self):
         """check if data is present"""

@@ -9,13 +9,15 @@ from pathlib import Path
 
 import pandas as pd
 
-from .. import __package_name__
+from ..config import config, filepaths
 
 # parse_filepath_to_sid_and_pos
-from ..config import config, filepaths
 from .filename_parser import PathParser
 
-logger = logging.getLogger(__package_name__)
+# from .. import __package_name__
+
+
+logger = logging.getLogger(__name__)
 
 __all__ = ["MakeRamanFilesIndex"]
 
@@ -341,7 +343,11 @@ class MakeRamanFilesIndex:
                             ]
                         }
                     )
-            logger.info(
+
+            if "make_examples" in self.run_mode:
+                index_selection = index.loc[~index.SampleID.str.startswith("Si")]
+
+            logger.debug(
                 f"{self._cqnm} finished index selection from index({len(index)}) with:\n {default_selection}\n and {kwargs}\n selection len({len(index_selection )})"
             )
         else:

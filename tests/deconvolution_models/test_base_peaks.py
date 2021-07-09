@@ -1,4 +1,5 @@
 import copy
+import logging
 import unittest
 
 import pytest
@@ -11,6 +12,10 @@ from raman_fitting.deconvolution_models.default_peaks.base_peak import (
     BasePeakWarning,
     LMfitModelConstructorMethods,
 )
+
+logger = logging.getLogger(__name__)
+logging.captureWarnings(True)  # sends these warning to the logger
+
 
 #%%
 

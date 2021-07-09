@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 
 from .. import __package_name__
+from ..indexer.filedata_parser import SpectrumReader
 from .cleaner import BaselineSubtractorNormalizer, Despiker, SpectrumMethods
 from .spectrum_template import SpecTemplate, SpectrumWindows
 
@@ -28,7 +29,9 @@ logger = logging.getLogger(__package_name__)
 @dataclass(order=True, frozen=False)
 class SpectrumDataLoader:
     """
-    Raman Spectrum Loader Dataclass, reads in the file and constructs a spectrum from the data.
+    Raman Spectrum Loader Dataclass, reads in the file and constructs a clean spectrum from the data.
+    A sequence of steps is performed on the raw data from SpectrumReader.
+    The steps/methods are: smoothening filter, despiking and baseline correction.
     """
 
     # TODO Fix this class, simplify
@@ -67,56 +70,26 @@ class SpectrumDataLoader:
     def __getattr__(self, value):
 
         if value in self.run_kwargs.keys():
+            # FIXME CARE getting attributes from kwargs
             return self.run_kwargs.get(value, None)
         else:
             # super().__getattr__(value)
             raise AttributeError(f'Attribute "{value}" is not in class.')
 
     def load_data_delegator(self):
+        """calls the SpectrumReader class"""
 
-        if self.file.exists():
-            self.info = {"FilePath": self.file}
-            self.load_data()
-            if self._read_succes:
-                self.spectrum_methods_delegator()
-            else:
-                logger.warning("{self._qcnm} load data fail for:\n\t {self.file}")
+        self.info = {"FilePath": self.file}
 
-            self.info = {**self.info, **self.run_kwargs}
+        raw_spectrum = SpectrumReader(self.file)
+        print("======== ", raw_spectrum)
 
-        elif self.file.name == "empty.txt":
-            print(f'Default empty.txt File: "{self.file}" ')
+        self.register_spectrum(raw_spectrum.ramanshift, raw_spectrum.intensity, "raw")
+        if raw_spectrum.spectrum_length > 0:
+            self.spectrum_methods_delegator()
         else:
-            raise ValueError(f'File: "{self.file}" does not exist.')
-
-    def load_data(self, on_lbl="raw"):
-        # assert self.file.exists(), f'File: "{self.file}" does not exist.'
-        # TODO import file reader class here
-        ramanshift, intensity = np.array([]), np.array([])
-        i = 0
-        while not ramanshift.any() and i < 2000:
-            try:
-                ramanshift, intensity = np.loadtxt(
-                    self.file, usecols=(0, 1), delimiter="\t", unpack=True, skiprows=i
-                )
-                # Alternative parsing method with pandas.read_csv
-                # _rawdf = pd.read_csv(self.file, usecols=(0, 1), delimiter='\t',
-                #                     skiprows=i, header =None, names=['ramanshift','intensity'])
-                logger.info(
-                    f"{self.file} with len rs({len(ramanshift)}) and len int({len(intensity)})"
-                )
-
-                self._read_succes = True
-                self.spectrum_length = len(ramanshift)
-                self.info.update(
-                    {"spectrum_length": self.spectrum_length, "skipped_rows": i}
-                )
-            except ValueError:
-                i += 1
-        self.register_spectrum(ramanshift, intensity, on_lbl)
-        # self.ramanshift = ramanshift
-        # self.intensity = intensity
-        # self.register_spectrum(ramanshift,)
+            logger.warning(f"{self._qcnm} load data fail for:\n\t {self.file}")
+        self.info = {**self.info, **self.run_kwargs}
 
     def spectrum_methods_delegator(self):
         self.filter_data(on_lbl="raw", out_lbl="filtered")
@@ -177,7 +150,7 @@ class SpectrumDataLoader:
     def plot_raw(self):
         _raw_lbls = [
             i
-            for i in self.regdf.columns
+            for i in self.register_df.columns
             if not any(a in i for a in ["ramanshift", "clean_data"])
         ]
         self.register_df.plot(x="ramanshift", y=_raw_lbls)

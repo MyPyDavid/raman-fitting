@@ -27,6 +27,9 @@ class TestSpectrumDataLoader(unittest.TestCase):
         self.testfile = next(
             filter(lambda x: "testDW38C_pos4" in x.name, _example_files_contents)
         )
+        self.errorfile = next(
+            filter(lambda x: "wrong" in x.name, _example_files_contents)
+        )
 
     def test_SpectrumDataLoader_empty(self):
 
@@ -35,23 +38,29 @@ class TestSpectrumDataLoader(unittest.TestCase):
 
     def test_SpectrumDataLoader_file(self):
         pass
-        # spd = SpectrumDataLoader(self.testfile)
+        spd = SpectrumDataLoader(
+            self.testfile, run_kwargs=dict(SampleID="testfile", SamplePos=1)
+        )
+        self.assertEqual(len(spd.register_df), 1600)
+        self.assertEqual(len(spd.register_df.columns), 5)
 
         # self = spcoll
 
 
 # class SpectrumData():
-def _testing():
-    spectrum_data = SpectrumDataLoader(
-        file=meannm[-1], run_kwargs=_spectrum_position_info_kwargs, ovv=meangrp
-    )
-    self = spectrum_data
-    self._despike.Z_t
-    self._despike.input_intensity
-    self = self._despike
-    rr = RL.export_collect[0]
-    spec = rr.fitter.spectra_arg._spectra[0]
+def _debugging():
+    self = TestSpectrumDataLoader()
+    pass
+    # spectrum_data = SpectrumDataLoader(
+    #     file=meannm[-1], run_kwargs=_spectrum_position_info_kwargs, ovv=meangrp
+    # )
+    # self = spectrum_data
+    # self._despike.Z_t
+    # self._despike.input_intensity
+    # self = self._despike
+    # rr = RL.export_collect[0]
+    # spec = rr.fitter.spectra_arg._spectra[0]
 
 
 if __name__ == "__main__":
-    self = TestSpectrumDataLoader()
+    unittest.main()

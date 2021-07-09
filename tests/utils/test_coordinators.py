@@ -1,9 +1,24 @@
+import logging
 import unittest
+import warnings
 
 from raman_fitting.utils.coordinators import FieldsTracker, FieldsTrackerWarning
 
+logger = logging.getLogger(__name__)
+logging.captureWarnings(True)  # sends these warning to the logger
+
+
+def ignore_warnings(test_func):
+    def do_test(self, *args, **kwargs):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            test_func(self, *args, **kwargs)
+
+    return do_test
+
 
 class TestFieldsTracker(unittest.TestCase):
+    @ignore_warnings
     def testFCO(self):
 
         #%%
