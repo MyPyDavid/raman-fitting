@@ -15,7 +15,7 @@ from lmfit.models import GaussianModel, LorentzianModel, Model, VoigtModel
 
 # print('name: ',__name__,'file: ', __file__, __package__)
 
-if __name__ in ("__main__"):  #'base_peak'
+if __name__ in ("__main__"):
     from raman_fitting.utils.coordinators import FieldsTracker as FieldsTracker
 else:
     from ...utils.coordinators import FieldsTracker
