@@ -15,7 +15,7 @@ try:
 
     __version__ = version
 except:
-    __version__ = "__version__ = '0.6.12'"
+    __version__ = "__version__ = '0.6.14'"
 
 
 from raman_fitting.config import filepath_settings
