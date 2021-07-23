@@ -2,13 +2,14 @@
 import logging
 import pathlib
 
-from .. import __package_name__
+from raman_fitting import __package_name__
 
-logger = logging.getLogger(__package_name__)
+logger = logging.getLogger(__name__)
 
 # import pandas as pd
 # pd.options.display.max_rows = 10
 # pd.options.display.max_columns = 10
+# __package_name__ = 'raman_fitting'
 
 CONFIG_FILE = pathlib.Path(__file__).resolve()
 PACKAGE_ROOT = CONFIG_FILE.parent.parent

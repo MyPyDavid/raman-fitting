@@ -58,7 +58,7 @@ def _previous():
         )
 
     # start_fitting(fitting_specs)
-    def run_multi_fitting(peak_model, *args, **kwargs):
+    def run_multi_fitting(model_options, **kwargs):
         # TODO fix multiprocessing fitting run
         for peak_model in model_options:
             FittingComps, FittingParams, FitReport = Fit_1stOrder_Carbon(

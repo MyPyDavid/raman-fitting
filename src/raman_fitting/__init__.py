@@ -15,10 +15,10 @@ try:
 
     __version__ = version
 except:
-    __version__ = "__version__ = '0.6.11'"
+    __version__ = "__version__ = '0.6.12'"
 
 
-from raman_fitting.config import config
+from raman_fitting.config import filepath_settings
 
 # VERSION_PATH = config.PACKAGE_ROOT / 'VERSION.txt'
 # with open(VERSION_PATH, 'r') as version_file:
@@ -81,7 +81,7 @@ from .api import *
 # added unittests
 # added README.md
 # add project.toml only for
-# improved logger, each module needs a getlogger(package_name)
+# improved logger, each module needs a getlogger(name)
 # TODO future daemonize the fitting process for using the package and dropping files in the datafiles folder
 # TODO add docs with Sphinx, readthedocs
 # TODO improve AsyncIO into main delegator processes

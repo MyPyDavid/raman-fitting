@@ -4,11 +4,11 @@ import logging
 import sys
 from pathlib import Path
 
-from .. import __package_name__
+# from .. import __package_name__
 
-logger = logging.getLogger(__package_name__)
+logger = logging.getLogger(__name__)
 
-from . import config
+from raman_fitting.config import filepath_settings as config
 
 #%%
 
@@ -126,7 +126,7 @@ def create_dataset_dir(DATASET_DIR):
                        The datafiles directory
                        {DATASET_DIR}
                        does not exist yet,
-                       therefore {__package_name__} can not find any files.
+                       therefore {__name__} can not find any files.
                        The program will now try to create this folder.
                        """
         )
@@ -137,7 +137,7 @@ def create_dataset_dir(DATASET_DIR):
                         The datafiles directory does has now been created at:
                         {DATASET_DIR}
                         please place your raman datafiles in this folder
-                        and run {__package_name__} again in normal mode
+                        and run {__name__} again in normal mode
                         """
             )
             sys.exit()

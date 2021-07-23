@@ -1,6 +1,14 @@
 import pandas as pd
 
-from .plotting import fit_spectrum_plot, raw_data_export
+from raman_fitting.exporting.plotting import fit_spectrum_plot, raw_data_export
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class ExporterError(Exception):
+    """Error occured during the exporting functions"""
 
 
 class Exporter:
@@ -10,17 +18,25 @@ class Exporter:
 
     """
 
-    def __init__(
-        self, fitter, raw_out=True, plot=True, model_names_prefix=["1st", "2nd"]
-    ):
-        self.fitter = fitter
+    def __init__(self, arg, raw_out=True, plot=True, model_names_prefix=["1st", "2nd"]):
         self.raw_out = raw_out
         self.plot = plot
-        self.delegator()
+        try:
+            self.delegator(arg)
+        except ExporterError:
+            logger.warning(
+                "f{self.__class__.__qualname__} failed export from {type(arg)}"
+            )
+        except Exception as e:
+            logger.error(
+                "f{self.__class__.__qualname__} failed export with unexpected error {e}"
+            )
 
     # Exporting and Plotting
-    def delegator(self):
-        if "Fitter" in type(self.fitter).__name__:
+    def delegator(self, arg):
+        self.fitter = arg
+        if "Fitter" in type(arg).__name__:
+            self.fitter = arg
             self.split_results()
 
             if self.raw_out:
@@ -28,22 +44,34 @@ class Exporter:
 
             if self.plot:
                 self.export_fitting_plotting_models()
-        elif "list" in type([]).__name__:
+        elif isinstance(arg, list):
+            # "list" in type([]).__name__:
+            # FIXME
             try:
-                self.export_from_list()
+                self.export_from_list(arg)
             except Exception as e:
-                print("{self.__class__}", e)
+                logger.error(
+                    "f{self.__class__.__qualname__} failed export from list", e
+                )
+        else:
+            logger.warning(
+                "f{self.__class__.__qualname__} failed export from unknown arg type {type(arg)}"
+            )
+            raise ExporterError
 
-    def export_from_list(self):
-        FitRes = pd.concat(
-            [
-                val.FitParameters
-                for exp in self.fitter
-                for k, val in exp.fitter.FitResults.items()
-            ]
-        )
-        _info = self.fitter[0].fitter.info
-        self.export_fitparams_grp_per_model(FitRes, _info)
+    def export_from_list(self, arg):
+        fitter_args = [i for i in arg if hasattr(arg, "fitter")]
+        if fitter_args:
+            FitRes = pd.concat(
+                [
+                    val.FitParameters
+                    for exp in fitter_args
+                    for k, val in exp.fitter.FitResults.items()
+                ]
+            )
+            _info = fitter_args[0].fitter.info
+            # self.fitter[0].fitter.info
+            self.export_fitparams_grp_per_model(FitRes, _info)
 
     def export_fitparams_grp_per_model(self, FitRes, _info):
         DestGrpDir = _info.get("DestGrpDir")

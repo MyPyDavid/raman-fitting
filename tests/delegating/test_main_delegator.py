@@ -8,7 +8,7 @@ import pytest
 import raman_fitting
 from raman_fitting.datafiles import example_files
 from raman_fitting.deconvolution_models.base_model import InitializeModels
-from raman_fitting.delegator.main_delegator import (
+from raman_fitting.delegating.main_delegator import (
     MainDelegator,
     add_make_sample_group_destdirs,
 )
@@ -17,7 +17,7 @@ from raman_fitting.delegator.main_delegator import (
 class TestMainDelegator(unittest.TestCase):
     def setUp(self):
         self.maindebug = MainDelegator(run_mode="DEBUG")
-        self.models = self.maindebug.initialize_models()
+        self.models = self.maindebug.initialize_default_models()
 
     def test_initialize_models(self):
         self.assertTrue(isinstance(self.models, InitializeModels))

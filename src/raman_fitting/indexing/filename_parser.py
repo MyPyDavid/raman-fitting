@@ -155,7 +155,7 @@ class ParserMethods:
             [n for n, i in enumerate(seps) if i in stem], default=None
         )
         first_sep_match = (
-            seps[first_sep_match_index] if first_sep_match_index != None else None
+            seps[first_sep_match_index] if first_sep_match_index is not None else None
         )
         split = stem.split(first_sep_match)
         _lensplit = len(split)
