@@ -3,10 +3,20 @@
 
 import argparse
 import pathlib
+import importlib.metadata
+
 
 # def _testing():
 #     args = parser.parse_args(['-M', 'debug'])
 RUN_MODES = ["normal", "testing", "debug", "make_index", "make_examples"]
+
+try:
+    _version = importlib.metadata.version("raman_fitting")
+except Exception as e:
+    _version = "version.not.found"
+
+_version_text = f"\n=== CLI raman_fitting version: {_version} ===\n"
+# print(_version_text)
 
 
 def main():
@@ -42,6 +52,15 @@ def main():
         nargs="+",
         default=[],
         help="Selection of names of sample groups from index to run over.",
+    )
+
+    parser.add_argument(
+        "--version",
+        # action=print(_version_text),
+        action="version",
+        version="%(prog)s {}".format(_version),
+        # const=_version_text,
+        help="Prints out the current version of the raman_fitting distribution, via importlib.metadata.version",
     )
 
     # Execute the parse_args() method

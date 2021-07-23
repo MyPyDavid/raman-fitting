@@ -2,9 +2,8 @@ import logging
 from collections import OrderedDict
 from warnings import warn
 
-from .. import __package_name__
 
-logger = logging.getLogger(__package_name__)
+logger = logging.getLogger(__name__)
 
 logging.captureWarnings(True)  # sends these warning to the logger
 

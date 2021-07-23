@@ -3,19 +3,22 @@
 # isort:skip_file
 
 # Main Loop Delegator
-from .delegator.main_delegator import MainDelegator, make_examples
+from raman_fitting.delegating.main_delegator import MainDelegator, make_examples
 
 # Indexer
-from .indexer.indexer import MakeRamanFilesIndex as make_index
+from raman_fitting.indexing.indexer import MakeRamanFilesIndex as make_index
 
 
 # Processing
-from .processing.spectrum_template import SpectrumTemplate
-from .processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
+from raman_fitting.processing.spectrum_template import SpectrumTemplate
+from raman_fitting.processing.spectrum_constructor import (
+    SpectrumDataLoader,
+    SpectrumDataCollection,
+)
 
 # Modelling / fitting
-from .deconvolution_models.fit_models import InitializeModels, Fitter
+from raman_fitting.deconvolution_models.fit_models import InitializeModels, Fitter
 
 # Exporting / Plotting
-from .export.exporter import Exporter
-from .config import config
+from raman_fitting.exporting.exporter import Exporter
+from raman_fitting.config import filepath_settings

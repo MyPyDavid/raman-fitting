@@ -21,7 +21,7 @@ class Fitter:
 
     def __init__(self, spectra_arg, RamanModels=InitializeModels(), start_fit=True):
         self._qcnm = self.__class__.__qualname__
-        logger.info(f"{self._qcnm} is called with spectrum\n\t{spectra_arg}\n")
+        logger.debug(f"{self._qcnm} is called with spectrum\n\t{spectra_arg}\n")
         self.start_fit = start_fit
         self.models = RamanModels
 
@@ -63,15 +63,27 @@ class Fitter:
 
         self._spectra = _specs
         self.FitResults = {}
-        self.info = {}
+        info = {}
         if hasattr(value, "info"):
-            self.info = {**self.info, **value.info}
+            info = {**info, **value.info}
+        self.info = info
 
     def fit_delegator(self):
 
         if self.start_fit:
+            logger.info(
+                f"\n{self._qcnm} is starting to fit the models on spectrum:\n\t{self.info.get('SampleID','no name')}"
+            )
+
             self.fit_models(self.models.second_order)  # second order should go first
+            logger.info(
+                f"\t - second order finished, {len(self.models.second_order)} model"
+            )
+            # rum:\t{self.info.get('SampleID','no name')}\n")
             self.fit_models(self.models.first_order)
+            logger.info(
+                f"\t - first order finished, {len(self.models.first_order)} models"
+            )
 
     def fit_models(self, model_selection):
 
@@ -203,6 +215,8 @@ class PrepareParams:
         self.prep_params()
         self.prep_components()
         self.FitReport = self.model_result.fit_report(show_correl=False)
+
+        self.extra_info = {}
         self.prep_extra_info()
         self.FitResult = self.fit_result_template(
             self.FitComponents,

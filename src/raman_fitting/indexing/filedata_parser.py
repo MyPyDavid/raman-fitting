@@ -10,6 +10,8 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from pandas.core.base import DataError
+from pandas.core.frame import DataFrame
 
 # from .. import __package_name__
 
@@ -71,8 +73,20 @@ class SpectrumReader:
         for key in self.spectrum_data_keys:
             setattr(self, key, self.spectrum[key].to_numpy())
 
-    def spectrum_parser(self, filepath):
-        """Reads data from file and converts into array object"""
+    def spectrum_parser(self, filepath: Path):
+        """
+        Reads data from a file and converts into pd.DataFrame object
+
+        Parameters
+        --------
+        filepath : Path, str
+            file which contains the data of a spectrum
+
+        Returns
+        --------
+        pd.DataFrame
+            Contains the data of the spectrum in a DataFrame with the selected spectrum keys as columns
+        """
 
         spectrum_data = pd.DataFrame()
 
@@ -82,7 +96,7 @@ class SpectrumReader:
             if suffix == ".txt":
 
                 try:
-                    spectrum_data = self.use_np_loadtxt(self.filepath)
+                    spectrum_data = self.use_np_loadtxt(filepath)
 
                 except Exception as exc:
                     logger.warning(
@@ -93,12 +107,12 @@ class SpectrumReader:
             elif suffix == ".xlsx":
                 # read excel file input
                 # TODO not implemented yet, select columns etc or autodetect
-                spectrum_data = pd.read_excel(self.filepath)
+                spectrum_data = pd.read_excel(filepath)
 
             elif suffix == ".csv":
                 # read csv file input
                 # TODO not implemented yet, select columns etc or autodetect
-                spectrum_data = pd.read_excel(self.filepath)
+                spectrum_data = pd.read_excel(filepath)
 
         else:
             logger.warning(f"Filetype {suffix} not supported")

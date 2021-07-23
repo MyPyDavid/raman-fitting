@@ -9,14 +9,16 @@ from scipy import signal
 from scipy.stats import linregress
 
 # from collections import namedtuple
+from raman_fitting.processing.spectrum_template import (
+    SpecTemplate,
+    SpectrumWindowLimits,
+    SpectrumWindows,
+)
 
-
-if __name__ == "__main__":
-    from .spectrum_template import SpecTemplate, SpectrumWindowLimits, SpectrumWindows
-
-    # pass
-else:
-    from .spectrum_template import SpecTemplate, SpectrumWindowLimits, SpectrumWindows
+# if __name__ == "__main__":
+#     pass
+# else:
+#     from .spectrum_template import SpecTemplate, SpectrumWindowLimits, SpectrumWindows
 
 
 class SpectrumMethodException(ValueError):

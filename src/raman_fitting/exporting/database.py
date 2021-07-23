@@ -8,12 +8,12 @@ Created on Mon May 10 16:15:25 2021
 
 import sqlite3
 
-from ..config import config
+from raman_fitting.config import filepath_settings
 
 
 class RamanDB:
     def __init__(self):
-        self.dbpath = config.RESULTS_DIR.joinpath("sqlite.db")
+        self.dbpath = filepath_settings.RESULTS_DIR.joinpath("sqlite.db")
 
     def conn(self):
         self.conn = sqlite3.connect(self.dbpath)

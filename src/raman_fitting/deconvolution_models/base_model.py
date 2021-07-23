@@ -5,17 +5,19 @@ from warnings import warn
 
 from lmfit import Model
 
-from .. import __package_name__
+# from .. import __package_name__
 
-logger = logging.getLogger(__package_name__)
+logger = logging.getLogger(__name__)
 
 
 _SUBSTRATE_PEAK = "Si1_peak"
 
-if __name__ == "__main__":
-    from peak_validation import PeakModelValidator
-else:
-    from .peak_validation import PeakModelValidator
+from raman_fitting.deconvolution_models.peak_validation import PeakModelValidator
+
+# if __name__ == "__main__":
+#     pass
+# else:
+#     from .peak_validation import PeakModelValidator
 
 #%%
 

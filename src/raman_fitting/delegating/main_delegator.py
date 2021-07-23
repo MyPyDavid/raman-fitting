@@ -6,42 +6,50 @@ from pathlib import Path
 
 import pandas as pd
 
+import raman_fitting
+from raman_fitting.config import filepath_settings
+from raman_fitting.config.filepath_helper import get_directory_paths_for_run_mode
+from raman_fitting.deconvolution_models.fit_models import Fitter
+from raman_fitting.deconvolution_models.base_model import InitializeModels
+from raman_fitting.exporting.exporter import Exporter
+from raman_fitting.indexing.indexer import MakeRamanFilesIndex
+from raman_fitting.processing.spectrum_constructor import (
+    SpectrumDataCollection,
+    SpectrumDataLoader,
+)
+
+# from processing.cleaner import SpectrumCleaner
+from raman_fitting.processing.spectrum_template import SpectrumTemplate
+from raman_fitting.interfaces.cli import RUN_MODES
+
 if __name__ == "__main__":
-    from config import config
-    from deconvolution_models.fit_models import Fitter, InitializeModels
-    from export.exporter import Exporter
-    from indexer.indexer import MakeRamanFilesIndex
-    from processing.spectrum_constructor import (
-        SpectrumDataCollection,
-        SpectrumDataLoader,
-    )
+    pass
 
-    # from processing.cleaner import SpectrumCleaner
-    from processing.spectrum_template import SpectrumTemplate
 
-else:
-    from .. import __package_name__
-    from ..cli.cli import RUN_MODES
-    from ..config import config
-    from ..config.filepaths import get_directory_paths_for_run_mode
-    from ..deconvolution_models.fit_models import Fitter, InitializeModels
-    from ..export.exporter import Exporter
-    from ..indexer.indexer import MakeRamanFilesIndex
-    from ..processing.spectrum_constructor import (
-        SpectrumDataCollection,
-        SpectrumDataLoader,
-    )
+# else:
+#     # from .. import __package_name__
+#     from ..cli.cli import RUN_MODES
+#     from ..config import config
+#     from ..config.filepaths import get_directory_paths_for_run_mode
+#     from ..deconvolution_models.fit_models import Fitter
+#     from ..deconvolution_models.base_model import InitializeModels
+#     from ..export.exporter import Exporter
+#     from ..indexer.indexer import MakeRamanFilesIndex
+#     from ..processing.spectrum_constructor import (
+#         SpectrumDataCollection,
+#         SpectrumDataLoader,
+#     )
 
-    # from processing.cleaner import SpectrumCleaner
-    from ..processing.spectrum_template import SpectrumTemplate
+#     # from processing.cleaner import SpectrumCleaner
+#     from ..processing.spectrum_template import SpectrumTemplate
 
-logger = logging.getLogger(__package_name__)
+logger = logging.getLogger(__name__)
 # from raman_fitting.indexer.indexer import OrganizeRamanFiles
 # from raman_fitting.processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
 
 
 class prdError(Exception):
-    """Base error raised by pyramdeconv."""
+    """Base error raised by pyramdeconv (future package name of raman_fitting)."""
 
 
 class MainDelegatorError(prdError):
@@ -114,8 +122,9 @@ class MainDelegator:
                 )
                 sys.exit(0)
 
-            models = self.initialize_models()
+            models = self.initialize_default_models()
             self.kwargs.update({"models": models})
+            # TODO built in a model selection keyword, here or at fitting level and for the cli
             logger.info(
                 f"\n{self._cqnm} models initialized for run mode ({self.run_mode}):\n\n{repr(models)}"
             )
@@ -147,7 +156,7 @@ class MainDelegator:
             logger.warning(f'Debug run mode "{self.run_mode}" not recognized not in ')
             # warning run mode not recognized
 
-    def initialize_models(self):
+    def initialize_default_models(self):
         try:
             return InitializeModels()
         except Exception as e:
@@ -171,66 +180,67 @@ class MainDelegator:
             yield (grpnm, nm, sID_grp)
 
     def _run_gen(self, **kwargs):
-        # sort of coordinator coroutine, can implement still deque
-        _mygen = self._generator(**kwargs)
+        # #TODO sort of coordinator coroutine, can implement still deque
+        sgrp_grpby = self.index.groupby(self.spectrum.grp_names.sGrp_cols[0])
         logger.info(f"{self._cqnm} _run_gen starting: {kwargs}")
-        _count = 0
-        while True:
+        _mygen = self._generator(sgrp_grpby, **kwargs)
+        Exporter(self.export_collect)  # clean up and export
 
-            try:
-                next(_mygen)
-                _count += 1
-            except StopIteration:
-                logger.debug(
-                    f"{self._cqnm} _run_gen StopIteration after {_count } steps"
-                )
-                # print('StopIteration for mygen')
-                break
-            finally:
-                Exporter(self.export_collect)  # clean up and export
-
-    def _generator(self, *args, **kwargs):
-        _sgrpgen = self.sample_group_gen()
-        for grpnm, sGrp_grp in _sgrpgen:
-            _sID_gen = self._sID_gen(grpnm, sGrp_grp)
-            logger.info(f"{self._cqnm} _generator starting group: {grpnm}")
-            try:
-
-                yield from self.simple_process_sample_wrapper(_sID_gen, **kwargs)
-                # starmap(process_sample_wrapper, args_for_starmap )
-                # args_for_starmap = zip(repeat(self.process_sample), _sID_gen, repeat(kwargs))
-
-            except GeneratorExit:
-                logger.warning(f"{self._cqnm} _generator closed.")
-                return None
-            except Exception as e:
-                logger.warning(f"{self._cqnm} _generator exception: {e}")
+    def _generator(self, sgrp_grpby, **kwargs):
+        # _sgrpgen = self.sample_group_gen()
+        export_collect = []
+        for sgrpnm, sgrp_grp in sgrp_grpby:
+            sID_grpby = sgrp_grp.groupby(list(self.spectrum.grp_names.sGrp_cols[1:]))
+            # _sID_gen = self._sID_gen(grpnm, sgrp_grp)
+            logger.info(f"{self._cqnm} _generator starting group: {sgrpnm}")
+            exporter_sample = None
+            for sIDnm, sIDgrp in sID_grpby:
+                try:
+                    exporter_sample = self.simple_process_sample_wrapper(
+                        sgrpnm, sIDnm, sIDgrp, **kwargs
+                    )
+                    # yield from self.simple_process_sample_wrapper(_sID_gen, **kwargs)
+                    # starmap(process_sample_wrapper, args_for_starmap )
+                    # args_for_starmap = zip(repeat(self.process_sample), _sID_gen, repeat(kwargs))
+                except GeneratorExit:
+                    logger.warning(f"{self._cqnm} _generator closed.")
+                    return ()
+                except Exception as e:
+                    logger.warning(f"{self._cqnm} _generator exception: {e}")
+                    # return ()
+                export_collect.append(exporter_sample)
+        return export_collect
 
     def coordinator(self):
         pass
 
-    def simple_process_sample_wrapper(self, _gen, **kwargs):
-
-        for sID_args in _gen:
-            logger.info(
-                f"{self._cqnm} starting simple process_sample_wrapper args:\n\t - {_gen}\n\t - {kwargs.keys()}"
+    def simple_process_sample_wrapper(self, *sID_args, **kwargs):
+        # if _gen:
+        # for sID_args in _gen:
+        logger.info(
+            f"{self._cqnm} starting simple process_sample_wrapper args:\n\t - {sID_args[0]}\n\t - {kwargs.keys()}"
+        )
+        exporter_sample = None
+        try:
+            logger.debug(
+                f"{self._cqnm} simple process_sample_wrapper starting:\n\t - {sID_args[1]}"
             )
-            exp_sample = None
-            try:
+            exporter_sample = self.process_sample(*sID_args, **kwargs)
+            if exporter_sample:
                 logger.debug(
-                    f"{self._cqnm} simple process_sample_wrapper trying:\n\t - {sID_args[1]}"
+                    f"{self._cqnm} simple process_sample_wrapper appending export:\n\t - {exporter_sample}"
                 )
-                exp_sample = self.process_sample(*sID_args, **kwargs)
-                self.export_collect.append(exp_sample)
-            except StopIteration:
-                logger.info(
-                    f"{self._cqnm} _gen StopIteration for simple process wrapper "
-                )
-            except Exception as e:
-                logger.warning(
-                    f"{self._cqnm} simple process_sample_wrapper exception on call process sample: {e}"
-                )
-                self._failed_samples.append((e, sID_args, kwargs))
+                self.export_collect.append(exporter_sample)
+        # except StopIteration:
+        # logger.info(
+        #     f"{self._cqnm} _gen StopIteration for simple process wrapper "
+        # )
+        except Exception as e:
+            logger.warning(
+                f"{self._cqnm} simple process_sample_wrapper exception on call process sample: {e}"
+            )
+            self._failed_samples.append((e, sID_args, kwargs))
+        return exporter_sample
 
     def _process_sample_wrapper(self, fn, *args, **kwargs):
         logger.warning(
@@ -247,32 +257,34 @@ class MainDelegator:
             self._failed_samples.append((e, args, kwargs))
 
     def test_positions(
-        self, sGrp_grp, nm, grp_cols=["FileStem", "SamplePos", "FilePath"]
+        self, sGrp_grp, sIDnm, grp_cols=["FileStem", "SamplePos", "FilePath"]
     ):
         if sGrp_grp.FileStem.nunique() != sGrp_grp.SamplePos.nunique():
             logger.warning(
-                f"{sGrp_grp[grp_cols]} Unique files and positions not matching for {nm}"
+                f"{sGrp_grp[grp_cols]} Unique files and positions not matching for {sIDnm}"
             )
         return sGrp_grp.groupby(grp_cols), grp_cols
 
-    def process_sample(self, *args, **kwargs):
+    def process_sample(self, sgrpnm, sIDnm, sID_grp, **kwargs):
         """
         Loops over individual Sample positions (files) from a SampleID and performs the
         fitting, plotting and exporting.
         """
         logger.info(
-            f"{self._cqnm} process_sample called:\n\t - {args[0:2]}\n\t - {kwargs.keys()}"
+            f"{self._cqnm} process_sample called:\n\t - {sgrpnm}, {sIDnm}\n\t - {kwargs.keys()}"
         )
         # self = args[0]
         # args = args[]
-        grpnm, nm, sID_grp = args
+        # grpnm, nm, sID_grp = args
+
         models = kwargs.get("models", None)
 
-        sGr, (sID, sDate) = grpnm, nm
-        sGr_out = dict(zip(self.spectrum.grp_names.sGrp_cols, (grpnm,) + nm))
+        # sGr, (sID, sDate) = sgrpnm, nm # just for developer
+
+        sGr_out = dict(zip(self.spectrum.grp_names.sGrp_cols, (sgrpnm,) + sIDnm))
         export_info_out = add_make_sample_group_destdirs(sID_grp)
         sample_pos_grp, sPos_cols = self.test_positions(
-            sID_grp, nm, list(self.spectrum.grp_names.sPos_cols)
+            sID_grp, sIDnm, list(self.spectrum.grp_names.sPos_cols)
         )
 
         sample_spectra = []
@@ -285,13 +297,32 @@ class MainDelegator:
             )
             # spectrum_data.plot_raw()
             sample_spectra.append(spectrum_data)
-        spectra_collection = SpectrumDataCollection(sample_spectra)
-        ft = Fitter(spectra_collection, RamanModels=models)
-        rex = Exporter(ft)
-        return rex
+        if sample_spectra:
+            spectra_collection = SpectrumDataCollection(sample_spectra)
+            ft = Fitter(spectra_collection, RamanModels=models)
+            rex = Exporter(ft)
+            return rex
+        else:
+            logger.info(
+                f"{self._cqnm} process sample spectra empty {','.join(map(str,[sgrpnm, sIDnm]))}."
+            )
+            return None
 
     def __repr__(self):
         return f'Maindelegator: run_mode = {self.run_mode}, {", ".join([f"{k} = {str(val)}" for k,val in self.kwargs.items()])}'
+
+        # _count = 0
+        # while True:
+        #     try:
+        #         next(_mygen)
+        #         _count += 1
+        #     except StopIteration:
+        #         logger.debug(
+        #             f"{self._cqnm} _run_gen StopIteration after {_count } steps"
+        #         )
+        #         # print('StopIteration for mygen')
+        #         break
+        #     finally:
 
 
 def add_make_sample_group_destdirs(sample_grp: pd.DataFrame):
