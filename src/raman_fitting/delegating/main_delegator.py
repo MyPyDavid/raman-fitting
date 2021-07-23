@@ -361,8 +361,8 @@ def process_sample_wrapper(fn, *args, **kwargs):
             )
             # self._failed_samples.append((e, args, kwargs))
             exp_sample = (e, args, kwargs)
-        finally:
-            return exp_sample
+
+        return exp_sample
 
 
 def make_examples():
