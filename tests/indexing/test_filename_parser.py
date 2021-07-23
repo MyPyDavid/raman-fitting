@@ -7,7 +7,7 @@ from pathlib import Path
 # from raman_fitting.deconvolution_models import first_order_peaks
 import raman_fitting
 from raman_fitting.datafiles import example_files
-from raman_fitting.indexer.filename_parser import ParserMethods, PathParser
+from raman_fitting.indexing.filename_parser import ParserMethods, PathParser
 
 # import pytest
 

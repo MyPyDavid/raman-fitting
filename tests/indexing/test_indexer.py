@@ -9,7 +9,7 @@ import pytest
 
 import raman_fitting
 from raman_fitting.datafiles import example_files
-from raman_fitting.indexer.indexer import MakeRamanFilesIndex
+from raman_fitting.indexing.indexer import MakeRamanFilesIndex
 
 
 class TestIndexer(unittest.TestCase):
