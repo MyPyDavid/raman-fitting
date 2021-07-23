@@ -15,6 +15,7 @@ pytest --cov --cov-report xml:coverage.xml
 
 # Run bumpversion to change any version strings
 # scattered throughout the source code
+<<<<<<< HEAD
 # !!! Check if pre-commit hooks are there or not..
 # bump2version fails after pre-commit hook fails
 #
@@ -22,6 +23,12 @@ pytest --cov --cov-report xml:coverage.xml
 # --allow-dirty
 #
 # bump2version major/minor/patch
+=======
+# !!! Check if pre-commit hooks are enabled
+# bump2version may fail the commit if pre-commit hooks fail...
+# bump2version patch --no-commit
+# bumpversion major/minor/patch
+>>>>>>> release/0.6.15
 
 # Finish branch
 git flow release finish x.y.z
