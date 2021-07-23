@@ -17,13 +17,18 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 
-from .. import __package_name__
-from ..indexer.filedata_parser import SpectrumReader
-from .cleaner import BaselineSubtractorNormalizer, Despiker, SpectrumMethods
-from .spectrum_template import SpecTemplate, SpectrumWindows
+# from .. import __package_name__
+
+from raman_fitting.indexing.filedata_parser import SpectrumReader
+from raman_fitting.processing.cleaner import (
+    BaselineSubtractorNormalizer,
+    Despiker,
+    SpectrumMethods,
+)
+from raman_fitting.processing.spectrum_template import SpecTemplate, SpectrumWindows
 
 # from .parser import Parser
-logger = logging.getLogger(__package_name__)
+logger = logging.getLogger(__name__)
 
 
 @dataclass(order=True, frozen=False)

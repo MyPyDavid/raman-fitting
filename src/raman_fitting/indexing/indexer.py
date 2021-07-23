@@ -9,10 +9,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from ..config import config, filepaths
+from raman_fitting.config import filepath_settings, filepath_helper
 
 # parse_filepath_to_sid_and_pos
-from .filename_parser import PathParser
+from raman_fitting.indexing.filename_parser import PathParser
 
 # from .. import __package_name__
 
@@ -55,7 +55,9 @@ class MakeRamanFilesIndex:
         self.run_mode = run_mode
         self._extra_dataset_dirs = extra_dataset_dirs
 
-        self._dest_dirs = filepaths.get_directory_paths_for_run_mode(run_mode, **kwargs)
+        self._dest_dirs = filepath_helper.get_directory_paths_for_run_mode(
+            run_mode, **kwargs
+        )
         for k, val in self._dest_dirs.items():
             setattr(self, k, val)
 

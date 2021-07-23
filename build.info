@@ -3,7 +3,7 @@
 # https://github.com/pauliacomi/pyGAPS/blob/6bab0653dca40a44d9247c873b180937365ea0d8/.build.info
 
 # This file contains details about how to
-# perform a release of pygaps (mostly for me).
+# perform a release of this package
 
 # Create new branch for release (we use git flow)
 # Respect semantic versioning for the releases

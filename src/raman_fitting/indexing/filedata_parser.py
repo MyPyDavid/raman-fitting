@@ -10,6 +10,8 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from pandas.core.base import DataError
+from pandas.core.frame import DataFrame
 
 # from .. import __package_name__
 
@@ -29,13 +31,17 @@ class SpectrumReader:
     supported_filetypes = [".txt"]
 
     spectrum_data_keys = ("ramanshift", "intensity")
-    expected_ranges = {"ramanshift": (-95, 3600)}
-    expected_length = 1600
+    spectrum_keys_expected_values = {
+        "ramanshift": {"expected_values": {"min": -95, "max": 3600, "len": 1600}},
+        "intensity": {"expected_values": {"min": 0, "max": 1e4, "len": 1600}},
+    }
+    # expected_ranges = {"ramanshift": (-95, 3600)}
+    # expected_length = 1600
 
     # using slots since there will be many instances of this class
     __slots__ = (
         *("filepath", "max_bytesize", "spectrum", "spectrum_hash", "spectrum_length"),
-        *spectrum_data_keys,
+        *spectrum_keys_expected_values.keys(),
     )
 
     def __init__(self, filepath: Path, max_bytesize=10 ** 6):
@@ -55,7 +61,9 @@ class SpectrumReader:
             if filesize < max_bytesize:
 
                 self.spectrum = self.spectrum_parser(self.filepath)
-                self.double_check_spectrum_values(self.spectrum)
+                self.double_check_spectrum_values(
+                    self.spectrum, expected_values=self.spectrum_keys_expected_values
+                )
         else:
             logger.warn("File does not exist")
 
@@ -65,8 +73,20 @@ class SpectrumReader:
         for key in self.spectrum_data_keys:
             setattr(self, key, self.spectrum[key].to_numpy())
 
-    def spectrum_parser(self, filepath):
-        """Reads data from file and converts into array object"""
+    def spectrum_parser(self, filepath: Path):
+        """
+        Reads data from a file and converts into pd.DataFrame object
+
+        Parameters
+        --------
+        filepath : Path, str
+            file which contains the data of a spectrum
+
+        Returns
+        --------
+        pd.DataFrame
+            Contains the data of the spectrum in a DataFrame with the selected spectrum keys as columns
+        """
 
         spectrum_data = pd.DataFrame()
 
@@ -76,7 +96,7 @@ class SpectrumReader:
             if suffix == ".txt":
 
                 try:
-                    spectrum_data = self.use_np_loadtxt(self.filepath)
+                    spectrum_data = self.use_np_loadtxt(filepath)
 
                 except Exception as exc:
                     logger.warning(
@@ -87,12 +107,12 @@ class SpectrumReader:
             elif suffix == ".xlsx":
                 # read excel file input
                 # TODO not implemented yet, select columns etc or autodetect
-                spectrum_data = pd.read_excel(self.filepath)
+                spectrum_data = pd.read_excel(filepath)
 
             elif suffix == ".csv":
                 # read csv file input
                 # TODO not implemented yet, select columns etc or autodetect
-                spectrum_data = pd.read_excel(self.filepath)
+                spectrum_data = pd.read_excel(filepath)
 
         else:
             logger.warning(f"Filetype {suffix} not supported")
@@ -125,23 +145,35 @@ class SpectrumReader:
                 )
         return spectrum_data
 
-    def double_check_spectrum_values(self, spectrum_data):
-        if all([i in spectrum_data.columns for i in self.spectrum_data_keys]):
+    def double_check_spectrum_values(
+        self, spectrum_data: pd.DataFrame, expected_values: dict = {}
+    ):
+        if all([i in spectrum_data.columns for i in expected_values.keys()]):
             _len = len(spectrum_data)
-            if not np.isclose(_len, self.expected_length, rtol=0.1):
-                logger.warning(
-                    f"The length of this spectrum {_len} is not close to {self.expected_length}"
-                )
+            for _key, expectations in expected_values.items():
 
-            for key, minmax in self.expected_ranges.items():
-                _min_check = np.isclose(spectrum_data.min()[key], min(minmax), rtol=0.2)
-                _max_check = np.isclose(spectrum_data.max()[key], max(minmax), rtol=0.2)
+                if expectations:
+                    for exp_method, exp_value in expectations.items():
+                        _check = False
+                        if "len" in exp_method:
+                            _spectrum_value = _len
+                            _check = np.isclose(_spectrum_value, exp_value, rtol=0.1)
 
-                if not all((_min_check, _max_check)):
-                    logger.warning(
-                        f"The values for {key} are not in the expected range"
-                    )
-
+                        elif "min" in exp_method:
+                            _spectrum_value = spectrum_data[_key].min()
+                            _check = np.isclose(_spectrum_value, exp_value, rtol=0.2)
+                            if not _check:
+                                _check = exp_value >= _spectrum_value
+                        elif "max" in exp_method:
+                            _spectrum_value = spectrum_data[_key].max()
+                            _check = exp_value <= _spectrum_value
+                        else:
+                            # not implemented
+                            _check = True
+                        if not _check:
+                            logger.warning(
+                                f"The {exp_method} of this spectrum ({_spectrum_value }) does not match the expected values {exp_value}"
+                            )
         else:
             logger.error(
                 f"The dataframe does not have all the keys from {self.spectrum_data_keys}"

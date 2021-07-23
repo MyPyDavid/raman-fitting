@@ -1,0 +1,39 @@
+[flake8]
+# Rule definitions: http://flake8.pycqa.org/en/latest/user/error-codes.html
+# D203: 1 blank line required before class docstring
+# W503: line break before binary operator
+exclude =
+    venv*,
+    .venv,
+    __pycache__,
+    node_modules,
+    bower_components,
+    migrations,
+    .tox,
+    .eggs,
+    build,
+    dist
+
+extend-exclude=
+    *_Conflict.py
+    *_old.py
+
+
+ignore = D203,W503
+max-complexity = 9
+max-line-length = 140
+extend-ignore =
+    E115, E121, E123, E126, E128,
+    E202, E203, E125, E128,
+    E222, E226, E231, E241, E251, E262
+    E303, E306,
+    F523, E261, E265, E266,
+    E301, E302, E305,
+    F401, E402, F402, F403,
+    E501, F502, F524, F541,
+    F601, W605,
+    E712, E713, E722, E741
+    F811, F841,
+    C901
+
+per-file-ignores =
