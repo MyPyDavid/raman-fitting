@@ -15,7 +15,7 @@ from raman_fitting.config import filepath_settings, filepath_helper
 from raman_fitting.indexing.filename_parser import index_dtypes_collection
 from raman_fitting.indexing.filename_parser_collector import make_collection
 
-from raman_fitting.utils.sqlite_db import df_to_db_sqlalchemy
+# from raman_fitting.utils._dev_sqlite_db import df_to_db_sqlalchemy
 
 # from .. import __package_name__
 
