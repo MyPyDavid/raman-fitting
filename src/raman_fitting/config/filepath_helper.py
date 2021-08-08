@@ -50,11 +50,13 @@ def get_directory_paths_for_run_mode(run_mode: str = "", **kwargs):
         logger.warning(f"Run mode {run_mode} not recognized. Exiting...")
 
     INDEX_FILE = RESULTS_DIR / config.INDEX_FILE_NAME
+    DB_FILE = RESULTS_DIR / config.DB_FILE_NAME
 
     dest_dirs = {
         "RESULTS_DIR": Path(RESULTS_DIR),
         "DATASET_DIR": Path(DATASET_DIR),
         "INDEX_FILE": Path(INDEX_FILE),
+        "DB_FILE": Path(DB_FILE),
     }
 
     if kwargs:
@@ -83,25 +85,10 @@ def check_and_make_dirs(dest_dirs: dict = {}):
         if not RESULTS_DIR.is_dir():
             RESULTS_DIR.mkdir(exist_ok=True, parents=True)
             logger.info(
-                f'get_directory_paths_for_run_mode the results directory did not exist and was created at:\n"{RESULTS_DIR}"'
+                f"check_and_make_dirs the results directory did not exist and was created at:\n{RESULTS_DIR}\n"
             )
 
-    # def get_index_file_path(self, dest_dir = Path()):
     """ returns index file path """
-    # if RESULTS_DIR.exists():
-    #     INDEX_FILE = RESULTS_DIR /
-    #     # config.INDEX_FILE
-    #     logger.info(f'get_directory_paths_for_run_mode the index file will be saved as:\n"{INDEX_FILE}"')
-    #     # return INDEX_FILE
-    # else:
-    #     logger.warning(f'''get_directory_paths_for_run_mode the RESULTS_DIR destination dir does not exists.
-    #                    Please choose an existing Results dir and not:\n
-    #                    {RESULTS_DIR}
-    #                    ''')
-    #     INDEX_FILE = None
-
-    # dest_dirs = {'RESULTS_DIR': RESULTS_DIR, 'DATASET_DIR': DATASET_DIR, 'INDEX_FILE': INDEX_FILE}
-    # return dest_dirs
 
 
 def override_from_kwargs(_dict, **kwargs):
@@ -126,7 +113,7 @@ def create_dataset_dir(DATASET_DIR):
                        The datafiles directory
                        {DATASET_DIR}
                        does not exist yet,
-                       therefore {__name__} can not find any files.
+                       therefore {config.__package_name__} can not find any files.
                        The program will now try to create this folder.
                        """
         )
@@ -137,7 +124,7 @@ def create_dataset_dir(DATASET_DIR):
                         The datafiles directory does has now been created at:
                         {DATASET_DIR}
                         please place your raman datafiles in this folder
-                        and run {__name__} again in normal mode
+                        and run {config.__package_name__} again in normal mode
                         """
             )
             sys.exit()

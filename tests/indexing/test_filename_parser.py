@@ -7,7 +7,17 @@ from pathlib import Path
 # from raman_fitting.deconvolution_models import first_order_peaks
 import raman_fitting
 from raman_fitting.datafiles import example_files
-from raman_fitting.indexing.filename_parser import ParserMethods, PathParser
+from raman_fitting.indexing.filename_parser import PathParser
+from raman_fitting.indexing.filename_parser import (
+    _extra_sID_name_mapper,
+    _extra_overwrite_sID_from_mapper,
+)
+from raman_fitting.indexing.filename_parser import (
+    _extra_sgrpID_name_mapper,
+    _extra_overwrite_sgrpID_from_parts,
+)
+
+from raman_fitting.indexing.filename_parser_helpers import filestem_to_sid_and_pos
 
 # import pytest
 
@@ -55,30 +65,25 @@ class TestFilenameParser(unittest.TestCase):
 
     def test_PP_extra_from_map(self):
 
-        for k, val in self.empty_PP._extra_sID_name_mapper.items():
-            _mapval = self.empty_PP._extra_sID_overwrite_from_mapper_attr(k)
+        for k, val in _extra_sID_name_mapper.items():
+            _mapval = _extra_overwrite_sID_from_mapper(k)
+
             self.assertEqual(_mapval, val)
 
     def test_PP_extra_from_parts(self):
-        self.assertEqual(
-            "TEST", self.empty_PP._extra_sgrID_overwrite_from_parts("TEST")
-        )
+        self.assertEqual("TEST", _extra_overwrite_sgrpID_from_parts([], "TEST"))
 
-        for k, val in self.empty_PP._extra_sgrpID_name_mapper.items():
+        for k, val in _extra_sgrpID_name_mapper.items():
             emptymap_PP = PathParser(f"{k}/TEST.txt")
             self.assertEqual(
                 val,
-                emptymap_PP._extra_sgrID_overwrite_from_parts(
-                    "TEST", mapper=emptymap_PP._extra_sgrpID_name_mapper
-                ),
+                _extra_overwrite_sgrpID_from_parts(emptymap_PP.parts, "TEST"),
             )
 
     def test_PP_parse_filepath_to_sid_and_pos(self):
 
         for file, _expected in self.example_parse_expected.items():
-            self.assertEqual(
-                ParserMethods.parse_filestem_to_sid_and_pos(file), _expected
-            )
+            self.assertEqual(filestem_to_sid_and_pos(file), _expected)
 
     # def test_PathParser(self):
     #     _dfpath = Path(__file__).parent.parent.parent / 'src' / 'raman_fitting' / 'datafiles'

@@ -367,3 +367,4 @@ def process_sample_wrapper(fn, *args, **kwargs):
 
 def make_examples():
     _main_run = MainDelegator(run_mode="make_examples")
+    return _main_run

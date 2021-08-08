@@ -25,7 +25,6 @@ from raman_fitting.config import filepath_settings
 # TODO change version definitino
 # __version__ = version_file.read().strip()
 
-
 import logging
 import sys
 import warnings
