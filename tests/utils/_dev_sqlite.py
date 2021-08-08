@@ -212,12 +212,6 @@ def sqlalch():
     from sqlalchemy import inspect
     from sqlalchemy.engine.url import URL
 
-    db_url = {
-        "drivername": "postgres",
-        "username": "postgres",
-        "password": "postgres",  # pragma: allowlist secret
-        "host": "192.168.99.100",
-        "port": 5432,
-    }
+    db_url = {}  # eg. postgress login
 
     engine = create_engine(URL(**db_url))

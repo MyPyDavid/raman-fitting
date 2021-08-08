@@ -103,7 +103,7 @@ class PathParser(Path):
 
         """
 
-        _parent_suffix_hash = hashlib.md5(
+        _parent_suffix_hash = hashlib.sha512(
             (str(path.parent) + path.suffix).encode("utf-8")
         ).hexdigest()
         _filestem = path.stem
