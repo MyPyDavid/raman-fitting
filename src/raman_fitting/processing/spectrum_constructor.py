@@ -57,7 +57,6 @@ class SpectrumDataLoader:
         self._qcnm = self.__class__.__qualname__
 
         self.register = {}  # this stores the data of each method as they are performed
-
         self.filtered_intensity = None
         self._despike = None
         self._baseline_corrected = None
@@ -72,25 +71,37 @@ class SpectrumDataLoader:
         _spec = SpecTemplate(ramanshift, copy.deepcopy(intensity), label)
         self.register.update({label: _spec})
 
-    def __getattr__(self, value):
-
-        if value in self.run_kwargs.keys():
+    def __getattr__(self, attr):
+        """checks if attr is in instance dicts before raising error"""
+        if attr in self.run_kwargs.keys():
             # FIXME CARE getting attributes from kwargs
-            return self.run_kwargs.get(value, None)
+            return self.run_kwargs.get(attr, None)
+        elif attr in self.info.keys():
+            return self.info.get(attr, None)
         else:
-            # super().__getattr__(value)
-            raise AttributeError(f'Attribute "{value}" is not in class.')
+            raise AttributeError(
+                f'Attribute "{attr}" is not in {self.run_kwargs.keys()} or {self.info.keys()}.'
+            )
 
     def load_data_delegator(self):
         """calls the SpectrumReader class"""
 
-        self.info = {"FilePath": self.file}
+        if self.info:
+            FP_from_info = self.info.get("FilePath", None)
+            if FP_from_info:
+                if not Path(FP_from_info) == self.file:
+                    raise ValueError(
+                        f"Mismatch in value for FilePath:\{self.file} != {FP_from_info}"
+                    )
+        else:
+            self.info = {"FilePath": self.file}
 
         raw_spectrum = SpectrumReader(self.file)
-        print("======== ", raw_spectrum)
+        # print("======== ", raw_spectrum)
 
         self.register_spectrum(raw_spectrum.ramanshift, raw_spectrum.intensity, "raw")
         if raw_spectrum.spectrum_length > 0:
+            self.spectrum_length = raw_spectrum.spectrum_length
             self.spectrum_methods_delegator()
         else:
             logger.warning(f"{self._qcnm} load data fail for:\n\t {self.file}")
@@ -183,49 +194,68 @@ class SpectrumDataCollection:
     def __init__(self, spectra: List = [SpectrumDataLoader]):
         self._qcnm = self.__class__.__qualname__
         self._spectra = spectra
-        Validators.check_members(self._spectra)  # only raises warning
-        self._spectra = Validators.check_spectra_lengths(self._spectra)
-        self.prep_clean_data, self.info, self.info_df = self.get_merged_mean_info(
+        Validators.check_members(
             self._spectra
-        )
+        )  # only raises warning when errors are found
+        self.spectra = Validators.check_spectra_lengths(self._spectra)
+
+        self.info = self.get_mean_spectra_info(self.spectra)
+        self.info_df = pd.DataFrame(self.info, index=[0])
+        self.prep_clean_data = self.get_mean_spectra_prep_data(self.spectra)
+
         self.calc_mean()
 
     @staticmethod
-    def get_merged_mean_info(spectra):
-        info, _cdks = {}, {}  # spec info dict, clean data keys
-        _prep_data, _info_df_lst = {}, []
-        for spec in spectra:
+    def get_mean_spectra_info(spectra: List[SpectrumDataLoader]) -> Dict:
+        """retrieves the info dict from spec instances and merges dict in keys that have 1 common value"""
 
-            if hasattr(spec, "info"):
-                if not info:
-                    info = spec.info
-                else:
-                    info = {
-                        x: info[x]
-                        for x in info
-                        if x in spec.info and info[x] == spec.info[x]
-                    }
-                _info_df_lst.append(spec.info)
+        try:
+            _all_spec_info = [spec.info for spec in spectra if hasattr(spec, "info")]
 
-            if hasattr(spec, "clean_data"):
-                if not _cdks:
-                    _cdks = set(spec.clean_data.keys())
+            _all_spec_info_merged = {
+                k: val for i in _all_spec_info for k, val in i.items()
+            }
 
-                else:
-                    _cdks = {x for x in _cdks if x in set(spec.clean_data.keys())}
+            _all_spec_info_sets = [
+                (k, set([i.get(k, None) for i in _all_spec_info]))
+                for k in _all_spec_info_merged
+            ]
 
-                if not _prep_data:
-                    _prep_data = {
-                        key: [(spec.SamplePos, val)]
-                        for key, val in spec.clean_data.items()
-                    }
+            mean_spec_info = {
+                k: list(val)[0] for k, val in _all_spec_info_sets if len(val) == 1
+            }
+        except Exception as exc:
+            logger.warning(f"get_mean_spectra_info failed for spectra {spectra}")
+            mean_spec_info = {}
 
-                else:
-                    for key, val in spec.clean_data.items():
-                        _prep_data.get(key).append((spec.SamplePos, val))
+        mean_spec_info.update({"mean_spectrum": True})
 
-        info.update({"mean_spectrum": True})
-        return _prep_data, info, pd.DataFrame(_info_df_lst)
+        return mean_spec_info
+
+    @staticmethod
+    def get_mean_spectra_prep_data(spectra: List[SpectrumDataLoader]) -> Dict:
+        """retrieves the clean data from spec instances and makes lists of tuples"""
+        # and merges dict in keys that have 1 common value'''
+        try:
+            _all_spec = [
+                spec
+                for spec in spectra
+                if hasattr(spec, "clean_data") and hasattr(spec, "SamplePos")
+            ]
+
+            _all_spec_clean_data_keys = {
+                k for i in _all_spec for k in i.clean_data.keys()
+            }
+
+            clean_prep_data = {
+                k: [(i.SamplePos, i.clean_data.get(k, None)) for i in _all_spec]
+                for k in _all_spec_clean_data_keys
+            }
+        except Exception as exc:
+            logger.warning(f"get_mean_spectra_prep_data failed for spectra {spectra}")
+            clean_prep_data = {}
+
+        return clean_prep_data
 
     def calc_mean(self):
         """Core function of the merging of spectra of different sample positions"""
@@ -274,7 +304,6 @@ class Validators:
     @staticmethod
     def check_members(spectra: List[SpectrumDataLoader]):
         """checks member of lists"""
-        # TODO remove assert and implement RaiseSpectrum error
         _false_spectra = [
             spec
             for spec in spectra

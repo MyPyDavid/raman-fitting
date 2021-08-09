@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from raman_fitting.config import filepath_settings, filepath_helper
+from raman_fitting.config.filepath_helper import get_directory_paths_for_run_mode
 
 # parse_filepath_to_sid_and_pos
 from raman_fitting.indexing.filename_parser import index_dtypes_collection
@@ -22,6 +22,7 @@ from raman_fitting.indexing.filename_parser_collector import make_collection
 
 
 logger = logging.getLogger(__name__)
+logger.propagate = False
 
 __all__ = ["MakeRamanFilesIndex"]
 
@@ -50,7 +51,9 @@ class MakeRamanFilesIndex:
     # RESULTS_DIR = config.RESULTS_DIR,
     #              DATASET_DIR = config.DATASET_DIR,
     #              INDEX_FILE = config.INDEX_FILE,
-    def __init__(self, force_reload=True, run_mode="normal", dataset_dirs={}, **kwargs):
+    def __init__(
+        self, force_reload=True, run_mode="normal", dataset_dirs=None, **kwargs
+    ):
 
         self._cqnm = self.__class__.__qualname__
 
@@ -58,11 +61,14 @@ class MakeRamanFilesIndex:
         self.force_reload = force_reload
         self.run_mode = run_mode
 
+        if not dataset_dirs:
+            dataset_dirs = get_directory_paths_for_run_mode(run_mode=self.run_mode)
+
         self.dataset_dirs = dataset_dirs
         for k, val in self.dataset_dirs.items():
             if isinstance(val, Path):
-                if val.is_dir():
-                    setattr(self, k, val)
+                setattr(self, k, val)
+                # if val.is_dir() or val.is_file():
 
         self.raman_files = self.find_files(data_dir=self.DATASET_DIR)
         self.index = pd.DataFrame()
@@ -346,13 +352,12 @@ def main():
     """test run for indexer"""
     RamanIndex = None
     try:
-        RamanIndex = MakeRamanFilesIndex(read_data=True)
+        RamanIndex = MakeRamanFilesIndex(read_data=True, run_mode="make_examples")
+
     except Exception as e:
         logger.error(f"Raman Index error: {e}")
     return RamanIndex
 
-
-testdt = "yes"
 
 if __name__ == "__main__":
     # print(getattr(__file__, 'testdt'))
