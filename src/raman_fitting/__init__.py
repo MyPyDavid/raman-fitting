@@ -25,7 +25,6 @@ from raman_fitting.config import filepath_settings
 # TODO change version definitino
 # __version__ = version_file.read().strip()
 
-
 import logging
 import sys
 import warnings
@@ -35,7 +34,7 @@ logger = logging.getLogger(__package_name__)
 logger.setLevel(logging.DEBUG)
 # from raman_fitting.config import logging_config
 # logger.addHandler(logging_config.get_console_handler())
-# logger.propagate = False
+logger.propagate = False
 
 # create console handler
 ch = logging.StreamHandler(stream=sys.stdout)

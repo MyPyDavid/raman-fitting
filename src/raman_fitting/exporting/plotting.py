@@ -16,7 +16,7 @@ matplotlib.rcParams.update({"font.size": 14})
 #%%
 
 # TODO FIX PLOTTING PER PEAK MODEL
-def plotting_info(windowname):
+def plotting_info(windowname):  # pragma: no cover
     axes = {
         "full": (0, 0),
         "low": (0, 1),
@@ -28,7 +28,7 @@ def plotting_info(windowname):
     return axes.get(windowname)
 
 
-def raw_data_export(fitting_specs):
+def raw_data_export(fitting_specs):  # pragma: no cover
     current_sample = fitting_specs[0].windowname, fitting_specs[0].sIDmean_col
     try:
         raw_data_spectra_plot(fitting_specs)
@@ -40,7 +40,7 @@ def raw_data_export(fitting_specs):
         print("no extra Raw Data plots for {1} \n {0}".format(e, current_sample))
 
 
-def raw_data_spectra_plot(fitting_specs):
+def raw_data_spectra_plot(fitting_specs):  # pragma: no cover
     #    fitting_specs
     try:
         fig, ax = plt.subplots(2, 3, figsize=(18, 12))
@@ -115,7 +115,7 @@ def fit_spectrum_plot(
     res2_peak_spec,
     plot_Annotation=True,
     plot_Residuals=True,
-):
+):  # pragma: no cover
 
     #%%
     sID = res1_peak_spec.extrainfo["SampleID"]

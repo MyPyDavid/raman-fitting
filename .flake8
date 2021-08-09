@@ -17,6 +17,7 @@ exclude =
 extend-exclude=
     *_Conflict.py
     *_old.py
+    *_dev_*.py
 
 
 ignore = D203,W503

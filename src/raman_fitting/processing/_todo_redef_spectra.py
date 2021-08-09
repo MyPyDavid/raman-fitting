@@ -22,6 +22,7 @@ class Spectrum:
     """
 
     def __init__(self):
+        # TODO this class will be part of future implementation
         pass
 
     def check_data(self):

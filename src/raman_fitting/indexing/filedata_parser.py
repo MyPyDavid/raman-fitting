@@ -37,8 +37,8 @@ class SpectrumReader:
     }
     # expected_ranges = {"ramanshift": (-95, 3600)}
     # expected_length = 1600
-
     # using slots since there will be many instances of this class
+
     __slots__ = (
         *("filepath", "max_bytesize", "spectrum", "spectrum_hash", "spectrum_length"),
         *spectrum_keys_expected_values.keys(),
@@ -65,7 +65,7 @@ class SpectrumReader:
                     self.spectrum, expected_values=self.spectrum_keys_expected_values
                 )
         else:
-            logger.warn("File does not exist")
+            logger.warning("File does not exist")
 
         self.spectrum_hash = self.get_hash_text(self.spectrum)
         self.spectrum_length = len(self.spectrum)
@@ -103,7 +103,6 @@ class SpectrumReader:
                         f"Can not complete use_np_loadtxt for:\n{filepath}\n{exc}"
                     )
                     # data = self.read_text(self.filepath)
-
             elif suffix == ".xlsx":
                 # read excel file input
                 # TODO not implemented yet, select columns etc or autodetect

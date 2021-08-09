@@ -1,5 +1,6 @@
 """ Indexer for raman data files """
 import hashlib
+from typing import List
 
 # get_directory_paths_for_run_mode
 # from .index_selection import index_selection
@@ -9,15 +10,19 @@ from pathlib import Path
 
 import pandas as pd
 
-from raman_fitting.config import filepath_settings, filepath_helper
+from raman_fitting.config.filepath_helper import get_directory_paths_for_run_mode
 
 # parse_filepath_to_sid_and_pos
-from raman_fitting.indexing.filename_parser import PathParser
+from raman_fitting.indexing.filename_parser import index_dtypes_collection
+from raman_fitting.indexing.filename_parser_collector import make_collection
+
+# from raman_fitting.utils._dev_sqlite_db import df_to_db_sqlalchemy
 
 # from .. import __package_name__
 
 
 logger = logging.getLogger(__name__)
+logger.propagate = False
 
 __all__ = ["MakeRamanFilesIndex"]
 
@@ -41,11 +46,13 @@ class MakeRamanFilesIndex:
     # INDEX_FILE_NAME = 'index.csv'
     debug = False
 
+    table_name = "ramanfiles"
+
     # RESULTS_DIR = config.RESULTS_DIR,
     #              DATASET_DIR = config.DATASET_DIR,
     #              INDEX_FILE = config.INDEX_FILE,
     def __init__(
-        self, force_reload=True, run_mode="normal", extra_dataset_dirs=[], **kwargs
+        self, force_reload=True, run_mode="normal", dataset_dirs=None, **kwargs
     ):
 
         self._cqnm = self.__class__.__qualname__
@@ -53,17 +60,17 @@ class MakeRamanFilesIndex:
         self._kwargs = kwargs
         self.force_reload = force_reload
         self.run_mode = run_mode
-        self._extra_dataset_dirs = extra_dataset_dirs
 
-        self._dest_dirs = filepath_helper.get_directory_paths_for_run_mode(
-            run_mode, **kwargs
-        )
-        for k, val in self._dest_dirs.items():
-            setattr(self, k, val)
+        if not dataset_dirs:
+            dataset_dirs = get_directory_paths_for_run_mode(run_mode=self.run_mode)
 
-        # self.get_index_file_path(dest_dir = self.RESULTS_DIR)
+        self.dataset_dirs = dataset_dirs
+        for k, val in self.dataset_dirs.items():
+            if isinstance(val, Path):
+                setattr(self, k, val)
+                # if val.is_dir() or val.is_file():
+
         self.raman_files = self.find_files(data_dir=self.DATASET_DIR)
-        # self.choose_dirs()
         self.index = pd.DataFrame()
         self._error_parse_filenames = []
         if "normal" in run_mode and not self.debug and not self.force_reload:
@@ -74,13 +81,16 @@ class MakeRamanFilesIndex:
 
         self.index_selection = self.index_selection(self.index, **self._kwargs)
 
-    #        self.ExpOVV = self.ovv(self.ExpFiles)
-    #        self.ExpDB = FileHelper.FindExpFolder(exp_method).DestDir.joinpath('RAMAN_DB.hdf5')
-
-    def find_files(self, data_dir=Path()):
+    @staticmethod
+    def find_files(data_dir: Path = Path()) -> List:
         """
         Creates a list of all raman type files found in the DATASET_DIR which are used in the creation of the index.
         """
+
+        if not isinstance(data_dir, Path):
+            logger.warning(f"find_files warning: arg is not Path.")
+            return []
+
         raman_files_raw = []
         if data_dir.exists():
             RFs = data_dir.rglob("*txt")
@@ -91,64 +101,26 @@ class MakeRamanFilesIndex:
                     if not "fail" in i.stem and not "Labjournal" in str(i)
                 ]
                 logger.info(
-                    f"{self._cqnm} {len(raman_files_raw)} files were found in the chosen data dir:\n\t{data_dir}"
+                    f"find_files {len(raman_files_raw)} files were found in the chosen data dir:\n\t{data_dir}"
                 )
             else:
                 logger.warning(
-                    f"{self._cqnm} the chose data file dir was empty.\n{data_dir}\mPlease choose another directory which contains your data files."
+                    f"find_files warning: the chose data file dir was empty.\n{data_dir}\mPlease choose another directory which contains your data files."
                 )
         else:
             logger.warning(
-                f"{self._cqnm} the chosen data file dir does not exists.\n{data_dir}\nPlease choose an existing directory which contains your data files."
+                f"find_files warning: the chosen data file dir does not exists.\n{data_dir}\nPlease choose an existing directory which contains your data files."
             )
 
         return raman_files_raw
 
-    # def parse_filename(self,ramanfilepath):
-    #     ''' parses a filename into relevant parts for indexer. SampleID, SamplePosition and SampleGroup.'''
-    #     try:
-    #         _res = parse_filepath_to_sid_and_pos(ramanfilepath)
-    #     except Exception as e:
-    #         logger.warning(f'Error parse_filename for {ramanfilepath} \n{e}')
-    #         _res = ()
-    #         self._error_parse_filenames.append((ramanfilepath,e))
-    #     return _res
-
-    # @staticmethod
-    # def get_file_stats(ramanfilepath, col_names = ()):
-    #     ''' get status metadata from a file'''
-    #     fstat = ramanfilepath.stat()
-    #     ct, mt = pd.to_datetime(fstat.st_ctime,unit='s'), pd.to_datetime(fstat.st_mtime,unit='s')
-    #     ct_date, mt_date = ct.date(),mt.date()
-    #     filehash = hashlib.md5(ramanfilepath.read_text(encoding='utf-8').encode('utf-8')).hexdigest()
-    #     filestat_out = ct_date, ct, mt_date, mt, filehash
-    #     if len(col_names) == len(filestat_out):
-    #         filestat_out =  dict(zip(col_names, filestat_out))
-    #     return filestat_out
-
     def make_index(self):
         """loops over the files and scrapes the index data from each file"""
-        #    ridx = namedtuple('Raman_index_row', file_sample_cols+file_stat_cols)
         raman_files = self.raman_files
-        # breakpoint()
-        # self.find_files(data_dir=self.DATASET_DIR)
-        pp_collection = []
-        for file in raman_files:
-            try:
-                pp_res = PathParser(Path(file))
-                pp_collection.append(pp_res)
-            except Exception as e:
-                logger.warning(
-                    f"{self._cqnm} unexpected error for calling PathParser on\n{file}.\n{e}"
-                )
-                self._error_parse_filenames.append([file, e])
-            # _fname = self.parse_filename(file)
-            # _fstat = self.get_file_stats(file)
-        # RF_indexed = [(self.parse_filename(i)+self.get_file_stats(i)) for i in raman_files ]
+        pp_collection = make_collection(raman_files, **self._kwargs)
 
         index = pd.DataFrame([i.parse_result for i in pp_collection])
         index = self._extra_assign_destdir_and_set_paths(index)
-        # pd.DataFrame(RF_index,columns = self.index_file_sample_cols+self.index_file_stat_cols).drop_duplicates(subset=['FileHash'])
         logger.info(
             f"{self._cqnm} successfully made index {len(index)} from {len(raman_files)} files"
         )
@@ -171,7 +143,7 @@ class MakeRamanFilesIndex:
                 }
             )
         _path_dtypes_map = {
-            k: val for k, val in PathParser.index_dtypes.items() if "Path" in val
+            k: val for k, val in index_dtypes_collection.items() if "Path" in val
         }
         for k, val in _path_dtypes_map.items():
             if hasattr(index, k):
@@ -192,6 +164,8 @@ class MakeRamanFilesIndex:
 
             _dtypes = index.dtypes.to_frame("dtypes")
             _dtypes.to_csv(self._dtypes_filepath())
+
+            # self.save_merge_to_db(DB_filepath, index, self.table_name)
 
             logger.info(
                 f"{self._cqnm} Succesfully Exported Raman Index file to:\n\t{self.INDEX_FILE}\nwith len({len(index)})."
@@ -374,8 +348,17 @@ class MakeRamanFilesIndex:
         return len(self.index)
 
 
-if __name__ == "__main__":
+def main():
+    """test run for indexer"""
+    RamanIndex = None
     try:
-        RamanIndex = MakeRamanFilesIndex(run_mode="make_examples")
+        RamanIndex = MakeRamanFilesIndex(read_data=True, run_mode="make_examples")
+
     except Exception as e:
         logger.error(f"Raman Index error: {e}")
+    return RamanIndex
+
+
+if __name__ == "__main__":
+    # print(getattr(__file__, 'testdt'))
+    RamanIndex = main()

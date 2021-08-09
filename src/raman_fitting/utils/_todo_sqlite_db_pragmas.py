@@ -80,6 +80,22 @@ PRAGMA_MATERIAL_PROPERTY_TYPE = """
 PRAGMA_SPECTRA = """
     DROP TABLE IF EXISTS "spectra";
 
+    CREATE TABLE "spectra" (
+        `fp`              TEXT      NOT NULL PRIMARY KEY UNIQUE,
+        `sampleID`        TEXT      NOT NULL,
+        `position`        REAL      NOT NULL,
+        `adsorbate`       TEXT      NOT NULL,
+        `temperature`     REAL      NOT NULL,
+
+        FOREIGN KEY(`fp`)     REFERENCES `filepath`(`name`),
+        /*FOREIGN KEY(`material`)     REFERENCES `materials`(`name`),
+        FOREIGN KEY(`adsorbate`)    REFERENCES `adsorbates`(`name`)*/
+    );
+"""
+
+_dev_PRAGMA_SPECTRA = """
+    DROP TABLE IF EXISTS "index";
+
     CREATE TABLE "isotherms" (
         `id`              TEXT      NOT NULL PRIMARY KEY UNIQUE,
         `iso_type`        TEXT      NOT NULL,
@@ -92,6 +108,7 @@ PRAGMA_SPECTRA = """
         FOREIGN KEY(`adsorbate`)    REFERENCES `adsorbates`(`name`)
     );
 """
+
 
 # PRAGMA_ISOTHERM_TYPE = """
 #     DROP TABLE IF EXISTS "isotherm_type";
