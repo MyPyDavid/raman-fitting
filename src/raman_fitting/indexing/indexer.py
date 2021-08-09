@@ -1,5 +1,6 @@
 """ Indexer for raman data files """
 import hashlib
+from typing import List
 
 # get_directory_paths_for_run_mode
 # from .index_selection import index_selection
@@ -49,26 +50,21 @@ class MakeRamanFilesIndex:
     # RESULTS_DIR = config.RESULTS_DIR,
     #              DATASET_DIR = config.DATASET_DIR,
     #              INDEX_FILE = config.INDEX_FILE,
-    def __init__(
-        self, force_reload=True, run_mode="normal", extra_dataset_dirs=[], **kwargs
-    ):
+    def __init__(self, force_reload=True, run_mode="normal", dataset_dirs={}, **kwargs):
 
         self._cqnm = self.__class__.__qualname__
 
         self._kwargs = kwargs
         self.force_reload = force_reload
         self.run_mode = run_mode
-        self._extra_dataset_dirs = extra_dataset_dirs
 
-        self._dest_dirs = filepath_helper.get_directory_paths_for_run_mode(
-            run_mode, **kwargs
-        )
-        for k, val in self._dest_dirs.items():
-            setattr(self, k, val)
+        self.dataset_dirs = dataset_dirs
+        for k, val in self.dataset_dirs.items():
+            if isinstance(val, Path):
+                if val.is_dir():
+                    setattr(self, k, val)
 
-        # self.get_index_file_path(dest_dir = self.RESULTS_DIR)
         self.raman_files = self.find_files(data_dir=self.DATASET_DIR)
-        # self.choose_dirs()
         self.index = pd.DataFrame()
         self._error_parse_filenames = []
         if "normal" in run_mode and not self.debug and not self.force_reload:
@@ -79,13 +75,16 @@ class MakeRamanFilesIndex:
 
         self.index_selection = self.index_selection(self.index, **self._kwargs)
 
-    #        self.ExpOVV = self.ovv(self.ExpFiles)
-    #        self.ExpDB = FileHelper.FindExpFolder(exp_method).DestDir.joinpath('RAMAN_DB.hdf5')
-
-    def find_files(self, data_dir=Path()):
+    @staticmethod
+    def find_files(data_dir: Path = Path()) -> List:
         """
         Creates a list of all raman type files found in the DATASET_DIR which are used in the creation of the index.
         """
+
+        if not isinstance(data_dir, Path):
+            logger.warning(f"find_files warning: arg is not Path.")
+            return []
+
         raman_files_raw = []
         if data_dir.exists():
             RFs = data_dir.rglob("*txt")
@@ -96,30 +95,26 @@ class MakeRamanFilesIndex:
                     if not "fail" in i.stem and not "Labjournal" in str(i)
                 ]
                 logger.info(
-                    f"{self._cqnm} {len(raman_files_raw)} files were found in the chosen data dir:\n\t{data_dir}"
+                    f"find_files {len(raman_files_raw)} files were found in the chosen data dir:\n\t{data_dir}"
                 )
             else:
                 logger.warning(
-                    f"{self._cqnm} the chose data file dir was empty.\n{data_dir}\mPlease choose another directory which contains your data files."
+                    f"find_files warning: the chose data file dir was empty.\n{data_dir}\mPlease choose another directory which contains your data files."
                 )
         else:
             logger.warning(
-                f"{self._cqnm} the chosen data file dir does not exists.\n{data_dir}\nPlease choose an existing directory which contains your data files."
+                f"find_files warning: the chosen data file dir does not exists.\n{data_dir}\nPlease choose an existing directory which contains your data files."
             )
 
         return raman_files_raw
 
     def make_index(self):
         """loops over the files and scrapes the index data from each file"""
-        #    ridx = namedtuple('Raman_index_row', file_sample_cols+file_stat_cols)
         raman_files = self.raman_files
-        # breakpoint()
-        # self.find_files(data_dir=self.DATASET_DIR)
         pp_collection = make_collection(raman_files, **self._kwargs)
 
         index = pd.DataFrame([i.parse_result for i in pp_collection])
         index = self._extra_assign_destdir_and_set_paths(index)
-        # pd.DataFrame(RF_index,columns = self.index_file_sample_cols+self.index_file_stat_cols).drop_duplicates(subset=['FileHash'])
         logger.info(
             f"{self._cqnm} successfully made index {len(index)} from {len(raman_files)} files"
         )

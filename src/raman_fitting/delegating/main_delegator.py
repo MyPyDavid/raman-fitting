@@ -94,13 +94,13 @@ class MainDelegator:
     def index_delegator(self, **kwargs):
 
         RF_index = MakeRamanFilesIndex(
-            run_mode=self.run_mode,
-            RESULTS_DIR=self.RESULTS_DIR,
-            DATASET_DIR=self.DATASET_DIR,
-            INDEX_FILE=self.INDEX_FILE,
             **kwargs,
         )
-        logger.info(f"{self} index prepared with len {len(RF_index)}")
+        # run_mode=self.run_mode,
+        # RESULTS_DIR=self.RESULTS_DIR,
+        # DATASET_DIR=self.DATASET_DIR,
+        # INDEX_FILE=self.INDEX_FILE,
+        logger.info(f"index_delegator index prepared with len {len(RF_index)}")
         return RF_index
 
     def run_delegator(self, **kwargs):
@@ -110,7 +110,9 @@ class MainDelegator:
 
         # assert type(self.index) == type(pd.DataFrame())
         if self.run_mode in ("normal", "DEBUG", "make_index", "make_examples"):
-            RF_indexer = self.index_delegator(**kwargs)
+            RF_indexer = self.index_delegator(
+                run_mode=self.run_mode, dataset_dirs=self.dest_dirs, **kwargs
+            )
             self.index = RF_indexer.index_selection
 
             if self.index.empty:

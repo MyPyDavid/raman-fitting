@@ -1,6 +1,7 @@
 # from .logging_config import get_console_handler
 import logging
 import pathlib
+from sys import exit
 
 from raman_fitting import __package_name__
 
@@ -23,6 +24,30 @@ TESTS_DATASET_DIR = PACKAGE_ROOT / "datafiles" / "example_files"
 PACKAGE_HOME = (
     pathlib.Path.home() / f".{__package_name__}"
 )  # pyramdeconv is the new version package name
+
+
+try:
+    if not PACKAGE_HOME.is_dir():
+        try:
+            logger.warning(
+                f"Package home directory did not exist, will now be created at:\n{PACKAGE_HOME}\n--------------------"
+            )
+            PACKAGE_HOME.mkdir()
+        except Exception as exc:
+            logger.warning(
+                f"Package home mkdir unexpected error\n{exc}.\nFolder{PACKAGE_HOME} could not be created, exiting."
+            )
+            exit()
+    else:
+        logger.info(
+            f"Package home directory exists at:\n{PACKAGE_HOME}\n--------------------"
+        )
+except Exception as exc:
+    logger.warning(
+        f"Unexpected error with checking for package home folder:\nFolder:{PACKAGE_HOME}\nError:\n{exc}\n {__package_name__} can not run."
+    )
+    exit()
+
 
 TESTS_RESULTS_DIR = PACKAGE_HOME / "test_results"
 

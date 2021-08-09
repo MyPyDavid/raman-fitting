@@ -154,7 +154,7 @@ def db_Table():
 
 
 def main():
-    RamanIndex = MakeRamanFilesIndex(run_mode="make_examples", read_data=True)
+    RamanIndex = MakeRamanFilesIndex(run_mode="make_examples_index", read_data=True)
     expdb = export_to_db(RamanIndex)
 
 

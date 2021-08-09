@@ -180,64 +180,30 @@ class SpectrumDataCollection:
         "MeanSpectras", "windowname sID_rawcols sIDmean_col mean_info mean_spec"
     )
 
-    def __init__(self, spectra: List = []):
+    def __init__(self, spectra: List = [SpectrumDataLoader]):
         self._qcnm = self.__class__.__qualname__
         self._spectra = spectra
-        self._check_members()
-        self.test_spectra_lengths()
-        self.get_merged_mean_info()
+        Validators.check_members(self._spectra)  # only raises warning
+        self._spectra = Validators.check_spectra_lengths(self._spectra)
+        self.prep_clean_data, self.info, self.info_df = self.get_merged_mean_info(
+            self._spectra
+        )
         self.calc_mean()
 
-    def _check_members(self):
-        # TODO remove assert and implement RaiseSpectrum error
-        if not all(
-            type(spec).__name__ == "SpectrumDataLoader" for spec in self._spectra
-        ):
-            _false_spectra = [
-                spec
-                for spec in self._spectra
-                if not type(spec).__name__ == "SpectrumDataLoader"
-            ]
-
-            logger.warning(
-                f'{self._qcnm} not all spectra members are "SpectrumDataLoader"'
-            )
-
-        if not all(hasattr(spec, "clean_data") for spec in self._spectra):
-            logger.warning(
-                f"{self._qcnm} not all spectra members are have attribute clean_data"
-            )
-
-    def test_spectra_lengths(self):
-        lengths = [i.spectrum_length for i in self._spectra]
-        set_lengths = set(lengths)
-        if len(set_lengths) == 1:
-            #  print(f'Spectra all same length {set_lengths}')
-            pass
-        else:
-            length_counts = [(i, lengths.count(i)) for i in set_lengths]
-            best_guess_length = max(length_counts, key=itemgetter(1))[0]
-            print(f"Spectra not same length {length_counts} took {best_guess_length}")
-            self._raw_spectra = self._spectra
-            self._spectra = [
-                spec
-                for spec in self._spectra
-                if spec.spectrum_length == best_guess_length
-            ]
-
-    def get_merged_mean_info(self):
-        _d = {}  # spec info dict
-        _cdks = {}  # clean data keys
-        _prep_data = {}
-        _info_df_lst = []
-        for spec in self._spectra:
+    @staticmethod
+    def get_merged_mean_info(spectra):
+        info, _cdks = {}, {}  # spec info dict, clean data keys
+        _prep_data, _info_df_lst = {}, []
+        for spec in spectra:
 
             if hasattr(spec, "info"):
-                if not _d:
-                    _d = spec.info
+                if not info:
+                    info = spec.info
                 else:
-                    _d = {
-                        x: _d[x] for x in _d if x in spec.info and _d[x] == spec.info[x]
+                    info = {
+                        x: info[x]
+                        for x in info
+                        if x in spec.info and info[x] == spec.info[x]
                     }
                 _info_df_lst.append(spec.info)
 
@@ -258,18 +224,13 @@ class SpectrumDataCollection:
                     for key, val in spec.clean_data.items():
                         _prep_data.get(key).append((spec.SamplePos, val))
 
-        _d.update({"mean_spectrum": True})
-        self.prep_clean_data = _prep_data
-        self.info = _d
-        self.info_df = pd.DataFrame(_info_df_lst)
+        info.update({"mean_spectrum": True})
+        return _prep_data, info, pd.DataFrame(_info_df_lst)
 
     def calc_mean(self):
         """Core function of the merging of spectra of different sample positions"""
-        assert hasattr(self, "prep_clean_data")  # TODO remove
-
         _merged_window_specs = {}
         _speclst = []
-
         _posmean_lbl_base = f'int_{self.info.get("SampleID")}_mean'
         for wndwnm, data in self.prep_clean_data.items():
 
@@ -305,3 +266,38 @@ class SpectrumDataCollection:
 
     def __repr__(self):
         return f"{self.info}"
+
+
+class Validators:
+    """collection of validator for spectrum object"""
+
+    @staticmethod
+    def check_members(spectra: List[SpectrumDataLoader]):
+        """checks member of lists"""
+        # TODO remove assert and implement RaiseSpectrum error
+        _false_spectra = [
+            spec
+            for spec in spectra
+            if not type(spec) == SpectrumDataLoader or not hasattr(spec, "clean_data")
+        ]
+        if _false_spectra:
+            logger.warning(
+                f'_check_members not all spectra members are "SpectrumDataLoader" or missing clean_data attribute'
+            )
+
+    @staticmethod
+    def check_spectra_lengths(spectra: List[SpectrumDataLoader]) -> List:
+        lengths = [i.spectrum_length for i in spectra]
+        set_lengths = set(lengths)
+        if len(set_lengths) == 1:
+            #  print(f'Spectra all same length {set_lengths}')
+            pass
+        else:
+            length_counts = [(i, lengths.count(i)) for i in set_lengths]
+            best_guess_length = max(length_counts, key=itemgetter(1))[0]
+            print(f"Spectra not same length {length_counts} took {best_guess_length}")
+            # self._raw_spectra = self._spectra
+            spectra = [
+                spec for spec in spectra if spec.spectrum_length == best_guess_length
+            ]
+        return spectra

@@ -13,8 +13,6 @@ from .filename_parser_helpers import filestem_to_sid_and_pos, sID_to_sgrpID, get
 logger = logging.getLogger(__name__)
 
 #%%
-
-
 # _extra_sID_name = 'Si-ref'
 index_primary_key = "rfID"
 index_file_primary_keys = {f"{index_primary_key}": "string"}
