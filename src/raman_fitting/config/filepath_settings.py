@@ -59,7 +59,9 @@ RESULTS_DIR = PACKAGE_HOME / "results"
 LOCAL_CONFIG_FILE = PACKAGE_HOME / "local_config.py"
 
 # ADAPT to your own configurations
-if LOCAL_CONFIG_FILE.is_file():
+if 0:  # pragma: no cover
+    # TODO implement config file handling
+    # LOCAL_CONFIG_FILE.is_file():
     try:
         # PACKAGE_ROOT, MODEL_DIR are not locally configurated
         from .local_config import DATASET_DIR, RESULTS_DIR

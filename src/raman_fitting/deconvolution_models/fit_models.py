@@ -339,9 +339,8 @@ class PrepareParams:
         self.FitComponents = FittingComps
 
 
-def NormalizeFit(
-    norm_cleaner, plotprint=False
-):  # TODO optional add normalization seperately to Fitter
+def NormalizeFit(norm_cleaner, plotprint=False):  # pragma: no cover
+    # TODO optional add normalization seperately to Fitter
     x, y = norm_cleaner.spec.ramanshift, norm_cleaner.blcorr_desp_intensity
     Model = InitializeModels("2peaks normalization Lorentzian")
     params = Model.make_params()

@@ -154,11 +154,13 @@ class BaselineSubtractorNormalizer(SpectrumSplitter):
                 self.blcorr_data["normalization"].intensity
             )
 
-        elif norm_method == "fit":
-            normalization = NormalizeFit(
-                self.blcorr_data["1st_order"], plotprint=False
-            )  # TODO still implement this NormalizeFit
-            normalization_intensity = normalization["IG"]
+        if 0:
+            # TODO not implemented
+            if norm_method == "fit":
+                normalization = NormalizeFit(
+                    self.blcorr_data["1st_order"], plotprint=False
+                )  # TODO still implement this NormalizeFit
+                normalization_intensity = normalization["IG"]
 
         self.norm_factor = 1 / normalization_intensity
         norm_dict = {

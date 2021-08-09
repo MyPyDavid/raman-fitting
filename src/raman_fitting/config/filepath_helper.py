@@ -100,7 +100,7 @@ def override_from_kwargs(_dict, **kwargs):
         return _dict
 
 
-def create_dataset_dir(DATASET_DIR):
+def create_dataset_dir(DATASET_DIR):  # pragma: no cover
     if not DATASET_DIR.is_dir():
         logger.warning(
             f"The datafiles directory does not exist yet, the program will now try to create this folder.\n{DATASET_DIR}"
