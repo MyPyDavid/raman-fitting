@@ -3,6 +3,10 @@
 [![codecov](https://codecov.io/gh/MyPyDavid/raman-fitting/branch/main/graph/badge.svg?token=II9JZAODJY)](https://codecov.io/gh/MyPyDavid/raman-fitting)
 [![Test & Upload to TestPyPI](https://github.com/MyPyDavid/raman-fitting/actions/workflows/upload-to-testpypi.yml/badge.svg)](https://github.com/MyPyDavid/raman-fitting/actions/workflows/upload-to-testpypi.yml)
 
+<p align="center" width="100%">
+  <img src="https://user-images.githubusercontent.com/13996213/140090631-ed7c9f51-7630-49b6-9081-fb0675a5a4c9.png" alt="raman_cover_img"  width="200px" height="100px"/>
+</p> 
+
 
 # raman-fitting
  A Python framework that performs a deconvolution on typical parts of interest on the spectrum of carbonaceous materials.
