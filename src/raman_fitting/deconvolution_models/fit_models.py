@@ -108,6 +108,7 @@ class Fitter:
                 logger.warning(
                     f"{self._qcnm} fit_model failed for {modname}: {model}, because:\n {e}"
                 )
+            
         self.FitResults.update(**_fittings)
 
     def run_fit(self, model, _data, method="leastsq", **kws):
@@ -204,11 +205,16 @@ class PrepareParams:
         if hasattr(value, "_modelname"):
             _mod_lbl = f'Model_{getattr(value,"_modelname")}'
         self.model_name_lbl = _mod_lbl
+        
+        # TODO remove
+        # from pprint import pprint
+        # print('=====  /n',value._int_lbl,'/n')
 
-        self.raw_data_lbl = value.data.name
+        self.raw_data_lbl = value._int_lbl
 
         self._model_result = value
-
+        
+        # TODO rewrite class and attirbuter setter
         self.make_result()
 
     def make_result(self):
@@ -328,11 +334,18 @@ class PrepareParams:
         # FittingParams = pd.DataFrame(fit_params_od,index=[peak_model])
         _fit_comps_data = OrderedDict({"RamanShift": self.model_result.userkws["x"]})
         _fit_comps_data.update(self.model_result.eval_components())
+        
+        # TODO take out
+        # print('===/n',self.model_result, '/n')
+        # print('===/n',self.model_result.__dict__.keys(), '/n')
+        
+        
         _fit_comps_data.update(
             {
                 self.model_name_lbl: self.model_result.best_fit,
                 "residuals": self.model_result.residual,
-                self.model_result.data.name: self.model_result.data,
+                # TODO check attributes of model_result
+                self.model_result._int_lbl: self.model_result.data,
             }
         )
         FittingComps = pd.DataFrame(_fit_comps_data)
