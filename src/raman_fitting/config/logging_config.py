@@ -11,6 +11,22 @@ FORMATTER = logging.Formatter(
 )
 
 
+
+log_format = (
+    "[%(asctime)s] — %(name)s — %(levelname)s —" "%(funcName)s:%(lineno)d—12s %(message)s")
+    # '[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s')
+
+# Define basic configuration
+logging.basicConfig(
+    # Define logging level
+    level=logging.DEBUG,
+    # Define the format of log messages
+    format=log_format,
+    # Provide the filename to store the log messages
+    filename=('debug.log'),
+)
+
+
 def get_console_handler():
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(FORMATTER)

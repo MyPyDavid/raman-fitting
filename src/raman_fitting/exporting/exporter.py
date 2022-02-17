@@ -25,11 +25,11 @@ class Exporter:
             self.delegator(arg)
         except ExporterError:
             logger.warning(
-                "f{self.__class__.__qualname__} failed export from {type(arg)}"
+                f"{self.__class__.__qualname__} failed export from {type(arg)}"
             )
         except Exception as e:
             logger.error(
-                "f{self.__class__.__qualname__} failed export with unexpected error {e}"
+                f"{self.__class__.__qualname__} failed export with unexpected error {e}"
             )
 
     # Exporting and Plotting

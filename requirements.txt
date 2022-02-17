@@ -8,3 +8,5 @@ lmfit >= 1.0.0
 matplotlib >= 3.1.2
 numpy >= 1.19.2 
 openpyxl >= 3.0.1 
+
+attr

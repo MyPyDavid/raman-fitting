@@ -19,6 +19,7 @@ except:
 
 
 from raman_fitting.config import filepath_settings
+from raman_fitting.config import logging_config
 
 # VERSION_PATH = config.PACKAGE_ROOT / 'VERSION.txt'
 # with open(VERSION_PATH, 'r') as version_file:
@@ -31,14 +32,31 @@ import warnings
 
 # Configure logger for use in package
 logger = logging.getLogger(__package_name__)
-logger.setLevel(logging.DEBUG)
+
+log_format = (
+    "[%(asctime)s] — %(name)s — %(levelname)s —" "%(funcName)s:%(lineno)d—12s %(message)s")
+    # '[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s')
+
+# Define basic configuration
+logging.basicConfig(
+    # Define logging level
+    level=logging.DEBUG,
+    # Define the format of log messages
+    format=log_format,
+    # Provide the filename to store the log messages
+    filename=('debug.log'),
+)
+
+formatter = logging.Formatter(log_format)
+# logger.setLevel(logging.DEBUG)
 # from raman_fitting.config import logging_config
 # logger.addHandler(logging_config.get_console_handler())
-logger.propagate = False
+# logger.propagate = False
 
 # create console handler
 ch = logging.StreamHandler(stream=sys.stdout)
 ch.setLevel(logging.INFO)
+ch.setFormatter(formatter)
 
 # add the handlers to the logger
 logger.addHandler(ch)

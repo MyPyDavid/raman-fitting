@@ -1,5 +1,4 @@
 """ Default peaks used for 1st order deconvolution"""
-import attr
 
 if __name__ == "__main__":
     from raman_fitting.deconvolution_models.default_peaks.base_peak import BasePeak
