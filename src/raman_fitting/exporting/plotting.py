@@ -117,6 +117,7 @@ def fit_spectrum_plot(
     plot_Residuals=True,
 ):  # pragma: no cover
 
+    modname_2 = peak2
     #%%
     sID = res1_peak_spec.extrainfo["SampleID"]
     SampleBgmean_col = res1_peak_spec.raw_data_col
@@ -178,14 +179,15 @@ def fit_spectrum_plot(
         c="grey",
         alpha=0.5,
     )
-    ax2ndRes.plot(
-        FitData_2nd["RamanShift"],
-        FitData_2nd[res2_peak_spec.raw_data_col] - FitData_2nd[Model_data_col_2nd],
-        label="Residual",
-        lw=3,
-        c="k",
-        alpha=0.8,
-    )
+    if plot_Residuals:
+        ax2ndRes.plot(
+            FitData_2nd["RamanShift"],
+            FitData_2nd[res2_peak_spec.raw_data_col] - FitData_2nd[Model_data_col_2nd],
+            label="Residual",
+            lw=3,
+            c="k",
+            alpha=0.8,
+        )
 
     for fit_comp_col_2nd in compscols_2nd:  # automatic color cycle 'cyan' ...
         ax2nd.plot(
@@ -227,14 +229,16 @@ def fit_spectrum_plot(
         c="grey",
         alpha=0.8,
     )
-    axRes.plot(
-        FitData_1st["RamanShift"],
-        FitData_1st[res1_peak_spec.raw_data_col] - FitData_1st[Model_data_col_1st],
-        label="Residual",
-        lw=3,
-        c="k",
-        alpha=0.8,
-    )
+    
+    if plot_Residuals:
+        axRes.plot(
+            FitData_1st["RamanShift"],
+            FitData_1st[res1_peak_spec.raw_data_col] - FitData_1st[Model_data_col_1st],
+            label="Residual",
+            lw=3,
+            c="k",
+            alpha=0.8,
+        )
 
     for fit_comp_col_1st in compscols_1st:  # automatic color cycle 'cyan' ...
         ax.plot(

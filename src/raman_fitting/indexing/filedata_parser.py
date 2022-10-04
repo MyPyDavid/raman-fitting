@@ -10,10 +10,7 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
-# from pandas.core.base import DataError
-# from pandas.core.frame import DataFrame
 
-# from .. import __package_name__
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +118,7 @@ class SpectrumReader:
     def use_np_loadtxt(self, filepath, usecols=(0, 1), **kwargs):
 
         try:
-            loaded_array = np.loadtxt(filepath, usecols=(0, 1), **kwargs)
+            loaded_array = np.loadtxt(filepath, usecols=usecols, **kwargs)
         except IndexError:
             logger.debug(f"IndexError called np genfromtxt for {filepath}")
             loaded_array = np.genfromtxt(filepath, invalid_raise=False)

@@ -89,7 +89,7 @@ class SpectrumDataLoader:
         if self.info:
             FP_from_info = self.info.get("FilePath", None)
             if FP_from_info:
-                if not Path(FP_from_info) == self.file:
+                if Path(FP_from_info) != self.file:
                     raise ValueError(
                         f"Mismatch in value for FilePath:\{self.file} != {FP_from_info}"
                     )
@@ -307,7 +307,7 @@ class Validators:
         _false_spectra = [
             spec
             for spec in spectra
-            if not type(spec) == SpectrumDataLoader or not hasattr(spec, "clean_data")
+            if type(spec) != SpectrumDataLoader or not hasattr(spec, "clean_data")
         ]
         if _false_spectra:
             logger.warning(

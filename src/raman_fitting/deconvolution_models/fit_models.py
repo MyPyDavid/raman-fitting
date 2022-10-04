@@ -131,7 +131,7 @@ class Fitter:
     def get_int_label(self, value):
         _lbl = ""
         if isinstance(value, pd.DataFrame):
-            cols = [i for i in value.columns if not "ramanshift" in i]
+            cols = [i for i in value.columns if "ramanshift" not in i]
             if len(cols) == 0:
                 _lbl = ""
             if len(cols) == 1:

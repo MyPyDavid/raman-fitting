@@ -247,20 +247,6 @@ class MainDelegator:
             self._failed_samples.append((e, sID_args, kwargs))
         return exporter_sample
 
-    def _process_sample_wrapper(self, fn, *args, **kwargs):
-        logger.warning(
-            f"{self._cqnm} process_sample_wrapper args:\n\t - {fn}\n\t - {args}\n\t - {kwargs.keys()}"
-        )
-        exp_sample = None
-        try:
-            exp_sample = fn(self, *args, **kwargs)
-            self.export_collect.append(exp_sample)
-        except Exception as e:
-            logger.warning(
-                f"{self._cqnm} process_sample_wrapper exception on call {fn}: {e}"
-            )
-            self._failed_samples.append((e, args, kwargs))
-
     def test_positions(
         self, sGrp_grp, sIDnm, grp_cols=["FileStem", "SamplePos", "FilePath"]
     ):
