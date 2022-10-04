@@ -186,7 +186,10 @@ class MainDelegator:
         sgrp_grpby = self.index.groupby(self.spectrum.grp_names.sGrp_cols[0])
         logger.info(f"{self._cqnm} _run_gen starting: {kwargs}")
         _mygen = self._generator(sgrp_grpby, **kwargs)
-        Exporter(self.export_collect)  # clean up and export
+        Exporter(self.export_collect)  # clean up and 
+        logger.info(
+                    f"\n{self._cqnm} run finished.\n Results saved in {self.RESULTS_DIR}"
+                )
 
     def _generator(self, sgrp_grpby, **kwargs):
         # _sgrpgen = self.sample_group_gen()

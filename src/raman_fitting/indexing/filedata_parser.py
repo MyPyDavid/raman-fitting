@@ -10,8 +10,8 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
-from pandas.core.base import DataError
-from pandas.core.frame import DataFrame
+# from pandas.core.base import DataError
+# from pandas.core.frame import DataFrame
 
 # from .. import __package_name__
 

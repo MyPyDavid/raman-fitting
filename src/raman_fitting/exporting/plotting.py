@@ -324,7 +324,7 @@ def fit_spectrum_plot(
     plt.savefig(
         res1_peak_spec.extrainfo["DestFittingModel"].with_suffix(".png"),
         dpi=100,
-        box_extra_artists=(Report1, Report2),
+        bbox_extra_artists=(Report1, Report2),
         bbox_inches="tight",
     )
     plt.close()
