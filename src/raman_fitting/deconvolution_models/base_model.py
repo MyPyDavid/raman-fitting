@@ -111,7 +111,7 @@ class BaseModel:
     _SEP = "+"
     _SUFFIX = "_"
 
-    # TODO change include substrate to  has substrate and remove from init
+    # IDEA change include substrate to  has substrate and remove from init
     def __init__(
         self,
         model_name: str = "",
@@ -220,14 +220,14 @@ class BaseModel:
 
     def validate_model_name_input(self, value):
         """checks if given input name is valid"""
-        if not type(value) == str:
+        if type(value) != str:
             raise TypeError(
                 f'Given name "{value}" for model_name should be a string insteady of type({type(value).__name__})'
             )
         elif not value:
             warn(f'\n\tThis name "{value}" is an empty string', BaseModelWarning)
             return value
-        elif not "+" in value:
+        elif "+" not in value:
             warn(
                 f'\n\tThis name "{value}" does not contain the separator "+". (could be just 1 Peak)',
                 BaseModelWarning,

@@ -57,7 +57,7 @@ class MainDelegatorError(prdError):
 
 
 class MainDelegator:
-    # TODO Add flexible input handling for the cli, such a path to dir, or list of files
+    # IDEA Add flexible input handling for the cli, such a path to dir, or list of files
     #  or create index when no kwargs are given.
     """
     Main delegator for the processing of files containing Raman spectra.
@@ -104,7 +104,7 @@ class MainDelegator:
         return RF_index
 
     def run_delegator(self, **kwargs):
-        # TODO remove self.set_models() removed InitModels
+        # IDEA remove self.set_models() removed InitModels
         self._failed_samples = []
         self.export_collect = []
 
@@ -126,7 +126,7 @@ class MainDelegator:
 
             models = self.initialize_default_models()
             self.kwargs.update({"models": models})
-            # TODO built in a model selection keyword, here or at fitting level and for the cli
+            # IDEA built in a model selection keyword, here or at fitting level and for the cli
             logger.info(
                 f"\n{self._cqnm} models initialized for run mode ({self.run_mode}):\n\n{repr(models)}"
             )
@@ -144,7 +144,7 @@ class MainDelegator:
                 logger.debug(f"Debug run mode {self}. Models initialized {models}")
 
                 try:
-                    # self._run_gen() # TODO add extra test runs in tests dir
+                    # self._run_gen() # IDEA add extra test runs in tests dir
                     pass
                 except Exception as e:
                     raise MainDelegatorError(
@@ -153,7 +153,7 @@ class MainDelegator:
                 # raise('Error in DEBUG run: ', e)
             else:
                 logger.warning(f"Debug run mode {self.run_mode} not recognized")
-            # TODO get testing from index and run
+            # IDEA get testing from index and run
         else:
             logger.warning(f'Debug run mode "{self.run_mode}" not recognized not in ')
             # warning run mode not recognized
@@ -182,11 +182,14 @@ class MainDelegator:
             yield (grpnm, nm, sID_grp)
 
     def _run_gen(self, **kwargs):
-        # #TODO sort of coordinator coroutine, can implement still deque
+        # #IDEA sort of coordinator coroutine, can implement still deque
         sgrp_grpby = self.index.groupby(self.spectrum.grp_names.sGrp_cols[0])
         logger.info(f"{self._cqnm} _run_gen starting: {kwargs}")
         _mygen = self._generator(sgrp_grpby, **kwargs)
-        Exporter(self.export_collect)  # clean up and export
+        Exporter(self.export_collect)  # clean up and 
+        logger.info(
+                    f"\n{self._cqnm} run finished.\n Results saved in {self.RESULTS_DIR}"
+                )
 
     def _generator(self, sgrp_grpby, **kwargs):
         # _sgrpgen = self.sample_group_gen()
@@ -243,20 +246,6 @@ class MainDelegator:
             )
             self._failed_samples.append((e, sID_args, kwargs))
         return exporter_sample
-
-    def _process_sample_wrapper(self, fn, *args, **kwargs):
-        logger.warning(
-            f"{self._cqnm} process_sample_wrapper args:\n\t - {fn}\n\t - {args}\n\t - {kwargs.keys()}"
-        )
-        exp_sample = None
-        try:
-            exp_sample = fn(self, *args, **kwargs)
-            self.export_collect.append(exp_sample)
-        except Exception as e:
-            logger.warning(
-                f"{self._cqnm} process_sample_wrapper exception on call {fn}: {e}"
-            )
-            self._failed_samples.append((e, args, kwargs))
 
     def test_positions(
         self, sGrp_grp, sIDnm, grp_cols=["FileStem", "SamplePos", "FilePath"]

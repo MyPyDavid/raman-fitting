@@ -10,10 +10,7 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
-from pandas.core.base import DataError
-from pandas.core.frame import DataFrame
 
-# from .. import __package_name__
 
 logger = logging.getLogger(__name__)
 
@@ -105,12 +102,12 @@ class SpectrumReader:
                     # data = self.read_text(self.filepath)
             elif suffix == ".xlsx":
                 # read excel file input
-                # TODO not implemented yet, select columns etc or autodetect
+                # IDEA not implemented yet, select columns etc or autodetect
                 spectrum_data = pd.read_excel(filepath)
 
             elif suffix == ".csv":
                 # read csv file input
-                # TODO not implemented yet, select columns etc or autodetect
+                # IDEA not implemented yet, select columns etc or autodetect
                 spectrum_data = pd.read_excel(filepath)
 
         else:
@@ -121,7 +118,7 @@ class SpectrumReader:
     def use_np_loadtxt(self, filepath, usecols=(0, 1), **kwargs):
 
         try:
-            loaded_array = np.loadtxt(filepath, usecols=(0, 1), **kwargs)
+            loaded_array = np.loadtxt(filepath, usecols=usecols, **kwargs)
         except IndexError:
             logger.debug(f"IndexError called np genfromtxt for {filepath}")
             loaded_array = np.genfromtxt(filepath, invalid_raise=False)
@@ -188,7 +185,7 @@ class SpectrumReader:
                 _text = filepath.read_text(encoding=encoding, errors=errors)
                 # _text.splitlines()
             except Exception as exc:
-                # TODO specify which Exceptions are expected
+                # IDEA specify which Exceptions are expected
                 _text += "\nread_error"
                 logger.warning(f"file read text error => skipped.\n{exc}")
         else:
@@ -201,7 +198,7 @@ class SpectrumReader:
         """old method taken out from SpectrumConstructor"""
         # on_lbl="raw"
         # assert self.file.exists(), f'File: "{self.file}" does not exist.'
-        # TODO import file reader class here
+        # IDEA import file reader class here
         ramanshift, intensity = np.array([]), np.array([])
         i = 0
         while not ramanshift.any() and i < 2000:

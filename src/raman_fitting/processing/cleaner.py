@@ -155,11 +155,11 @@ class BaselineSubtractorNormalizer(SpectrumSplitter):
             )
 
         if 0:
-            # TODO not implemented
+            # IDEA not implemented
             if norm_method == "fit":
                 normalization = NormalizeFit(
                     self.blcorr_data["1st_order"], plotprint=False
-                )  # TODO still implement this NormalizeFit
+                )  # IDEA still implement this NormalizeFit
                 normalization_intensity = normalization["IG"]
 
         self.norm_factor = 1 / normalization_intensity
@@ -184,7 +184,7 @@ class BaselineSubtractorNormalizer(SpectrumSplitter):
 
 
 def NormalizeFit(spec, plotprint=False):
-    pass  # TODO placeholder
+    pass  # IDEA placeholder
 
 
 def array_nan_checker(array):

@@ -23,7 +23,7 @@ from raman_fitting.config import logging_config
 
 # VERSION_PATH = config.PACKAGE_ROOT / 'VERSION.txt'
 # with open(VERSION_PATH, 'r') as version_file:
-# TODO change version definitino
+# IDEA change version definitino
 # __version__ = version_file.read().strip()
 
 import logging
@@ -93,15 +93,3 @@ del hard_dependencies, soft_dependencies, dependency, missing_dependencies
 # Other user-facing functions
 from .api import *
 
-# TODO list:
-# added setup.cfg
-# added unittests
-# added README.md
-# add project.toml only for
-# improved logger, each module needs a getlogger(name)
-# TODO future daemonize the fitting process for using the package and dropping files in the datafiles folder
-# TODO add docs with Sphinx, readthedocs
-# TODO improve AsyncIO into main delegator processes
-# TODO fix plotting because of DeprecationWarning in savefig
-# TODO add database for spectrum data storage
-# TODO future GUI webinterface

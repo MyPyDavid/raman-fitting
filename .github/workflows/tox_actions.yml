@@ -27,7 +27,7 @@ jobs:
           - python-version: 3.9
             toxenv: "py39-cover,report" #,codecov"
         exclude:
-          # TODO py39 on windows has errors so we exclude it for now
+          # IDEA py39 on windows has errors so we exclude it for now
           - os: windows-latest
             python-version: 3.9
 

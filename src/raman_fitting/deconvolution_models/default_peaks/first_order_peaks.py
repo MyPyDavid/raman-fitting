@@ -139,5 +139,5 @@ class Si1_peak(metaclass=BasePeak):
 
 def test_for_Si_substrate(
     model,
-):  # TODO test fit on spectrum to decide wether Si substrate is required or not
+):  # IDEA test fit on spectrum to decide wether Si substrate is required or not
     """make test fit for only slice 900-1000"""
