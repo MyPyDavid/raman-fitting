@@ -117,7 +117,7 @@ please place your raman datafiles in this folder and run {config.__package_name_
 """
             )
             sys.exit()
-            # TODO build in daemon version with folder watcher....
+            # IDEA build in daemon version with folder watcher....
         except Exception as exc:
             logger.warning(
                 f"""The datafiles directory could not be created at:

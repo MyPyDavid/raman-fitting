@@ -49,7 +49,7 @@ repos:
         name: nbqa-black - consistent Python code formatting (notebooks; auto-fixes)
         args: [ --nbqa-mutate ]
         additional_dependencies: [ black==21.5b2 ]
-      # TODO: Disabled for now until it's clear how to add noqa to specific cells of a Jupyter notebook
+      # IDEA: Disabled for now until it's clear how to add noqa to specific cells of a Jupyter notebook
       #- id: nbqa-flake8
       #  name: nbqa-flake8 - Python linting (notebooks)
       #  additional_dependencies: [ flake8==3.9.2 ]

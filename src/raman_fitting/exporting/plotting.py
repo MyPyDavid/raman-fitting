@@ -15,7 +15,7 @@ matplotlib.rcParams.update({"font.size": 14})
 
 #%%
 
-# TODO FIX PLOTTING PER PEAK MODEL
+# IDEA PLOTTING PER PEAK MODEL
 def plotting_info(windowname):  # pragma: no cover
     axes = {
         "full": (0, 0),

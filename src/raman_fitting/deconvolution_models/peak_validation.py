@@ -342,7 +342,7 @@ class PeakModelValidator:
         # raise AttributeError(f'Chosen name "{name}" not in in options: "{", ".join(self.options)}".')
 
     def normalization_model(self):
-        pass  # TODO separate peaks in groups
+        pass  # IDEA separate peaks in groups
 
     def __iter__(self):
         for mod_inst in self.lmfit_models:

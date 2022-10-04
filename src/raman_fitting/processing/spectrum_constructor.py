@@ -39,7 +39,7 @@ class SpectrumDataLoader:
     The steps/methods are: smoothening filter, despiking and baseline correction.
     """
 
-    # TODO Fix this class, simplify
+    # IDEA Fix this class, simplify
 
     _fields = ("ramanshift", "intensity")
     # _spectrum_grp_cols = ['PAR_file','Segment #',EvRHE, 'RPM_DAC']
@@ -49,7 +49,7 @@ class SpectrumDataLoader:
     # intensity: np.array = field(default=np.array([]), init=False)
     spectrum_length: int = field(default=0, init=False)
     info: Dict = field(default_factory=dict, repr=False)
-    ovv: type(pd.DataFrame) = field(default=pd.DataFrame(), repr=False)
+    ovv: pd.DataFrame = field(default=pd.DataFrame(), repr=False)
     run_kwargs: Dict = field(default_factory=dict, repr=False)
 
     def __post_init__(self):
@@ -123,7 +123,7 @@ class SpectrumDataLoader:
 
     def despike(self, on_lbl="filtered", out_lbl="despiked"):
         _r, _int, _lbl = self.register.get(on_lbl)
-        _despike = Despiker(_int)  # TODO check for nan in array
+        _despike = Despiker(_int)  # IDEA check for nan in array
         self._despike = _despike
         self.register_spectrum(_r, _despike.despiked_intensity, out_lbl)
 

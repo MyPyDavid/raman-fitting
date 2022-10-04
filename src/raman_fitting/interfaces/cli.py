@@ -76,7 +76,7 @@ def main():
         # RL = RamanLoop(_org_index, run_mode ='normal')
     elif args.run_mode.upper() == "DEBUG":
         args.run_mode = args.run_mode.upper()
-        # TODO Add a FAST TRACK for DEBUG
+        # IDEA Add a FAST TRACK for DEBUG
     elif args.run_mode == "testing":
         pass
 

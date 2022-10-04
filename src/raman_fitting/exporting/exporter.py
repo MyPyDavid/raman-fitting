@@ -135,7 +135,7 @@ class Exporter:
             # res_peak_spec.extrainfo.to_excel(peak_destpath_extra.with_suffix('.xlsx'), index=False)
         except Exception as e:
             print("Error export_xls_from_spec", e)
-        # TODO define fuction for exporting all the indexes _all_index_export
+        # IDEA define fuction for exporting all the indexes _all_index_export
         # index = RamanExport().export_FitParams_Grp(FitParams1, FitParams2, export_info_out, grpnm,sID)
         # all_index.append(index)
         # pars_index = pd.DataFrame(*all_index,columns=list(GrpNames.sGrp_cols[0:2] +('PeakModel','DestPars')))

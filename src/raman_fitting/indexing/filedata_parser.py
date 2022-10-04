@@ -105,12 +105,12 @@ class SpectrumReader:
                     # data = self.read_text(self.filepath)
             elif suffix == ".xlsx":
                 # read excel file input
-                # TODO not implemented yet, select columns etc or autodetect
+                # IDEA not implemented yet, select columns etc or autodetect
                 spectrum_data = pd.read_excel(filepath)
 
             elif suffix == ".csv":
                 # read csv file input
-                # TODO not implemented yet, select columns etc or autodetect
+                # IDEA not implemented yet, select columns etc or autodetect
                 spectrum_data = pd.read_excel(filepath)
 
         else:
@@ -188,7 +188,7 @@ class SpectrumReader:
                 _text = filepath.read_text(encoding=encoding, errors=errors)
                 # _text.splitlines()
             except Exception as exc:
-                # TODO specify which Exceptions are expected
+                # IDEA specify which Exceptions are expected
                 _text += "\nread_error"
                 logger.warning(f"file read text error => skipped.\n{exc}")
         else:
@@ -201,7 +201,7 @@ class SpectrumReader:
         """old method taken out from SpectrumConstructor"""
         # on_lbl="raw"
         # assert self.file.exists(), f'File: "{self.file}" does not exist.'
-        # TODO import file reader class here
+        # IDEA import file reader class here
         ramanshift, intensity = np.array([]), np.array([])
         i = 0
         while not ramanshift.any() and i < 2000:

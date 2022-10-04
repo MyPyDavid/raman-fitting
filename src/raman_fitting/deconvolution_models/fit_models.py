@@ -14,7 +14,7 @@ class Fitter:
     """
     Fitter class for executing the fitting functions and optimizations
 
-    # TODO implement sensing of spectrum for Si samples
+    IDEA: implement sensing of spectrum for Si samples
     """
 
     fit_windows = ["1st_order", "2nd_order"]
@@ -48,7 +48,7 @@ class Fitter:
             _fit_lbl = "int"
         elif isinstance(value, pd.DataFrame):
             raise AttributeError
-            # TODO implement self.sense_windowname(value)
+            # IDEA implement self.sense_windowname(value)
         else:
             raise ValueError(_errtxt)
 
@@ -112,7 +112,7 @@ class Fitter:
         self.FitResults.update(**_fittings)
 
     def run_fit(self, model, _data, method="leastsq", **kws):
-        # TODO improve fitting loop so that starting parameters from modelX and modelX+Si are shared, faster...
+        # ideas: improve fitting loop so that starting parameters from modelX and modelX+Si are shared, faster...
         _fit_res, _param_res = {}, {}
         init_params = model.make_params()
         x, y = _data.ramanshift, _data[kws.get("_int_lbl")]
@@ -206,15 +206,10 @@ class PrepareParams:
             _mod_lbl = f'Model_{getattr(value,"_modelname")}'
         self.model_name_lbl = _mod_lbl
         
-        # TODO remove
-        # from pprint import pprint
-        # print('=====  /n',value._int_lbl,'/n')
-
         self.raw_data_lbl = value._int_lbl
 
         self._model_result = value
         
-        # TODO rewrite class and attirbuter setter
         self.make_result()
 
     def make_result(self):
@@ -335,7 +330,7 @@ class PrepareParams:
         _fit_comps_data = OrderedDict({"RamanShift": self.model_result.userkws["x"]})
         _fit_comps_data.update(self.model_result.eval_components())
         
-        # TODO take out
+        # IDEA take out
         # print('===/n',self.model_result, '/n')
         # print('===/n',self.model_result.__dict__.keys(), '/n')
         
@@ -344,7 +339,6 @@ class PrepareParams:
             {
                 self.model_name_lbl: self.model_result.best_fit,
                 "residuals": self.model_result.residual,
-                # TODO check attributes of model_result
                 self.model_result._int_lbl: self.model_result.data,
             }
         )
@@ -353,7 +347,7 @@ class PrepareParams:
 
 
 def NormalizeFit(norm_cleaner, plotprint=False):  # pragma: no cover
-    # TODO optional add normalization seperately to Fitter
+    # IDEA: optional add normalization seperately to Fitter
     x, y = norm_cleaner.spec.ramanshift, norm_cleaner.blcorr_desp_intensity
     Model = InitializeModels("2peaks normalization Lorentzian")
     params = Model.make_params()
