@@ -58,11 +58,11 @@ python -m pip install -e raman-fitting/
 
 #### Post installation test run
 
-In order to test the package after installation, please try the following cli command in a terminal
+In order to test the package after installation, please try the following command in a terminal CLI.
 ``` bash
 raman_fitting -M make_examples
 ```
-or these commands in the python interpreter.
+or these commands in the Python interpreter or in a Jupyter Notebook.
 ``` python
 import raman_fitting
 raman_fitting.make_examples()
