@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 from collections import namedtuple
 
-# from . import SpectrumCleaner
-# from .utils.file_reader import FileReader
-
 
 def SpectrumWindows():
     windows = {

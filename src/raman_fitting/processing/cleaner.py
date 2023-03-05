@@ -8,18 +8,11 @@ import pandas as pd
 from scipy import signal
 from scipy.stats import linregress
 
-# from collections import namedtuple
 from raman_fitting.processing.spectrum_template import (
     SpecTemplate,
     SpectrumWindowLimits,
     SpectrumWindows,
 )
-
-# if __name__ == "__main__":
-#     pass
-# else:
-#     from .spectrum_template import SpecTemplate, SpectrumWindowLimits, SpectrumWindows
-
 
 class SpectrumMethodException(ValueError):
     pass
@@ -34,8 +27,6 @@ class SpectrumMethods:
 
     def __init__(self, ramanshift, intensity, label="", **kwargs):
         """
-
-
         Parameters
         ----------
         ramanshift : array or list
@@ -92,14 +83,6 @@ class SpectrumSplitter(SpectrumMethods):
             setattr(self, label, _data)
             _d.update(**{windowname: _data})
         self.windows_data = _d
-
-
-# class Filter(SpectrumMethods):
-# '''
-# For filtering the intensity of a spectrum
-# '''
-
-# def get_filtered(self, intensity):
 
 
 class BaselineSubtractorNormalizer(SpectrumSplitter):
