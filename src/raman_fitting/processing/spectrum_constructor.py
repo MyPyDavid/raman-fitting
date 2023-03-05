@@ -49,7 +49,7 @@ class SpectrumDataLoader:
     # intensity: np.array = field(default=np.array([]), init=False)
     spectrum_length: int = field(default=0, init=False)
     info: Dict = field(default_factory=dict, repr=False)
-    ovv: pd.DataFrame = field(default=pd.DataFrame(), repr=False)
+    ovv: pd.DataFrame = field(default_factory=pd.DataFrame(), repr=False)
     run_kwargs: Dict = field(default_factory=dict, repr=False)
 
     def __post_init__(self):
