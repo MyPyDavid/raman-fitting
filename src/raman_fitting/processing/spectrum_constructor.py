@@ -3,7 +3,7 @@
 """
 Created on Mon May  3 11:10:59 2021
 
-@author: zmg
+@author: dw
 """
 
 import copy
@@ -17,7 +17,6 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 
-# from .. import __package_name__
 
 from raman_fitting.indexing.filedata_parser import SpectrumReader
 from raman_fitting.processing.cleaner import (
@@ -27,7 +26,6 @@ from raman_fitting.processing.cleaner import (
 )
 from raman_fitting.processing.spectrum_template import SpecTemplate, SpectrumWindows
 
-# from .parser import Parser
 logger = logging.getLogger(__name__)
 
 
@@ -38,15 +36,8 @@ class SpectrumDataLoader:
     A sequence of steps is performed on the raw data from SpectrumReader.
     The steps/methods are: smoothening filter, despiking and baseline correction.
     """
-
-    # IDEA Fix this class, simplify
-
     _fields = ("ramanshift", "intensity")
-    # _spectrum_grp_cols = ['PAR_file','Segment #',EvRHE, 'RPM_DAC']
     file: Path = field(default=Path(Path.cwd().joinpath("empty.txt")))
-    # sample_position: int = 0
-    # ramanshift: np.array = field(default=np.array([]), init=False)
-    # intensity: np.array = field(default=np.array([]), init=False)
     spectrum_length: int = field(default=0, init=False)
     info: Dict = field(default_factory=dict, repr=False)
     ovv: pd.DataFrame = field(default_factory=pd.DataFrame(), repr=False)
@@ -74,7 +65,6 @@ class SpectrumDataLoader:
     def __getattr__(self, attr):
         """checks if attr is in instance dicts before raising error"""
         if attr in self.run_kwargs.keys():
-            # FIXME CARE getting attributes from kwargs
             return self.run_kwargs.get(attr, None)
         elif attr in self.info.keys():
             return self.info.get(attr, None)
