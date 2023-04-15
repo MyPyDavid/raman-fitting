@@ -4,11 +4,12 @@ Created on Thu Jul 22 16:19:28 2021
 @author: DW
 """
 from time import sleep
-from delegator.main_delegator import MainDelegator
+from raman_fitting.delegating.main_delegator import MainDelegator
 
 
 def make_examples():
     _main_run = MainDelegator(run_mode="make_examples")
+    _main_run()
 
 
 if __name__ == "__main__":
