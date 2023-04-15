@@ -11,11 +11,13 @@ __package_name__ = __current_package_name__
 
 
 try:
-    from ._version import version
-
-    __version__ = version
-except:
-    __version__ = "__version__ = '0.6.18'"
+    from ._version import __version__
+except ImportError:
+    # -- Source mode --
+    # use setuptools_scm to get the current version from src using git
+    from setuptools_scm import get_version as _gv
+    from os import path as _path
+    __version__ = _gv(_path.join(_path.dirname(__file__), _path.pardir))
 
 
 from raman_fitting.config import filepath_settings
@@ -62,8 +64,10 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 # This code is written for Python 3.
-if sys.version_info[0] != 3:
-    logger.error("raman_fitting requires Python 3.")
+if sys.version_info.major < 3 and sys.version_info.minor < 8:
+    logger.error(f"{__package_name__} requires Python 3.8 or higher.")
+    if sys.version_info.minor < 11:
+        logger.warning(f"please consider installing Python 3.11 or higher for {__package_name__}.")
     sys.exit(1)
 
 # Let users know if they're missing any hard dependencies
@@ -88,8 +92,22 @@ for dependency in soft_dependencies:
 
 del hard_dependencies, soft_dependencies, dependency, missing_dependencies
 
-# from raman_fitting import main_run_fit, indexer
+# Main Loop Delegator
+from raman_fitting.delegating.main_delegator import MainDelegator, make_examples
 
-# Other user-facing functions
-from .api import *
+# Indexer
+from raman_fitting.indexing.indexer import MakeRamanFilesIndex as make_index
 
+# Processing
+from raman_fitting.processing.spectrum_template import SpectrumTemplate
+from raman_fitting.processing.spectrum_constructor import (
+    SpectrumDataLoader,
+    SpectrumDataCollection,
+)
+
+# Modelling / fitting
+from raman_fitting.deconvolution_models.fit_models import InitializeModels, Fitter
+
+# Exporting / Plotting
+from raman_fitting.exporting.exporter import Exporter
+from raman_fitting.config import filepath_settings
