@@ -3,7 +3,6 @@
 
 import argparse
 import pathlib
-import importlib.metadata
 
 
 # def _testing():
@@ -11,12 +10,12 @@ import importlib.metadata
 RUN_MODES = ["normal", "testing", "debug", "make_index", "make_examples"]
 
 try:
+    import importlib.metadata
     _version = importlib.metadata.version("raman_fitting")
-except Exception as e:
+except ImportError:
     _version = "version.not.found"
 
 _version_text = f"\n=== CLI raman_fitting version: {_version} ===\n"
-# print(_version_text)
 
 
 def main():
