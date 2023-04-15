@@ -70,7 +70,6 @@ class MainDelegator:
     # _kwargs = {}
 
     def __init__(self, run_mode="normal", **kwargs):
-
         # print(f'{self} kwargs:', kwargs)
         self.kwargs = kwargs
         self._cqnm = __class__.__qualname__
@@ -92,7 +91,6 @@ class MainDelegator:
         self.run_delegator(**self.kwargs)
 
     def index_delegator(self, **kwargs):
-
         RF_index = MakeRamanFilesIndex(
             **kwargs,
         )
@@ -186,10 +184,10 @@ class MainDelegator:
         sgrp_grpby = self.index.groupby(self.spectrum.grp_names.sGrp_cols[0])
         logger.info(f"{self._cqnm} _run_gen starting: {kwargs}")
         _mygen = self._generator(sgrp_grpby, **kwargs)
-        Exporter(self.export_collect)  # clean up and 
+        Exporter(self.export_collect)  # clean up and
         logger.info(
-                    f"\n{self._cqnm} run finished.\n Results saved in {self.RESULTS_DIR}"
-                )
+            f"\n{self._cqnm} run finished.\n Results saved in {self.RESULTS_DIR}"
+        )
 
     def _generator(self, sgrp_grpby, **kwargs):
         # _sgrpgen = self.sample_group_gen()
@@ -317,7 +315,6 @@ class MainDelegator:
 
 
 def add_make_sample_group_destdirs(sample_grp: pd.DataFrame):
-
     dest_grp_dir = Path(
         sample_grp.DestDir.unique()[0]
     )  # takes one destination directory from Sample Groups

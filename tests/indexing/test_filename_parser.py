@@ -23,7 +23,6 @@ from raman_fitting.indexing.filename_parser_helpers import filestem_to_sid_and_p
 
 
 class TestFilenameParser(unittest.TestCase):
-
     example_parse_expected = {
         "errEMP2_1.txt": ("errEMP2", 1),
         "errTS2_pos1.txt": ("errTS2", 1),
@@ -64,7 +63,6 @@ class TestFilenameParser(unittest.TestCase):
         self.assertTrue(hasattr(self.empty_PP, self.result_attr))
 
     def test_PP_extra_from_map(self):
-
         for k, val in _extra_sID_name_mapper.items():
             _mapval = _extra_overwrite_sID_from_mapper(k)
 
@@ -81,7 +79,6 @@ class TestFilenameParser(unittest.TestCase):
             )
 
     def test_PP_parse_filepath_to_sid_and_pos(self):
-
         for file, _expected in self.example_parse_expected.items():
             self.assertEqual(filestem_to_sid_and_pos(file), _expected)
 

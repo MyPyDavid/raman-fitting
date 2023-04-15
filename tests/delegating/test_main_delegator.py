@@ -33,7 +33,6 @@ class TestMainDelegator(unittest.TestCase):
         self.assertTrue(_alltest)
 
     def test_generator(self):
-
         _sample_group = self.maindebug.sample_group_gen()
         _sample_group_arg = next(_sample_group)
         self.assertTrue(_sample_group_arg)

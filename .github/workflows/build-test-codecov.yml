@@ -10,7 +10,7 @@ on:
     branches: [ main ]
 
 jobs:
- 
+
  build:
     runs-on: ubuntu-latest
     strategy:
@@ -21,25 +21,25 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    
+
     - name: Install dependencies
       run: |
         python3 -m pip install --upgrade pip  setuptools wheel
         python3 -m pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    
+
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=140 --statistics
-        
+
     - name: Build wheels
       run: |
         python3 setup.py sdist bdist_wheel
@@ -47,20 +47,20 @@ jobs:
         python -m pip install -e ./
         # Install the package from setup.py
         # python3 setup.py install
-  
-    
+
+
     - name: Install dependencies for coverage report
       run: |
         python3 -m pip install pytest pytest-cov coverage
-     
+
     - name: Generate coverage report
       run: |
         pytest --cov --cov-report=xml --cov-report=term-missing
-        # there were problems with coverage therefore pytest --cov is used here 
+        # there were problems with coverage therefore pytest --cov is used here
         # coverage xml
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v1
-   
+
    #   with:
    # - name: Test with pytest
    #   run: |

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import textwrap
 
 from setuptools import setup
 

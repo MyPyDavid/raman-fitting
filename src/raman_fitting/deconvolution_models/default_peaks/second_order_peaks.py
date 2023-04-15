@@ -5,6 +5,7 @@ else:
 
 __all__ = ["D4D4_peak", "D1D1_peak", "GD1_peak", "D2D2_peak"]
 
+
 # ====== SECOND ORDER PEAKS ======= #
 class D4D4_peak(metaclass=BasePeak):
     """

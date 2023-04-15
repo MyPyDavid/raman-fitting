@@ -67,9 +67,12 @@ if 0:  # pragma: no cover
         from .local_config import DATASET_DIR, RESULTS_DIR
 
         logger.info(
-            f" Importing settings from local config...",
+            " Importing settings from local config...",
             "\n",
-            f"RESULTS_DIR : {RESULTS_DIR}",
+            f"RESULTS DIR : {RESULTS_DIR}",
+            "\n",
+            "\n",
+            f"DATASET DIR : {DATASET_DIR}",
             "\n",
             f"From file: {LOCAL_CONFIG_FILE}",
         )

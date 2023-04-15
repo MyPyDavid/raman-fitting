@@ -17,6 +17,7 @@ except ImportError:
     # use setuptools_scm to get the current version from src using git
     from setuptools_scm import get_version as _gv
     from os import path as _path
+
     __version__ = _gv(_path.join(_path.dirname(__file__), _path.pardir))
 
 
@@ -36,8 +37,10 @@ import warnings
 logger = logging.getLogger(__package_name__)
 
 log_format = (
-    "[%(asctime)s] — %(name)s — %(levelname)s —" "%(funcName)s:%(lineno)d—12s %(message)s")
-    # '[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s')
+    "[%(asctime)s] — %(name)s — %(levelname)s —"
+    "%(funcName)s:%(lineno)d—12s %(message)s"
+)
+# '[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s')
 
 # Define basic configuration
 logging.basicConfig(
@@ -46,7 +49,7 @@ logging.basicConfig(
     # Define the format of log messages
     format=log_format,
     # Provide the filename to store the log messages
-    filename=('debug.log'),
+    filename=("debug.log"),
 )
 
 formatter = logging.Formatter(log_format)
@@ -67,7 +70,9 @@ logger.addHandler(ch)
 if sys.version_info.major < 3 and sys.version_info.minor < 8:
     logger.error(f"{__package_name__} requires Python 3.8 or higher.")
     if sys.version_info.minor < 11:
-        logger.warning(f"please consider installing Python 3.11 or higher for {__package_name__}.")
+        logger.warning(
+            f"please consider installing Python 3.11 or higher for {__package_name__}."
+        )
     sys.exit(1)
 
 # Let users know if they're missing any hard dependencies

@@ -2,15 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import pathlib
 
 
-# def _testing():
-#     args = parser.parse_args(['-M', 'debug'])
 RUN_MODES = ["normal", "testing", "debug", "make_index", "make_examples"]
 
 try:
     import importlib.metadata
+
     _version = importlib.metadata.version("raman_fitting")
 except ImportError:
     _version = "version.not.found"
@@ -19,7 +17,6 @@ _version_text = f"\n=== CLI raman_fitting version: {_version} ===\n"
 
 
 def main():
-
     """
     The command line interface for raman_fitting
     """

@@ -31,7 +31,6 @@ class TestPeakModelValidator(unittest.TestCase):
             self.pmv.get_subclasses_from_base(str)
 
     def test_validation_inspect_models(self):
-
         _valid = self.pmv.validation_inspect_models([str])
         self.assertTrue(_valid)
         self.assertFalse(_valid[1][0].valid)
@@ -43,7 +42,6 @@ class TestPeakModelValidator(unittest.TestCase):
         self.assertIn("Unable to initialize model", _valid[1][0].message)
 
     def test_get_cmap_list(self):
-
         _cmap = self.pmv.get_cmap_list([], cmap_options=())
         self.assertEqual(_cmap, [])
         _cmap = self.pmv.get_cmap_list(
@@ -54,7 +52,6 @@ class TestPeakModelValidator(unittest.TestCase):
         self.assertEqual(len(_cmap), 5)
 
     def test___getattr__(self):
-
         with self.assertRaises(AttributeError):
             self.pmv.fake_attr
 
@@ -63,7 +60,6 @@ class TestPeakModelValidator(unittest.TestCase):
         self.assertIsInstance(_iter, list)
 
     def test_if_lmfit_models(self):
-
         if self.pmv.lmfit_models:
             _getdict = self.pmv.get_dict()
             self.assertIsInstance(_getdict, dict)
@@ -73,7 +69,6 @@ class TestPeakModelValidator(unittest.TestCase):
 
 
 def _debugging():
-
     self = TestPeakModelValidator()
     peaks = PeakModelValidator()
     self.pmv = peaks

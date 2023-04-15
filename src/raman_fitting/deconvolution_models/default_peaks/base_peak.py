@@ -23,7 +23,7 @@ else:
 # __all__ = [Base]
 
 
-#%%
+# %%
 class BasePeakWarning(UserWarning):  # pragma: no cover
     pass
 
@@ -112,7 +112,6 @@ class BasePeak(type):
         return kwargs
 
     def __new__(mcls, name, *args, **kwargs):
-
         # print(
         #             f"Called __new ,_args {_}"
         #         )
@@ -372,7 +371,6 @@ class BasePeak(type):
         _peak_model = None
         if self.fco.status:
             if all(hasattr(self, field) for field in self._fields):
-
                 try:
                     create_model_kwargs = dict(
                         peak_name=self.peak_name,
@@ -480,14 +478,14 @@ class BasePeak(type):
             print(f"No model set for: {self}")
 
 
-#%%
+# %%
 
-#%%
+
+# %%
 # LMfitModelConstructorMethods.create_peak_model_from_name_type_param_hints(peak_model= new.peak_model)
 # new.peak_name
-#%%
+# %%
 class LMfitModelConstructorMethods:
-
     PARAMETER_ARGS = inspect.signature(Parameter).parameters.keys()
 
     @classmethod
@@ -619,4 +617,4 @@ class LMfitModelConstructorMethods:
         return model
 
 
-#%%
+# %%

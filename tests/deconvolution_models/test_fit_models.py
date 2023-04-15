@@ -40,7 +40,6 @@ class TestPrepareParams(unittest.TestCase):
 
 
 def _testing():
-
     self = ft
     self = prep
 

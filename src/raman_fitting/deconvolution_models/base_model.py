@@ -19,7 +19,8 @@ from raman_fitting.deconvolution_models.peak_validation import PeakModelValidato
 # else:
 #     from .peak_validation import PeakModelValidator
 
-#%%
+# %%
+
 
 # ====== InitializeMode======= #
 class InitializeModels:
@@ -60,7 +61,6 @@ class InitializeModels:
         return peak_collection
 
     def construct_standard_models(self):
-
         _models = {}
         _models_1st = {
             f"1st_{key}": BaseModel(
@@ -118,7 +118,6 @@ class BaseModel:
         peak_collection=PeakModelValidator(),
         substrate_peak_name: str = _SUBSTRATE_PEAK,
     ):
-
         self.peak_collection = peak_collection
         self.peak_options = self.set_peak_options()
         self.substrate_peak_name = substrate_peak_name
@@ -292,7 +291,6 @@ class BaseModel:
         return _lmfit_model
 
     def __repr__(self):
-
         _choice = "no" if not self.has_substrate else "yes"
         _txt = f"{self.model_name}, substrate ({_choice}): "
         if hasattr(self, "lmfit_model"):
@@ -300,42 +298,3 @@ class BaseModel:
         else:
             _txt += "empty model"
         return _txt
-
-    # def _0equalize_from_model_name(self,_name):
-    #     pass
-    # def _0equalize_from_incl_substrate(self,_choice):
-    #     pass
-    # def _0equalize_name_choice(self, _name, _choice):
-    #     _change = False
-    #     if _choice != None and _name == None and hasattr(self, '_model_name'):
-    #         # change model name when choice is set
-    #         _name = self._add_or_rem_substrate_to_model_name(_choice, self._model_name)
-    #         if _name != self._model_name:
-    #             _change = True
-    #             self._model_name = _name
-    #     if _name != None and _choice == None and hasattr(self, '_include_substrate'):
-    #         # change include subtrate choice when model name is set
-    #         _name_contains = self._name_contains_substrate(_name)
-    #         if _name_contains != self._include_substrate:
-    #             _change = True
-    #             self._include_substrate = _name_contains
-    #         if hasattr(self,'_model_name'):
-    #             _change = bool(_name != self._model_name)
-    #     # if _name != None and hasattr(self, '_model_name')
-    #     print(f'Change {_change}, name {_name}, choice {_choice}')
-    #     if _change  and _name:
-    #         self.lmfit_model = self.model_constructor_from_model_name(_name)
-    #     elif not _choice and _contains:
-    #         _substr_name = self.substrate_peak_name.split(self._SUFFIX)[0]
-    #         warn(f'\n{self.__class__.__name__} include substrate is set to {_choice} so "{_substr_name}" is removed from {_name}.\n',BaseModelWarning)
-    #         _name = '+'.join(i for i in _name.split('+') if i not in _substr_name)  # remove substr name
-
-    # def _0add_or_rem_substrate_to_model_name(self, _choice, _name):
-    #     _substr_name = self.substrate_peak_name.split(self._SUFFIX)[0]
-    #     _contains = self._name_contains_substrate(_name)
-    #     if _choice and not _contains:
-    #         _name = _name+f'+{_substr_name}'  # add substr name
-    #     elif not _choice and _contains:
-    #         warn(f'\n{self.__class__.__name__} include substrate is set to {_choice} so "{_substr_name}" is removed from {_name}.\n',BaseModelWarning)
-    #         _name = '+'.join(i for i in _name.split('+') if i not in _substr_name)  # remove substr name
-    #     return _name

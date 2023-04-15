@@ -15,7 +15,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-#%%
+# %%
 class SpectrumReader:
     """
     Reads a clean spectrum from a file Path or str
@@ -41,8 +41,7 @@ class SpectrumReader:
         *spectrum_keys_expected_values.keys(),
     )
 
-    def __init__(self, filepath: Path, max_bytesize=10 ** 6):
-
+    def __init__(self, filepath: Path, max_bytesize=10**6):
         if not isinstance(filepath, Path):
             if isinstance(filepath, str):
                 filepath = Path(filepath)
@@ -56,7 +55,6 @@ class SpectrumReader:
         if filepath.exists():
             filesize = filepath.stat().st_size
             if filesize < max_bytesize:
-
                 self.spectrum = self.spectrum_parser(self.filepath)
                 self.double_check_spectrum_values(
                     self.spectrum, expected_values=self.spectrum_keys_expected_values
@@ -91,7 +89,6 @@ class SpectrumReader:
         suffix = filepath.suffix
         if suffix in self.supported_filetypes:
             if suffix == ".txt":
-
                 try:
                     spectrum_data = self.use_np_loadtxt(filepath)
 
@@ -116,7 +113,6 @@ class SpectrumReader:
         return spectrum_data
 
     def use_np_loadtxt(self, filepath, usecols=(0, 1), **kwargs):
-
         try:
             loaded_array = np.loadtxt(filepath, usecols=usecols, **kwargs)
         except IndexError:
@@ -147,7 +143,6 @@ class SpectrumReader:
         if all([i in spectrum_data.columns for i in expected_values.keys()]):
             _len = len(spectrum_data)
             for _key, expectations in expected_values.items():
-
                 if expectations:
                     for exp_method, exp_value in expectations.items():
                         _check = False
@@ -176,7 +171,7 @@ class SpectrumReader:
             )
 
     @staticmethod
-    def read_text(filepath, max_bytes=10 ** 6, encoding="utf-8", errors=None):
+    def read_text(filepath, max_bytes=10**6, encoding="utf-8", errors=None):
         """additional read text method for raw text data inspection"""
         _text = "read_text_method"
         filesize = filepath.stat().st_size
@@ -234,4 +229,4 @@ class SpectrumReader:
         try:
             self.spectrum.plot(x="ramanshift", y="intensity")
         except TypeError:
-            logger.warning(f"No numeric data to plot")
+            logger.warning("No numeric data to plot")

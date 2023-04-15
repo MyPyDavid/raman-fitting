@@ -20,8 +20,7 @@ def ignore_warnings(test_func):
 class TestFieldsTracker(unittest.TestCase):
     @ignore_warnings
     def testFCO(self):
-
-        #%%
+        # %%
         fco = FieldsTracker(
             fields=["peak_name", "peak_type", "param_hints"],
             sources=("kwargs", "cls_dict", "init"),

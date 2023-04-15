@@ -33,7 +33,7 @@ else:
     logger = logging.getLogger(__package_name__)
 
 
-#%%
+# %%
 class PeakValidationWarning(UserWarning):
     pass
 
@@ -246,7 +246,6 @@ class PeakModelValidator:
     def get_cmap_list(
         lst, cmap_options: Tuple = (), fallback_color: Tuple = ()
     ) -> Tuple:
-
         cmap = [(0, 0, 0, 1) for i in lst]  # black as fallback default color
 
         # set fallback color from class
@@ -256,7 +255,6 @@ class PeakModelValidator:
 
         # set cmap colors from cmap options
         if cmap_options:
-
             try:
                 pltcmaps = [plt.get_cmap(cmap) for cmap in cmap_options]
                 # Take shortest colormap but not

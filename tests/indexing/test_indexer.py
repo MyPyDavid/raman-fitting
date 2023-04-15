@@ -14,7 +14,6 @@ from raman_fitting.indexing.indexer import MakeRamanFilesIndex
 
 class TestIndexer(unittest.TestCase):
     def setUp(self):
-
         _example_path = Path(example_files.__path__[0])
         _example_files_contents = list(Path(_example_path).rglob("*txt"))
 
@@ -23,7 +22,6 @@ class TestIndexer(unittest.TestCase):
         self.RamanIndex = MakeRamanFilesIndex(run_mode="make_examples")
 
     def test_MakeRamanFilesIndex_make_examples(self):
-
         self.assertEqual(len(self.RamanIndex), len(self._example_files))
 
     def test_load_index(self):

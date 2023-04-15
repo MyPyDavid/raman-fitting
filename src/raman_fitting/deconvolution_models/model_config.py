@@ -15,7 +15,6 @@ else:
 
 
 class ModelConfigurator:
-
     standard_config_file = "model_config_standard.cfg"
 
     def __init__(self, **kwargs):
@@ -28,5 +27,4 @@ class ModelConfigurator:
         pass
 
     def standard_valid_models(self):
-
         peak_collection = PeakModelValidator()

@@ -3,7 +3,5 @@ scipy >= 1.10.0
 lmfit >= 1.2.0
 
 matplotlib >= 3.7.1
-numpy >= 1.24.2 
-openpyxl >= 3.1.2 
-
-attr
+numpy >= 1.24.2
+openpyxl >= 3.1.2

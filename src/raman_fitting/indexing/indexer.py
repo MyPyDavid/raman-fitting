@@ -26,7 +26,7 @@ logger.propagate = False
 
 __all__ = ["MakeRamanFilesIndex"]
 
-#%%
+# %%
 
 
 class MakeRamanFilesIndex:
@@ -54,7 +54,6 @@ class MakeRamanFilesIndex:
     def __init__(
         self, force_reload=True, run_mode="normal", dataset_dirs=None, **kwargs
     ):
-
         self._cqnm = self.__class__.__qualname__
 
         self._kwargs = kwargs
@@ -88,7 +87,7 @@ class MakeRamanFilesIndex:
         """
 
         if not isinstance(data_dir, Path):
-            logger.warning(f"find_files warning: arg is not Path.")
+            logger.warning("find_files warning: arg is not Path.")
             return []
 
         raman_files_raw = []
@@ -177,7 +176,6 @@ class MakeRamanFilesIndex:
         """loads the index from from defined Index file"""
         if self.INDEX_FILE.exists():
             try:
-
                 _dtypes = pd.read_csv(self._dtypes_filepath(), index_col=[0]).to_dict()[
                     "dtypes"
                 ]
@@ -288,7 +286,6 @@ class MakeRamanFilesIndex:
         )
 
         if not index.empty:
-
             if default_selection:
                 if default_selection == "all":
                     index_selection = index.copy()

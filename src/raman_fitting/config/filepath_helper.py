@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 from raman_fitting.config import filepath_settings as config
 
-#%%
+# %%
 
 
 def get_directory_paths_for_run_mode(run_mode: str = "", **kwargs) -> Dict:

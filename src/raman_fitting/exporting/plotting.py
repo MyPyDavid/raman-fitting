@@ -13,7 +13,8 @@ from matplotlib.ticker import AutoMinorLocator, FormatStrFormatter, MultipleLoca
 
 matplotlib.rcParams.update({"font.size": 14})
 
-#%%
+# %%
+
 
 # IDEA PLOTTING PER PEAK MODEL
 def plotting_info(windowname):  # pragma: no cover
@@ -49,7 +50,6 @@ def raw_data_spectra_plot(fitting_specs):  # pragma: no cover
         for spec in fitting_specs:
             try:
                 ax_wn = ax[plotting_info(spec.windowname)]
-                #                spec.windowname
                 _legend = True if "full" == spec.windowname else False
                 spec.mean_spec.plot(
                     x="ramanshift",
@@ -69,7 +69,6 @@ def raw_data_spectra_plot(fitting_specs):  # pragma: no cover
                 )
 
                 ax_wn.set_title(spec.windowname)
-                #                _legend = True if 'full' in spec.windowname else False
                 if _legend:
                     ax_wn.legend(fontsize=10)
 
@@ -88,10 +87,8 @@ def raw_data_spectra_plot(fitting_specs):  # pragma: no cover
 
 
 def raw_data_spectra_export(fitting_specs):
-    #    fitting_specs
     try:
         for spec in fitting_specs:
-            #            spec.windowname, spec.sIDmean_col
             wnxl_outpath_spectra = spec.mean_info.DestRaw.unique()[0].joinpath(
                 f"spectra_{spec.sIDmean_col}_{spec.windowname}.xlsx"
             )
@@ -102,8 +99,6 @@ def raw_data_spectra_export(fitting_specs):
             f"info_{_0_spec.sIDmean_col}.xlsx"
         )
         _0_spec.mean_info.to_excel(wnxl_outpath_info)
-
-    #            ax_wn = ax[plotting_info(spec.windowname)]
     except Exception as e:
         print("no extra Raw Data plots: {0}".format(e))
 
@@ -116,26 +111,21 @@ def fit_spectrum_plot(
     plot_Annotation=True,
     plot_Residuals=True,
 ):  # pragma: no cover
-
     modname_2 = peak2
-    #%%
+    # %%
     sID = res1_peak_spec.extrainfo["SampleID"]
     SampleBgmean_col = res1_peak_spec.raw_data_col
 
-    #    sID, DestPlotDir, SampleBgmean_col, FitData, FitModPeaks, FitData_2nd,comps, comps_2nd,out, out_2nd,
     FitData_1st = res1_peak_spec.FitComponents
     Model_peak_col_1st = res1_peak_spec.model_name
     Model_data_col_1st = res1_peak_spec.model_name
-    # f'Model_{Model_peak_col_1st}'
     compscols_1st = [
         i for i in FitData_1st.columns if i.endswith("_") and not i.startswith("Si")
     ]
-    #    FitReport_1st = res1_peak_spec.FitReport
 
     FitData_2nd = res2_peak_spec.FitComponents
     Model_peak_col_2nd = res2_peak_spec.model_name
     Model_data_col_2nd = res2_peak_spec.model_name
-    # f'Model_{Model_peak_col_2nd}'
     compscols_2nd = [i for i in FitData_2nd.columns if i.endswith("_")]
 
     FitPars, FitPars_2nd = res1_peak_spec.FitParameters, res2_peak_spec.FitParameters
@@ -144,7 +134,6 @@ def fit_spectrum_plot(
     gs = gridspec.GridSpec(4, 1, height_ratios=[4, 1, 4, 1])
     ax = plt.subplot(gs[0])
     axRes = plt.subplot(gs[1])
-    #                axAnn = plt.subplot(gs[1])
     ax2nd = plt.subplot(gs[2])
     ax2ndRes = plt.subplot(gs[3])
     ax2ndRes.grid(True), axRes.grid(True, "both")
@@ -161,9 +150,6 @@ def fit_spectrum_plot(
     ax2nd.tick_params(which="both", direction="in")
     ax.set_facecolor("oldlace"), ax2nd.set_facecolor("oldlace")
     axRes.set_facecolor("oldlace"), ax2ndRes.set_facecolor("oldlace")
-    #                for FitN in [PosInts_Bg,PosInts_Bg_2nd]:
-    #                    fig,ax = plt.subplots(1,1,figsize=(12,12))
-    #                if FitN.RamanShift.max() > 2300:
     ax2nd.plot(
         FitData_2nd["RamanShift"],
         FitData_2nd[Model_data_col_2nd],
@@ -209,11 +195,7 @@ def fit_spectrum_plot(
             ),
             xycoords="data",
         )
-    #    ax2nd.plot(FitData_2nd['RamanShift'], comps_2nd['D1D1_'], color='lime',ls='--',lw=4,label='2*D')
-    #    ax2nd.plot(FitData_2nd['RamanShift'], comps_2nd['D4D4_'], color='purple',ls='--',lw=4,label='2*D4')
-    #    ax2nd.plot(FitData_2nd['RamanShift'], comps_2nd['GD1_'], color='pink',ls='--',lw=4,label='G+D1')
     ax2nd.set_ylim(-0.02, FitData_2nd[Model_data_col_2nd].max() * 1.5)
-    #                else:
     ax.plot(
         FitData_1st["RamanShift"],
         FitData_1st[Model_data_col_1st],
@@ -229,7 +211,7 @@ def fit_spectrum_plot(
         c="grey",
         alpha=0.8,
     )
-    
+
     if plot_Residuals:
         axRes.plot(
             FitData_1st["RamanShift"],
@@ -258,13 +240,7 @@ def fit_spectrum_plot(
             xycoords="data",
         )
 
-    #    ax.plot(FitData_1st['RamanShift'], FitData_1st['D_'], color='lime',ls='--',lw=4,label='D')
-    #                ax.plot(FitData['RamanShift'], comps['D2_'], color='grey',ls='--',lw=4,label='D2')
-    #    ax.plot(FitData_1st['RamanShift'], FitData_1st['D3_'], 'b--',lw=4,label='D3')
-    #    ax.plot(FitData_1st['RamanShift'], FitData_1st['D4_'], color='purple',ls='--',lw=4,label='D4')
     if "peaks" in peak1:
-        #        ax.plot(FitData_1st['RamanShift'], FitData_1st['D2_'], color='magenta',ls='--',lw=4,label='D2')
-        #        ax.annotate('D2:\n %.0f'%FitPars['D2_center'],xy=(FitPars['D2_center']*0.97,0.8*FitPars['I_D2']),xycoords='data')
         if peak1.endswith("+Si"):
             ax.plot(
                 FitData_1st["RamanShift"],
@@ -279,17 +255,6 @@ def fit_spectrum_plot(
                     xy=(FitPars["Si1_center"] * 0.97, 0.8 * FitPars["Si1_height"]),
                     xycoords="data",
                 )
-    #        if '6peaks' in FitModPeaks:
-    #            ax.plot(FitData_1st['RamanShift'], FitData_1st['D5_'],  color='darkorange',ls='--',lw=4,label='D5')
-    #            ax.annotate('D5:\n %.0f'%FitPars['D5_center'],xy=(FitPars['D5_center']*0.97,0.8*FitPars['I_D5']),xycoords='data')
-    ##                    for colN,col in FitN.iteritems():
-    #                        if 'RamanShift' in colN or colN.split('_')[-1] == 'count' or colN.split('_')[-1] == 'std' :
-    #                            continue
-    #                        w,i = FitN['RamanShift'].values,col.values
-    #                        if 'mean' in colN:
-    #                            ax.plot(w[::],i[::],label=colN)
-    #                        else:
-    #                            ax.scatter(w[::],i[::],label=colN)
     if plot_Annotation:
         frsplit = res1_peak_spec.FitReport.split()
         if len(frsplit) > 200:
@@ -322,9 +287,7 @@ def fit_spectrum_plot(
     ax2nd.legend(loc=1), ax2nd.set_xlabel("Raman shift (cm$^{-1}$)"), ax2nd.set_ylabel(
         "normalized I / a.u."
     )
-    #                plt.show()
 
-    #    plt.show()
     plt.savefig(
         res1_peak_spec.extrainfo["DestFittingModel"].with_suffix(".png"),
         dpi=100,
@@ -332,4 +295,3 @@ def fit_spectrum_plot(
         bbox_inches="tight",
     )
     plt.close()
-    #%%
