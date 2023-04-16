@@ -27,10 +27,6 @@ except ImportError:
 except Exception as e:
     __version__ = "catch_exception_version"
 
-# VERSION_PATH = config.PACKAGE_ROOT / 'VERSION.txt'
-# with open(VERSION_PATH, 'r') as version_file:
-# IDEA change version definitino
-# __version__ = version_file.read().strip()
 
 import logging
 import sys
@@ -56,11 +52,9 @@ logging.basicConfig(
 )
 
 formatter = logging.Formatter(log_format)
-# logger.setLevel(logging.DEBUG)
 from raman_fitting.config import logging_config
 
 logger.addHandler(logging_config.get_console_handler())
-# logger.propagate = False
 
 # create console handler
 ch = logging.StreamHandler(stream=sys.stdout)
@@ -71,12 +65,8 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 # This code is written for Python 3.
-if sys.version_info.major < 3 and sys.version_info.minor < 8:
-    logger.error(f"{__package_name__} requires Python 3.8 or higher.")
-    if sys.version_info.minor < 11:
-        logger.warning(
-            f"please consider installing Python 3.11 or higher for {__package_name__}."
-        )
+if sys.version_info.major < 3 and sys.version_info.minor < 7:
+    logger.error(f"{__package_name__} requires Python 3.7 or higher.")
     sys.exit(1)
 
 # Let users know if they're missing any hard dependencies

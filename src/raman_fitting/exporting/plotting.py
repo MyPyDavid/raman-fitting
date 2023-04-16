@@ -240,21 +240,20 @@ def fit_spectrum_plot(
             xycoords="data",
         )
 
-    if "peaks" in peak1:
-        if peak1.endswith("+Si"):
-            ax.plot(
-                FitData_1st["RamanShift"],
-                FitData_1st["Si1_"],
-                "b--",
-                lw=4,
-                label="Si_substrate",
+    if "peaks" in peak1 and peak1.endswith("+Si"):
+        ax.plot(
+            FitData_1st["RamanShift"],
+            FitData_1st["Si1_"],
+            "b--",
+            lw=4,
+            label="Si_substrate",
+        )
+        if FitPars["Si1_fwhm"].iloc[0] > 1:
+            ax.annotate(
+                "Si_substrate:\n %.0f" % FitPars["Si1_center"],
+                xy=(FitPars["Si1_center"] * 0.97, 0.8 * FitPars["Si1_height"]),
+                xycoords="data",
             )
-            if FitPars["Si1_fwhm"].iloc[0] > 1:
-                ax.annotate(
-                    "Si_substrate:\n %.0f" % FitPars["Si1_center"],
-                    xy=(FitPars["Si1_center"] * 0.97, 0.8 * FitPars["Si1_height"]),
-                    xycoords="data",
-                )
     if plot_Annotation:
         frsplit = res1_peak_spec.FitReport.split()
         if len(frsplit) > 200:

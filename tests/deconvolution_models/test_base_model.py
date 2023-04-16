@@ -10,7 +10,6 @@ from functools import partial
 import pytest
 from lmfit import Model
 
-# import raman_fitting
 from raman_fitting.deconvolution_models.base_model import _SUBSTRATE_PEAK, BaseModel
 
 _SUBSTRATE_PREFIX = _SUBSTRATE_PEAK.split("peak")[0]
