@@ -14,6 +14,7 @@ from raman_fitting.processing.spectrum_template import (
     SpectrumWindows,
 )
 
+
 class SpectrumMethodException(ValueError):
     pass
 
@@ -50,7 +51,6 @@ class SpectrumMethods:
 
     @staticmethod
     def filtered_int(intensity=None):
-
         try:
             int_savgol_fltr = signal.savgol_filter(intensity, 13, 3, mode="nearest")
         except Exception as e:
@@ -156,7 +156,6 @@ class BaselineSubtractorNormalizer(SpectrumSplitter):
     def set_normalized_data(self):
         _normd = {}
         for windowname, spec in self.blcorr_data.items():
-
             label = f"norm_blcorr_{windowname}"
             if self.label:
                 label = f"{self.label}_{label}"
@@ -250,7 +249,6 @@ class Despiker(SpectrumMethods):
 
     @despiked_intensity.setter
     def despiked_intensity(self, value):
-
         result = self.run_despike_steps(value, self.Z_threshold)
 
         self._despiked_intensity = result["despiked_intensity"]
@@ -259,7 +257,6 @@ class Despiker(SpectrumMethods):
         self.df = pd.DataFrame(result)
 
     def run_despike_steps(self, intensity, Z_threshold):
-
         Z_t = self.calc_Z(intensity)
         Z_t_filtered = self.calc_Z_filtered(Z_t, Z_threshold)
         i_despiked = self.despike_filter(
@@ -303,7 +300,6 @@ class Despiker(SpectrumMethods):
         i_despiked = copy.deepcopy(intensity)
         spikes = np.where(np.isnan(Z_t_filtered))
         for i in list(spikes[0]):
-
             if i < ignore_lims[0] or i > ignore_lims[1]:
                 w = np.arange(
                     max(0, i - moving_window_size), min(n, i + moving_window_size)

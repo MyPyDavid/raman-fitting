@@ -6,6 +6,7 @@ else:
     from .base_peak import BasePeak
 
 __all__ = ["norm_G_peak", "norm_D_peak"]
+
 # ====== PEAKS USED FOR NORMALIZATION ======= #
 
 
@@ -20,8 +21,6 @@ class norm_G_peak(metaclass=BasePeak):
             "sigma": {"value": 40, "min": 1e-05, "max": 1e3},
             "amplitude": {"value": 8e4, "min": 1e2},
         }
-
-    # norm_G_peak = BasePeak(peak_name=peak_name,peak_type=peak_type,input_param_settings=settings)
 
 
 class norm_D_peak(metaclass=BasePeak):

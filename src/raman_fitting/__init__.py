@@ -11,20 +11,22 @@ __package_name__ = __current_package_name__
 
 
 try:
-    from ._version import version
+    from ._version import __version__
+except ImportError:
+    # -- Source mode --
+    try:
+        # use setuptools_scm to get the current version from src using git
+        from setuptools_scm import get_version as _gv
+        from os import path as _path
 
-    __version__ = version
-except:
-    __version__ = "__version__ = '0.6.18'"
+        __version__ = _gv(_path.join(_path.dirname(__file__), _path.pardir))
+    except ModuleNotFoundError:
+        __version__ = "importerr_modulenotfound_version"
+    except Exception as e:
+        __version__ = "importerr_exception_version"
+except Exception as e:
+    __version__ = "catch_exception_version"
 
-
-from raman_fitting.config import filepath_settings
-from raman_fitting.config import logging_config
-
-# VERSION_PATH = config.PACKAGE_ROOT / 'VERSION.txt'
-# with open(VERSION_PATH, 'r') as version_file:
-# IDEA change version definitino
-# __version__ = version_file.read().strip()
 
 import logging
 import sys
@@ -34,8 +36,10 @@ import warnings
 logger = logging.getLogger(__package_name__)
 
 log_format = (
-    "[%(asctime)s] — %(name)s — %(levelname)s —" "%(funcName)s:%(lineno)d—12s %(message)s")
-    # '[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s')
+    "[%(asctime)s] — %(name)s — %(levelname)s —"
+    "%(funcName)s:%(lineno)d—12s %(message)s"
+)
+# '[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s')
 
 # Define basic configuration
 logging.basicConfig(
@@ -44,14 +48,13 @@ logging.basicConfig(
     # Define the format of log messages
     format=log_format,
     # Provide the filename to store the log messages
-    filename=('debug.log'),
+    filename=("debug.log"),
 )
 
 formatter = logging.Formatter(log_format)
-# logger.setLevel(logging.DEBUG)
-# from raman_fitting.config import logging_config
-# logger.addHandler(logging_config.get_console_handler())
-# logger.propagate = False
+from raman_fitting.config import logging_config
+
+logger.addHandler(logging_config.get_console_handler())
 
 # create console handler
 ch = logging.StreamHandler(stream=sys.stdout)
@@ -62,8 +65,8 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 # This code is written for Python 3.
-if sys.version_info[0] != 3:
-    logger.error("raman_fitting requires Python 3.")
+if sys.version_info.major < 3 and sys.version_info.minor < 7:
+    logger.error(f"{__package_name__} requires Python 3.7 or higher.")
     sys.exit(1)
 
 # Let users know if they're missing any hard dependencies
@@ -88,8 +91,22 @@ for dependency in soft_dependencies:
 
 del hard_dependencies, soft_dependencies, dependency, missing_dependencies
 
-# from raman_fitting import main_run_fit, indexer
+# Main Loop Delegator
+from raman_fitting.delegating.main_delegator import MainDelegator, make_examples
 
-# Other user-facing functions
-from .api import *
+# Indexer
+from raman_fitting.indexing.indexer import MakeRamanFilesIndex as make_index
 
+# Processing
+from raman_fitting.processing.spectrum_template import SpectrumTemplate
+from raman_fitting.processing.spectrum_constructor import (
+    SpectrumDataLoader,
+    SpectrumDataCollection,
+)
+
+# Modelling / fitting
+from raman_fitting.deconvolution_models.fit_models import InitializeModels, Fitter
+
+# Exporting / Plotting
+from raman_fitting.exporting.exporter import Exporter
+from raman_fitting.config import filepath_settings

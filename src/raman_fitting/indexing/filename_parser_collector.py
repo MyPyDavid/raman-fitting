@@ -13,7 +13,6 @@ from .filename_parser import PathParser
 
 
 def make_collection(raman_files: Collection, **kwargs) -> List[PathParser]:
-
     pp_collection = []
     # _error_parse_filenames
     for file in raman_files:

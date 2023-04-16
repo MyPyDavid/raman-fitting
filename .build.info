@@ -1,7 +1,6 @@
 # Build release overview
 # Reference:
-# https://github.com/pauliacomi/pyGAPS/blob/6bab0653dca40a44d9247c873b180937365ea0d8/.build.info
-
+# https://github.com/pauliacomi/pyGAPS/blob/c19bf45a896ff787acf8a29f77652a90236dd6c5/.build.info
 # This file contains details about how to
 # perform a release of this package
 
@@ -15,20 +14,10 @@ pytest --cov --cov-report xml:coverage.xml
 
 # Run bumpversion to change any version strings
 # scattered throughout the source code
-<<<<<<< HEAD
-# !!! Check if pre-commit hooks are there or not..
-# bump2version fails after pre-commit hook fails
-#
-# bump2version patch --no-commit
-# --allow-dirty
-#
-# bump2version major/minor/patch
-=======
+bumpversion major/minor/patch
 # !!! Check if pre-commit hooks are enabled
 # bump2version may fail the commit if pre-commit hooks fail...
 # bump2version patch --no-commit
-# bumpversion major/minor/patch
->>>>>>> release/0.6.15
 
 # Finish branch
 git flow release finish x.y.z

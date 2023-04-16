@@ -6,7 +6,7 @@ import pytest
 from lmfit import Model
 
 # from raman_fitting.deconvolution_models import first_order_peaks
-import raman_fitting
+# import raman_fitting
 from raman_fitting.deconvolution_models.default_peaks.base_peak import (
     BasePeak,
     BasePeakWarning,
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 logging.captureWarnings(True)  # sends these warning to the logger
 
 
-#%%
+# %%
 
 
 def _error_message_contains(excinfo, testmsg: str, verbose: bool = False):
@@ -39,12 +39,11 @@ def _error_message_contains(excinfo, testmsg: str, verbose: bool = False):
     return _test
 
 
-#%%
+# %%
 
 
 class TestBasePeak(unittest.TestCase):
-
-    #%% TESTING
+    # %% TESTING
 
     def test_BasePeak_attributes(self):
         self.assertTrue(BasePeak.__doc__)
@@ -53,7 +52,7 @@ class TestBasePeak(unittest.TestCase):
         self.assertTrue(BasePeak.PEAK_TYPE_OPTIONS)
 
     def test_empty_base_class_raises(self):
-        #%%
+        # %%
 
         class EmptyTestChild(metaclass=BasePeak):
             pass
@@ -70,10 +69,10 @@ class TestBasePeak(unittest.TestCase):
 
         self.assertFalse(eb.peak_model)
 
-        #%%
+        # %%
 
     def test_empty_base_class_with_kwargs_raises(self):
-        #%%
+        # %%
 
         class EmptyTestChild(
             metaclass=BasePeak,
@@ -85,7 +84,7 @@ class TestBasePeak(unittest.TestCase):
             pass
 
         eb = EmptyTestChild()
-        #%%
+        # %%
 
         self.assertEqual(eb.peak_type, "Voigt")
         self.assertEqual(eb.testkwarg2, 2)
@@ -121,7 +120,7 @@ class TestBasePeak(unittest.TestCase):
         )
 
     def test_empty_base_class_with_false_input(self):
-        #%%
+        # %%
 
         class EmptyTestChild(metaclass=BasePeak, peak_type="FalsePeak"):
             pass
@@ -132,9 +131,9 @@ class TestBasePeak(unittest.TestCase):
             _error_message_contains(excinfo, "value emptytest for peak_type not in")
         )
 
-    #%%
+    # %%
     def test_base_class_good_with_init_extra_tests(self):
-        #%%
+        # %%
         class TestD1peak(metaclass=BasePeak, debug=True):
             """
             here is docstring of TestD1peak,
@@ -188,7 +187,7 @@ class TestBasePeak(unittest.TestCase):
         #     )
         # )
 
-    #%%
+    # %%
     def test_base_class_good_with_init(self):
         class TestD1peak(metaclass=BasePeak, debug=True):
             """
@@ -211,10 +210,10 @@ class TestBasePeak(unittest.TestCase):
         self.assertIn(_class_str, str(td1))
         # print(td1)
 
-    #%%
+    # %%
 
     def test_base_class_good_with_init_added_method(self):
-        #%%
+        # %%
         class TestD1peakmeta(metaclass=BasePeak, a=2):
             """
             here is docstring of TestD1peak
@@ -244,10 +243,10 @@ class TestBasePeak(unittest.TestCase):
         self.assertIn(_teststr, str(td1m))
         # assert str(td1m) == _teststr
 
-        #%%
+        # %%
 
     def test_base_class_good_with_attributes_and_init(self):
-        #%%
+        # %%
         class NewChildClassAttr(metaclass=BasePeak):
             """New child class for easier definition"""
 
@@ -270,7 +269,7 @@ class TestBasePeak(unittest.TestCase):
         _center_value = nca.peak_model.param_hints["center"]["value"]
         assert _center_value == 2435
         # print('Instance child:', nca)
-        #%%
+        # %%
 
     def test_base_class_good_with_attributes_no_init(self):
         class NewChildClassAttrNoInit(metaclass=BasePeak):
@@ -294,10 +293,10 @@ class TestBasePeak(unittest.TestCase):
         _center_value = ncni.peak_model.param_hints["center"]["value"]
         assert _center_value == 2435
 
-        #%%
+        # %%
 
     def test_base_class_good_with_attributes_init_collision_values(self):
-        #%%
+        # %%
         class NewChildClassInit(metaclass=BasePeak, peak_type="Gaussian"):
             """New child class for easier definition"""
 
@@ -339,11 +338,9 @@ class TestBasePeak(unittest.TestCase):
 
 
 class TestLMfitModelConstructorMethods(unittest.TestCase):
-
     LMfit = LMfitModelConstructorMethods
 
     def test_make_model_from_peak_type_and_name(self):
-
         model = self.LMfit.make_model_from_peak_type_and_name(
             peak_type="Voigt", peak_name="lmfitpeak"
         )
@@ -363,7 +360,7 @@ class TestLMfitModelConstructorMethods(unittest.TestCase):
 # self = TestLMfitModelConstructorMethods()
 
 
-#%%
+# %%
 if __name__ == "__main__":
     unittest.main()
     self = TestBasePeak()

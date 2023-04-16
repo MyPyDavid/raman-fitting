@@ -2,7 +2,7 @@
 
 name: Publish to TestPyPI and PyPI
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Triggers the workflow on push to the master branch
   #push:
@@ -23,50 +23,47 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         # with:
         # fetch-depth: 0
       - name: Fetch all history for all tags and branches
         run: git fetch --prune --unshallow
 
-      - name: Set up python 3.8
-        uses: actions/setup-python@v2
+      - name: Set up python 3.11
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8 
+          python-version: 3.11
 
-      # Installs and upgrades pip, installs other dependencies and installs the package from setup.py
+      # Installs and upgrades pip, installs other dependencies and installs the package from pyproject.toml
       - name: Installs and upgrades pip and installs other dependencies
         run: |
           # Upgrade pip
           python3 -m pip install --upgrade pip
           # Install build deps
-          python3 -m pip install setuptools wheel build
-          python3 -m pip install setuptools-scm
+          python3 -m pip install -U build
           # If requirements.txt exists, install from it
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          
+          python3 -m pip install -r requirements.txt
+
       - name: Builds the package
         run: |
-          # Install the package from setup.py
-          # python3 setup.py sdist bdist_wheel
           # Install package with build
           python3 -m build
-      
+
       - name: Store wheel artifacts
         uses: actions/upload-artifact@v2
         with:
           name: wheel-${{ runner.os }}-${{ runner.python-version }}
           path: dist/*
-          
+
   publish:
-  
+
     name: Publish 📦 to PyPI and TestPyPI
     #if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     needs: build
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Download wheel artifacts
         uses: actions/download-artifact@v2
@@ -81,9 +78,9 @@ jobs:
           path: dist/*
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Check to TestPyPI 
+      - name: Check to TestPyPI
         run: |
-          python3 -m pip install twine
+          python3 -m pip install -U twine
           # Check twine in advance even though gh-action-pypi also does that
           twine check dist/*
         # Upload to TestPyPI

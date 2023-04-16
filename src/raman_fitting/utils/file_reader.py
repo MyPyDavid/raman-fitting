@@ -16,9 +16,9 @@ class FileReader:
         while not ramanshift.any():
             try:
                 ramanshift, intensity_raw = np.loadtxt(
-                    self._filepath, usecols=(0, 1), unpack=True, skiprows=i
+                    self._file_path, usecols=(0, 1), unpack=True, skiprows=i
                 )
-                print(self._filepath, len(ramanshift), len(intensity_raw))
+                print(self._file_path, len(ramanshift), len(intensity_raw))
                 self._skiprows = i
                 self._read_succes = True
             except ValueError:

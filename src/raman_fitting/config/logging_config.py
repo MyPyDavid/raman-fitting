@@ -11,10 +11,11 @@ FORMATTER = logging.Formatter(
 )
 
 
-
 log_format = (
-    "[%(asctime)s] — %(name)s — %(levelname)s —" "%(funcName)s:%(lineno)d—12s %(message)s")
-    # '[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s')
+    "[%(asctime)s] — %(name)s — %(levelname)s —"
+    "%(funcName)s:%(lineno)d—12s %(message)s"
+)
+# '[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s')
 
 # Define basic configuration
 logging.basicConfig(
@@ -23,7 +24,7 @@ logging.basicConfig(
     # Define the format of log messages
     format=log_format,
     # Provide the filename to store the log messages
-    filename=('debug.log'),
+    filename=("debug.log"),
 )
 
 

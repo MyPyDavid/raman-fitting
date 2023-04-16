@@ -1,5 +1,5 @@
 # set base image (host OS)
-FROM python:3.8
+FROM python:3.11
 
 # set the working directory in the container
 WORKDIR /code
@@ -25,4 +25,5 @@ RUN pip install -e  ./
 #COPY src/ .
 
 # command to run on container start
-CMD [ "python", "./raman_fitting/docker/run_make_examples.py" ]
+CMD [ "raman_fitting -M make_examples" ]
+# CMD [ "python", "./raman_fitting/docker/run_make_examples.py" ]

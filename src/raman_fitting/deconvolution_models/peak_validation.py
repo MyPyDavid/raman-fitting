@@ -18,22 +18,21 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from lmfit import Parameters
 
-# _file_parent_name = Path(__file__).parent.name
-# print(__name__,__file__,f'name: {_file_parent_name}')
-
 if __name__ == "__main__":  # or _file_parent_name == 'deconvolution_models':
     # import first_order_peaks
     # import second_order_peaks
     # import normalization_peaks
     from default_peaks import BasePeak
+
+    __package_name__ = __name__
 else:
     from .. import __package_name__
     from .default_peaks.base_peak import BasePeak
 
-    logger = logging.getLogger(__package_name__)
+logger = logging.getLogger(__package_name__)
 
 
-#%%
+# %%
 class PeakValidationWarning(UserWarning):
     pass
 
@@ -71,14 +70,7 @@ class PeakModelValidator:
 
     debug = False
 
-    # standard_model_selection = []
-    # _bad_models = []
-    # _skip_models = []
-    # endwsith = '_peak'
-
     def __init__(self, *args, cmap_options=CMAP_OPTIONS_DEFAULT, **kwargs):
-        # self.model_prefixes = model_prefixes
-        # self._endswith = endwsith
         self.debug = self._set_debug(**kwargs)
         self._cmap_options = cmap_options
 
@@ -97,9 +89,6 @@ class PeakModelValidator:
 
         self.model_dict = self.get_model_dict(self.lmfit_models)
         self.options = self.model_dict.keys()
-
-        # self.options = ()
-        # self.extra_assignments()
 
     def _set_debug(self, **value):
         _debug = self.debug
@@ -136,18 +125,9 @@ class PeakModelValidator:
 
         return _all_subclasses
 
-        # {", ".join(self._standard_modules)}
-        # elif not self._inspect_models:
-        # warn(f'\nNo base models were found in:\n {", ".join([str(i) for i in self._inspect_modules_all])}.\n', NotFoundAnyModelsWarning)
-        # assert self._inspect_models, 'inspect.getmembers found 0 models, change the search parameters for _standard_modules or BASE_PEAK'
-
     def _inspect_modules_for_classes(self):
         """Optional method Inspect other modules for subclasses"""
         pass
-        # self._inspect_modules_all = _all_subclasses
-        # [cl for i in (inspect.getmembers(mod, inspect.isclass)
-        # for mod in self._standard_modules)
-        # for cl in i]
 
     def validation_inspect_models(self, inspect_models: list = []):
         """Validates each member of a list for making a valid model instance"""
@@ -182,12 +162,6 @@ class PeakModelValidator:
     def filter_valid_models(self, value):
         """Optional method for extra filters on valid model selection"""
         return value
-        # self._skipped_models = set(self._bad_models + self._skip_models)
-        # if self.standard_model_selection:
-        # self.selected_models = [i for i in self.valid_models if not i.model_inst.name in self._skipped_models]
-        # if self._endswith:
-        # self.selected_models = [(m, ngr) for m, ngr in self.valid_models
-        # if (i.model_inst.name.endswith(self._endswith) and not i.model_inst.name  in self._skipped_models)]
 
     def sort_selected_models(self, value):
         """Sorting the selected valid models for color assigment etc.."""
@@ -246,7 +220,6 @@ class PeakModelValidator:
     def get_cmap_list(
         lst, cmap_options: Tuple = (), fallback_color: Tuple = ()
     ) -> Tuple:
-
         cmap = [(0, 0, 0, 1) for i in lst]  # black as fallback default color
 
         # set fallback color from class
@@ -256,7 +229,6 @@ class PeakModelValidator:
 
         # set cmap colors from cmap options
         if cmap_options:
-
             try:
                 pltcmaps = [plt.get_cmap(cmap) for cmap in cmap_options]
                 # Take shortest colormap but not
@@ -285,12 +257,9 @@ class PeakModelValidator:
             _m_inst = _arg.model_inst
             _m_inst._modelvalidation = _arg
             _m_inst.color = ", ".join([str(i) for i in cmap_get[n]])
-            # _m_inst._funcname = str(m).split('__main__.')[-1][:-2]
             _m_inst._lenpars = len(_m_inst.peak_model.param_names)
             lmfit_models.append(_m_inst)
         return lmfit_models
-        # self.lmfit_models= sorted(self.lmfit_models, key= lambda x: x._lenpars)
-        # self.lmfit_models = _mod_inst
 
     def add_standard_init_params(self):
         self.standard_init_params = Parameters()
@@ -326,7 +295,6 @@ class PeakModelValidator:
         }
 
     def __getattr__(self, name):
-        # raise AttributeError(f'Chosen name "{name}" not in in options: "{", ".join(self.options)}".')
         try:
             _options = self.__getattribute__("options")
             if name in _options:
@@ -335,11 +303,7 @@ class PeakModelValidator:
                 f'Chosen name "{name}" not in options: "{", ".join(_options)}".'
             )
         except AttributeError:
-            # if 'normalization' in name:
-            # return self.normalization_model()
             raise AttributeError(f'Chosen name "{name}" not in attributes')
-        # else:
-        # raise AttributeError(f'Chosen name "{name}" not in in options: "{", ".join(self.options)}".')
 
     def normalization_model(self):
         pass  # IDEA separate peaks in groups
@@ -347,9 +311,7 @@ class PeakModelValidator:
     def __iter__(self):
         for mod_inst in self.lmfit_models:
             yield mod_inst
-        # self.params_set = set([a for m in self.lmfit_models for a in m[1].param_names])
 
-    #    lmfit_models = [Model(i.func,name=i.name) for i in model_selection]
     def __repr__(self):
         _repr = "Validated Peak model collection"
         if self.selected_models:

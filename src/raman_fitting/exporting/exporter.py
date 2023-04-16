@@ -102,7 +102,6 @@ class Exporter:
         }
 
         for modname_2, fitres_2 in _2nd.items():
-
             self.export_xls_from_spec(fitres_2)
             pars2.append(fitres_2.FitParameters)
             for modname_1, fitres_1 in _1st.items():

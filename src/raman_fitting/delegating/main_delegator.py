@@ -18,34 +18,13 @@ from raman_fitting.processing.spectrum_constructor import (
     SpectrumDataLoader,
 )
 
-# from processing.cleaner import SpectrumCleaner
 from raman_fitting.processing.spectrum_template import SpectrumTemplate
 from raman_fitting.interfaces.cli import RUN_MODES
 
 if __name__ == "__main__":
     pass
 
-
-# else:
-#     # from .. import __package_name__
-#     from ..cli.cli import RUN_MODES
-#     from ..config import config
-#     from ..config.filepaths import get_directory_paths_for_run_mode
-#     from ..deconvolution_models.fit_models import Fitter
-#     from ..deconvolution_models.base_model import InitializeModels
-#     from ..export.exporter import Exporter
-#     from ..indexer.indexer import MakeRamanFilesIndex
-#     from ..processing.spectrum_constructor import (
-#         SpectrumDataCollection,
-#         SpectrumDataLoader,
-#     )
-
-#     # from processing.cleaner import SpectrumCleaner
-#     from ..processing.spectrum_template import SpectrumTemplate
-
 logger = logging.getLogger(__name__)
-# from raman_fitting.indexer.indexer import OrganizeRamanFiles
-# from raman_fitting.processing.spectrum_constructor import SpectrumDataLoader, SpectrumDataCollection
 
 
 class prdError(Exception):
@@ -66,12 +45,7 @@ class MainDelegator:
     Creates plots and files in the config RESULTS directory.
     """
 
-    # DEFAULT_RUN_MODE = {'run_mode' : 'normal'}
-    # _kwargs = {}
-
     def __init__(self, run_mode="normal", **kwargs):
-
-        # print(f'{self} kwargs:', kwargs)
         self.kwargs = kwargs
         self._cqnm = __class__.__qualname__
 
@@ -87,19 +61,13 @@ class MainDelegator:
         self.INDEX_FILE = self.dest_dirs["INDEX_FILE"]
 
         self.spectrum = SpectrumTemplate()
-        # self.index = RamanIndex
 
         self.run_delegator(**self.kwargs)
 
     def index_delegator(self, **kwargs):
-
         RF_index = MakeRamanFilesIndex(
             **kwargs,
         )
-        # run_mode=self.run_mode,
-        # RESULTS_DIR=self.RESULTS_DIR,
-        # DATASET_DIR=self.DATASET_DIR,
-        # INDEX_FILE=self.INDEX_FILE,
         logger.info(f"index_delegator index prepared with len {len(RF_index)}")
         return RF_index
 
@@ -134,7 +102,6 @@ class MainDelegator:
             if self.run_mode in ("normal", "make_examples"):
                 if not self.index.empty:
                     logger.debug(f"{self._cqnm}. starting run generator.")
-                    # self.index
 
                     self._run_gen(**self.kwargs)
                 else:
@@ -186,17 +153,15 @@ class MainDelegator:
         sgrp_grpby = self.index.groupby(self.spectrum.grp_names.sGrp_cols[0])
         logger.info(f"{self._cqnm} _run_gen starting: {kwargs}")
         _mygen = self._generator(sgrp_grpby, **kwargs)
-        Exporter(self.export_collect)  # clean up and 
+        Exporter(self.export_collect)  # clean up and
         logger.info(
-                    f"\n{self._cqnm} run finished.\n Results saved in {self.RESULTS_DIR}"
-                )
+            f"\n{self._cqnm} run finished.\n Results saved in {self.RESULTS_DIR}"
+        )
 
     def _generator(self, sgrp_grpby, **kwargs):
-        # _sgrpgen = self.sample_group_gen()
         export_collect = []
         for sgrpnm, sgrp_grp in sgrp_grpby:
             sID_grpby = sgrp_grp.groupby(list(self.spectrum.grp_names.sGrp_cols[1:]))
-            # _sID_gen = self._sID_gen(grpnm, sgrp_grp)
             logger.info(f"{self._cqnm} _generator starting group: {sgrpnm}")
             exporter_sample = None
             for sIDnm, sIDgrp in sID_grpby:
@@ -204,15 +169,11 @@ class MainDelegator:
                     exporter_sample = self.simple_process_sample_wrapper(
                         sgrpnm, sIDnm, sIDgrp, **kwargs
                     )
-                    # yield from self.simple_process_sample_wrapper(_sID_gen, **kwargs)
-                    # starmap(process_sample_wrapper, args_for_starmap )
-                    # args_for_starmap = zip(repeat(self.process_sample), _sID_gen, repeat(kwargs))
                 except GeneratorExit:
                     logger.warning(f"{self._cqnm} _generator closed.")
                     return ()
                 except Exception as e:
                     logger.warning(f"{self._cqnm} _generator exception: {e}")
-                    # return ()
                 export_collect.append(exporter_sample)
         return export_collect
 
@@ -220,8 +181,6 @@ class MainDelegator:
         pass
 
     def simple_process_sample_wrapper(self, *sID_args, **kwargs):
-        # if _gen:
-        # for sID_args in _gen:
         logger.info(
             f"{self._cqnm} starting simple process_sample_wrapper args:\n\t - {sID_args[0]}\n\t - {kwargs.keys()}"
         )
@@ -236,10 +195,6 @@ class MainDelegator:
                     f"{self._cqnm} simple process_sample_wrapper appending export:\n\t - {exporter_sample}"
                 )
                 self.export_collect.append(exporter_sample)
-        # except StopIteration:
-        # logger.info(
-        #     f"{self._cqnm} _gen StopIteration for simple process wrapper "
-        # )
         except Exception as e:
             logger.warning(
                 f"{self._cqnm} simple process_sample_wrapper exception on call process sample: {e}"
@@ -264,13 +219,8 @@ class MainDelegator:
         logger.info(
             f"{self._cqnm} process_sample called:\n\t - {sgrpnm}, {sIDnm}\n\t - {kwargs.keys()}"
         )
-        # self = args[0]
-        # args = args[]
-        # grpnm, nm, sID_grp = args
 
         models = kwargs.get("models", None)
-
-        # sGr, (sID, sDate) = sgrpnm, nm # just for developer
 
         sGr_out = dict(zip(self.spectrum.grp_names.sGrp_cols, (sgrpnm,) + sIDnm))
         export_info_out = add_make_sample_group_destdirs(sID_grp)
@@ -286,7 +236,6 @@ class MainDelegator:
             spectrum_data = SpectrumDataLoader(
                 file=meannm[-1], run_kwargs=_spectrum_position_info_kwargs, ovv=meangrp
             )
-            # spectrum_data.plot_raw()
             sample_spectra.append(spectrum_data)
         if sample_spectra:
             spectra_collection = SpectrumDataCollection(sample_spectra)
@@ -302,22 +251,8 @@ class MainDelegator:
     def __repr__(self):
         return f'Maindelegator: run_mode = {self.run_mode}, {", ".join([f"{k} = {str(val)}" for k,val in self.kwargs.items()])}'
 
-        # _count = 0
-        # while True:
-        #     try:
-        #         next(_mygen)
-        #         _count += 1
-        #     except StopIteration:
-        #         logger.debug(
-        #             f"{self._cqnm} _run_gen StopIteration after {_count } steps"
-        #         )
-        #         # print('StopIteration for mygen')
-        #         break
-        #     finally:
-
 
 def add_make_sample_group_destdirs(sample_grp: pd.DataFrame):
-
     dest_grp_dir = Path(
         sample_grp.DestDir.unique()[0]
     )  # takes one destination directory from Sample Groups
@@ -345,12 +280,10 @@ def process_sample_wrapper(fn, *args, **kwargs):
         exp_sample = None
         try:
             exp_sample = fn(*args, **kwargs)
-            # self.export_collect.append(exp_sample)
         except Exception as e:
             logger.error(
                 f"process_sample_wrapper process_sample_wrapper exception on call {fn}: {e}"
             )
-            # self._failed_samples.append((e, args, kwargs))
             exp_sample = (e, args, kwargs)
 
         return exp_sample

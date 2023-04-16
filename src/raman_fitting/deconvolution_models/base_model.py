@@ -1,25 +1,15 @@
-""" The member of the validated collection of BasePeaks are here assembled into fitting Models"""
-
+""" The members of the validated collection of BasePeaks are assembled here into fitting Models"""
 import logging
 from warnings import warn
 
 from lmfit import Model
 
-# from .. import __package_name__
+from raman_fitting.deconvolution_models.peak_validation import PeakModelValidator
 
 logger = logging.getLogger(__name__)
 
-
 _SUBSTRATE_PEAK = "Si1_peak"
 
-from raman_fitting.deconvolution_models.peak_validation import PeakModelValidator
-
-# if __name__ == "__main__":
-#     pass
-# else:
-#     from .peak_validation import PeakModelValidator
-
-#%%
 
 # ====== InitializeMode======= #
 class InitializeModels:
@@ -45,7 +35,6 @@ class InitializeModels:
 
         self.all_models = {}
         self.construct_standard_models()
-        # self.normalization_model = self.peak_collection.normalization
 
     def get_peak_collection(self, func):
         try:
@@ -60,7 +49,6 @@ class InitializeModels:
         return peak_collection
 
     def construct_standard_models(self):
-
         _models = {}
         _models_1st = {
             f"1st_{key}": BaseModel(
@@ -118,18 +106,12 @@ class BaseModel:
         peak_collection=PeakModelValidator(),
         substrate_peak_name: str = _SUBSTRATE_PEAK,
     ):
-
         self.peak_collection = peak_collection
         self.peak_options = self.set_peak_options()
         self.substrate_peak_name = substrate_peak_name
-        # self.include_substrate = include_substrate
-        # has_substrate: bool = False,
         self._substrate_name = self.substrate_peak_name.split(self._SUFFIX)[0]
         self.model_name = model_name
-
         self.lmfit_model = self.model_constructor_from_model_name(self.model_name)
-        # self.model_constructor()
-        # self.peak_dict = self.peak_collection.get_dict()
 
     def set_peak_options(self):
         _opts = {}
@@ -159,7 +141,6 @@ class BaseModel:
                 _ch = False
         if _ch:
             self.lmfit_model = self.model_constructor_from_model_name(name)
-            # self._equalize_name_choice(name)
             self._model_name = name
 
     @property
@@ -172,18 +153,9 @@ class BaseModel:
 
     @has_substrate.setter
     def has_substrate(self, value):
-        # _hasattr_model = hasattr(self, 'model')
         raise AttributeError(
             f'{self.__class__.__name__} this property can not be set "{value}", use add_ or remove_ substrate function.'
         )
-        # _ch = True
-        # if hasattr(self,'_include_substrate'):
-        #     if _choice == self._include_substrate:
-        #         _ch = False
-        # if _ch:
-        #     self._equalize_name_choice(None, _choice)
-        #     self._include_substrate = _choice
-        # self._include_substrate = _choice
 
     def name_contains_substrate(self, _name):
         """Checks if name contains the substrate name, returns bool"""
@@ -207,7 +179,6 @@ class BaseModel:
                 )  # remove substr name
                 if _new_name != _name:
                     self.model_name = _new_name
-        # return _name
 
     def add_substrate(self):
         if hasattr(self, "model_name"):
@@ -216,7 +187,6 @@ class BaseModel:
                 _new_name = _name + f"+{self._substrate_name}"  # add substr name
                 if _new_name != _name:
                     self.model_name = _new_name
-        # return _name
 
     def validate_model_name_input(self, value):
         """checks if given input name is valid"""
@@ -268,7 +238,6 @@ class BaseModel:
         elif len(_peak_models) == 1:
             _lmfit_model = _peak_models[0].peak_model
         elif len(_peak_models) >= 2:
-            # _eval_model_name = ' + '.join([i[0] for i in _peak_models])
             _composite_model = None
             for _pkmod in _peak_models:
                 _mod = _pkmod.peak_model
@@ -292,7 +261,6 @@ class BaseModel:
         return _lmfit_model
 
     def __repr__(self):
-
         _choice = "no" if not self.has_substrate else "yes"
         _txt = f"{self.model_name}, substrate ({_choice}): "
         if hasattr(self, "lmfit_model"):
@@ -300,42 +268,3 @@ class BaseModel:
         else:
             _txt += "empty model"
         return _txt
-
-    # def _0equalize_from_model_name(self,_name):
-    #     pass
-    # def _0equalize_from_incl_substrate(self,_choice):
-    #     pass
-    # def _0equalize_name_choice(self, _name, _choice):
-    #     _change = False
-    #     if _choice != None and _name == None and hasattr(self, '_model_name'):
-    #         # change model name when choice is set
-    #         _name = self._add_or_rem_substrate_to_model_name(_choice, self._model_name)
-    #         if _name != self._model_name:
-    #             _change = True
-    #             self._model_name = _name
-    #     if _name != None and _choice == None and hasattr(self, '_include_substrate'):
-    #         # change include subtrate choice when model name is set
-    #         _name_contains = self._name_contains_substrate(_name)
-    #         if _name_contains != self._include_substrate:
-    #             _change = True
-    #             self._include_substrate = _name_contains
-    #         if hasattr(self,'_model_name'):
-    #             _change = bool(_name != self._model_name)
-    #     # if _name != None and hasattr(self, '_model_name')
-    #     print(f'Change {_change}, name {_name}, choice {_choice}')
-    #     if _change  and _name:
-    #         self.lmfit_model = self.model_constructor_from_model_name(_name)
-    #     elif not _choice and _contains:
-    #         _substr_name = self.substrate_peak_name.split(self._SUFFIX)[0]
-    #         warn(f'\n{self.__class__.__name__} include substrate is set to {_choice} so "{_substr_name}" is removed from {_name}.\n',BaseModelWarning)
-    #         _name = '+'.join(i for i in _name.split('+') if i not in _substr_name)  # remove substr name
-
-    # def _0add_or_rem_substrate_to_model_name(self, _choice, _name):
-    #     _substr_name = self.substrate_peak_name.split(self._SUFFIX)[0]
-    #     _contains = self._name_contains_substrate(_name)
-    #     if _choice and not _contains:
-    #         _name = _name+f'+{_substr_name}'  # add substr name
-    #     elif not _choice and _contains:
-    #         warn(f'\n{self.__class__.__name__} include substrate is set to {_choice} so "{_substr_name}" is removed from {_name}.\n',BaseModelWarning)
-    #         _name = '+'.join(i for i in _name.split('+') if i not in _substr_name)  # remove substr name
-    #     return _name

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 from raman_fitting.config import filepath_settings as config
 
-#%%
+# %%
 
 
 def get_directory_paths_for_run_mode(run_mode: str = "", **kwargs) -> Dict:
@@ -51,13 +51,11 @@ def get_directory_paths_for_run_mode(run_mode: str = "", **kwargs) -> Dict:
         logger.warning(f"Run mode {run_mode} not recognized. Exiting...")
 
     INDEX_FILE = RESULTS_DIR / config.INDEX_FILE_NAME
-    DB_FILE = RESULTS_DIR / config.DB_FILE_NAME
 
     dest_dirs = {
         "RESULTS_DIR": Path(RESULTS_DIR),
         "DATASET_DIR": Path(DATASET_DIR),
         "INDEX_FILE": Path(INDEX_FILE),
-        "DB_FILE": Path(DB_FILE),
     }
 
     if kwargs:

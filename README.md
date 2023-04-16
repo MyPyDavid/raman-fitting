@@ -5,17 +5,14 @@
 
 <p align="center" width="100%">
   <img src="https://user-images.githubusercontent.com/13996213/140090631-ed7c9f51-7630-49b6-9081-fb0675a5a4c9.png" alt="raman_cover_img"  width="200px" height="100px"/>
-</p> 
+</p>
 
 
 # raman-fitting
  A Python framework that performs a deconvolution on typical parts of interest on the spectrum of carbonaceous materials.
  The deconvolutions are done with models which are composed of collections of lineshapes or peaks that are typically assigned to these spectra in scientific literature.
 
-
-
-
-In batch processing mode this framework will index raman data files in a chosen folder.
+In batch processing mode this package will index the raman data files in a chosen folder.
 First, it will try to extract a sample ID and position number from the filenames and create an index of the files in a dataframe. Over this index a preprocessing, fitting and exporting loop will start.
 There are several models, each with a different combination of typical peaks, used for fitting. Each individual typical peak is defined as a class in the deconvolution/default_peaks folder with some added literature reference in the docstring. Here, the individual peak parameter settings can also be easily adjusted for initial values, limits, shape (eg. Lorentzian, Gaussian and Voigt) or be fixed at certain initial values.
 Export is done with plots and excel files for the spectral data and fitting parameters for further analysis.
@@ -26,13 +23,13 @@ Export is done with plots and excel files for the spectral data and fitting para
 https://github.com/MyPyDavid/raman-fitting/wiki
 
 
-### Installation
+### Set up virtual environment and install the package
 
 A release is now available on PyPI, installation can be done with these commands in a terminal.
 ``` bash
 # Setting up and activating a virtual environment
-python -m venv testenv
-source /testenv/bin/activate
+python -m venv env # python 3.11 is recommended
+source env/bin/activate
 
 # Installation from PyPI
 python -m pip install raman_fitting
@@ -69,7 +66,12 @@ raman_fitting.make_examples()
 ```
 This test run should yield the resulting plots and files in the following folder. Where home means the local user home directory depending on the OS.
 ``` bash
+# Linux
 home/.raman_fitting/example_results
+
+# For Other OSs, log messages will show:
+# Results saved in ...
+
 ```
 
 #### Fitting your own datafiles
@@ -104,13 +106,13 @@ sample2-100_3.txt => sampleID = 'sample2-100', position = 3
 ```
 ### Version
 
-The current version is v0.6.18
+The current version is v0.7.0
 
 ### Dependencies
 
-- python >= 3.7
-- lmfit >= 1.0.0
-- pandas >= 1.0.5
-- scipy >= 1.4.1
-- matplotlib >= 3.1.2
-- numpy >= 1.19.2
+- python >= 3.11
+- lmfit >= 1.2.0
+- pandas >= 2.0.0
+- scipy >= 1.10.1
+- matplotlib >= 3.7.2
+- numpy >= 1.24.2

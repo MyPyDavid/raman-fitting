@@ -5,7 +5,10 @@ else:
 
 __all__ = ["D4D4_peak", "D1D1_peak", "GD1_peak", "D2D2_peak"]
 
+
 # ====== SECOND ORDER PEAKS ======= #
+
+
 class D4D4_peak(metaclass=BasePeak):
     """
     2nd order D4 peak
@@ -45,7 +48,6 @@ class GD1_peak(metaclass=BasePeak):
     2nd order G+D(1) peak
     """
 
-    #        D2D2_mod = VoigtModel(prefix='D2D2_')
     def __init__(self):
         self.peak_type = "Lorentzian"
         self.peak_name = "GD1"
@@ -61,8 +63,6 @@ class D2D2_peak(metaclass=BasePeak):
     2nd order D2 peak, aka 2D2
     """
 
-    #        D2D2_mod = VoigtModel(prefix='D2D2_')
-
     def __init__(self):
         self.peak_type = "Lorentzian"
         self.peak_name = "D2D2"
@@ -71,6 +71,3 @@ class D2D2_peak(metaclass=BasePeak):
             "sigma": {"value": 60, "min": 20, "max": 200},
             "amplitude": {"value": 1, "min": 1e-03, "max": 100},
         }
-
-
-# ====== SECOND ORDER PEAKS ======= #

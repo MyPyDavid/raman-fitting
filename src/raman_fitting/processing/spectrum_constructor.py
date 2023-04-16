@@ -36,6 +36,7 @@ class SpectrumDataLoader:
     A sequence of steps is performed on the raw data from SpectrumReader.
     The steps/methods are: smoothening filter, despiking and baseline correction.
     """
+
     _fields = ("ramanshift", "intensity")
     file: Path = field(default=Path(Path.cwd().joinpath("empty.txt")))
     spectrum_length: int = field(default=0, init=False)
@@ -44,7 +45,6 @@ class SpectrumDataLoader:
     run_kwargs: Dict = field(default_factory=dict, repr=False)
 
     def __post_init__(self):
-
         self._qcnm = self.__class__.__qualname__
 
         self.register = {}  # this stores the data of each method as they are performed
@@ -127,7 +127,6 @@ class SpectrumDataLoader:
         self.clean_data = _baseline_corrected.norm_data
 
     def set_clean_data_df(self):
-
         self.clean_df = {
             k: pd.DataFrame(
                 {"ramanshift": val.ramanshift, f"int_{self.SamplePos}": val.intensity}
@@ -253,7 +252,6 @@ class SpectrumDataCollection:
         _speclst = []
         _posmean_lbl_base = f'int_{self.info.get("SampleID")}_mean'
         for wndwnm, data in self.prep_clean_data.items():
-
             _merge_df = pd.DataFrame()
             _pos_lbl_lst = []
 

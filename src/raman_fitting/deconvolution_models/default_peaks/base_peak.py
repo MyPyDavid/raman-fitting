@@ -1,5 +1,3 @@
-# from collections import OrderedDict
-
 import inspect
 from functools import partialmethod
 from keyword import iskeyword as _iskeyword
@@ -7,23 +5,14 @@ from warnings import warn
 
 from lmfit import Parameter, Parameters
 
-# import operator
-# from abc import ABC, abstractmethod
 from lmfit.models import GaussianModel, LorentzianModel, Model, VoigtModel
 
-# from lmfit import CompositeModel
-
-# print('name: ',__name__,'file: ', __file__, __package__)
-
-if __name__ in ("__main__"):
-    from raman_fitting.utils.coordinators import FieldsTracker as FieldsTracker
+if __name__ in ("__main__",):
+    from raman_fitting.utils.coordinators import FieldsTracker
 else:
     from ...utils.coordinators import FieldsTracker
 
-# __all__ = [Base]
 
-
-#%%
 class BasePeakWarning(UserWarning):  # pragma: no cover
     pass
 
@@ -96,28 +85,19 @@ class BasePeak(type):
 
     # ('value', 'vary', 'min', 'max', 'expr') # optional
     default_settings = {"gamma": {"value": 1, "min": 1e-05, "max": 70, "vary": False}}
-    # _intern = list(super.__dict__.keys())+['__module__','_kwargs']
     subclasses = []
 
     _debug = False
 
-    # def __call__(cls, *args, **kwargs):
-    #     print(f'Request received to create an instance of class: {cls}...')
     def __prepare__(name, bases, **kwargs):
         """prepare method only for debugging"""
         if "debug" in kwargs.keys():
             if kwargs.get("debug", False):
                 print(f"__prepare ,name {name}, bases{bases}, kwargs {kwargs}")
-        # kwargs.update({'debug': False})
         return kwargs
 
     def __new__(mcls, name, *args, **kwargs):
-
-        # print(
-        #             f"Called __new ,_args {_}"
-        #         )
         if len(args) == 2:
-            # default arg __new__ input
             bases, cls_dict = args
         else:
             bases, cls_dict = (), {}
@@ -130,10 +110,6 @@ class BasePeak(type):
             print(
                 f"Called __new ({mcls} ),name {name}, bases{bases}, cls_dict {cls_dict.keys()} kwargs {kwargs}"
             )
-        # print(f'vars: {vars(cls)}')
-
-        # From namdedtuple source:
-        # test input arguments names
         for name_ in [name] + list(kwargs.keys()):
             if type(name_) is not str:
                 raise TypeError("Class name and keywords names must be strings")
@@ -195,7 +171,6 @@ class BasePeak(type):
             cls_init_part_obj = partialmethod(cls_dict["__init__"])
 
             sig = inspect.signature(cls_dict["__init__"])
-            # breakpoint()
             _cls_init_part_obj_funcs = {
                 k: val
                 for k, val in cls_dict.items()
@@ -235,7 +210,6 @@ class BasePeak(type):
 
         if fco.status:
             pass
-            # print(f'Good class definition all values for fields are present: {fco.results}', BasePeakWarning)
         else:
             warn(
                 f"Definition for {name} is not complete, please redefine {fco.missing} in class",
@@ -260,13 +234,9 @@ class BasePeak(type):
         return cls_object
 
     def __init__(self, name, *args, **kwargs):
-        # bases, cls_dict removed and kept only *args
-        # print(f"__init_ base called ({self} with name '{name}' args {args} and kwargs {kwargs})")
         # subclassess are appended here
         if self not in self.subclasses:
             self.subclasses.append(self)
-        # super().__init__(name)
-        # print(f"__init_ super called ({self.__init__})")
 
     @classmethod
     def _cleanup_init_dict(cls, _dict):
@@ -284,7 +254,6 @@ class BasePeak(type):
                 for syn in val
                 if syn in _dk
             ]  # synonym field match
-            # print(_dk, _kmatch,_synmatch)
             if _kmatch:
                 _result.update({i[0]: _dict[i[1]] for i in _kmatch})
             elif not _kmatch and _synmatch:
@@ -297,15 +266,12 @@ class BasePeak(type):
         _other_methods = [
             i for i in dir(cls) if not i.startswith("_") and not i == "mro"
         ]
-        # and not hasattr(cls_object, i)]
         for method in _other_methods:
-            # print(f'__new setting method {method}')
             _mcls_obj = getattr(cls, method)
             if method.endswith("__") and not method.startswith("__"):
                 method = f"__{method}"
 
             if not isinstance(_mcls_obj, property):
-                # print(f'__new setting {method} on {_mcls_obj} is callable')
                 setattr(cls_object, method, _mcls_obj)
         return cls_object
 
@@ -321,7 +287,6 @@ class BasePeak(type):
             raise TypeError(f'The value "{value}" is not a string.')
         value_ = None
         if any([value.upper() == i.upper() for i in self.PEAK_TYPE_OPTIONS]):
-            # self.type_to_model_chooser(value)
             value_ = value
         elif any([i.upper() in value.upper() for i in self.PEAK_TYPE_OPTIONS]):
             _opts = [i for i in self.PEAK_TYPE_OPTIONS if i.upper() in value.upper()]
@@ -347,7 +312,6 @@ class BasePeak(type):
         if value_:
             self._peak_type = value_
             self.fco.store("user_input", "peak_type", value)
-            # self.set_peak_model_from_fields()
             self.peak_model = self.create_peak_model()
 
     @property
@@ -372,7 +336,6 @@ class BasePeak(type):
         _peak_model = None
         if self.fco.status:
             if all(hasattr(self, field) for field in self._fields):
-
                 try:
                     create_model_kwargs = dict(
                         peak_name=self.peak_name,
@@ -387,7 +350,6 @@ class BasePeak(type):
                         **create_model_kwargs
                     )
                     self.create_model_kwargs = create_model_kwargs
-                    # model = self.make_model_and_set_param_hints(prefix_, peak_type_, param_hints_)
                 except Exception as e:
                     print(f"try make models:\n{self}, \n\t {e}")
             else:
@@ -400,7 +362,6 @@ class BasePeak(type):
     @property
     def param_hints(self):
         """This property is dict of dicts and sets the initial values for the parameters"""
-        # if hasattr(self, '_peak_model'):
         if hasattr(self, "_param_hints"):
             if isinstance(self._param_hints, Parameters):
                 return self._param_hints
@@ -411,7 +372,6 @@ class BasePeak(type):
 
     @param_hints.setter
     def param_hints(self, value, **kwargs):
-        # print(f'paramhints: val:{value},\nkw:{kwargs}')
         if isinstance(value, Parameters):
             param_hints_ = value
         else:
@@ -420,7 +380,6 @@ class BasePeak(type):
                 dict_ = {**dict_, **value}
             if kwargs:
                 dict_ = {**dict_, **kwargs}
-            # print(f'paramhints: {self},\n {dict_}')
             param_hints_ = LMfitModelConstructorMethods.param_hints_constructor(
                 param_hints=dict_, default_settings=self.default_settings
             )
@@ -442,10 +401,8 @@ class BasePeak(type):
         if len(value) < maxlen:
             prefix_set = value + "_"
             self._peak_name = value
-            # print(f"peak_name set:{value}")
             self.fco.store("user_input", "peak_name", value)
             self.peak_model = self.create_peak_model()
-            # self.set_peak_model_from_fields()
         else:
             raise ValueError(
                 f'The value "{value}" for peak_name is too long({len(value)}) (max. {maxlen}).'
@@ -480,14 +437,14 @@ class BasePeak(type):
             print(f"No model set for: {self}")
 
 
-#%%
+# %%
 
-#%%
+
+# %%
 # LMfitModelConstructorMethods.create_peak_model_from_name_type_param_hints(peak_model= new.peak_model)
 # new.peak_name
-#%%
+# %%
 class LMfitModelConstructorMethods:
-
     PARAMETER_ARGS = inspect.signature(Parameter).parameters.keys()
 
     @classmethod
@@ -605,11 +562,9 @@ class LMfitModelConstructorMethods:
                             for pn in cls.PARAMETER_ARGS
                             if getattr(par, pn, None)
                         }
-                        # _par_hint_dict = {k: val for k, val in _par_hint_dict.items() if val}
                         model.set_param_hint(**_par_hint_dict)
                     except Exception as e:
                         _error += f"Error in make_model_hints, check param_hints for {pname} with {par}, {e}"
-                # return model
             except Exception as e:
                 _error += f"Error in make_model_hints, check param_hints \n{e}"
         else:
@@ -617,6 +572,3 @@ class LMfitModelConstructorMethods:
         if _error:
             warn("Errors found in setting of param hints: {_error}", BasePeakWarning)
         return model
-
-
-#%%
