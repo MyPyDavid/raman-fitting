@@ -2,6 +2,7 @@ import logging
 import unittest
 import warnings
 
+import raman_fitting
 from raman_fitting.utils.coordinators import FieldsTracker, FieldsTrackerWarning
 
 logger = logging.getLogger(__name__)

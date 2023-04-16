@@ -6,7 +6,7 @@ import pytest
 from lmfit import Model
 
 # from raman_fitting.deconvolution_models import first_order_peaks
-import raman_fitting
+# import raman_fitting
 from raman_fitting.deconvolution_models.default_peaks.base_peak import (
     BasePeak,
     BasePeakWarning,
