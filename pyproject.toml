@@ -70,7 +70,7 @@ testpaths = [
 ]
 
 [tool.bumpversion]
-current_version = "0.6.18"
+current_version = "0.7.0"
 commit = true
 commit_args = "--no-verify"
 tag = true
