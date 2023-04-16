@@ -14,15 +14,18 @@ try:
     from ._version import __version__
 except ImportError:
     # -- Source mode --
-    # use setuptools_scm to get the current version from src using git
-    from setuptools_scm import get_version as _gv
-    from os import path as _path
+    try:
+        # use setuptools_scm to get the current version from src using git
+        from setuptools_scm import get_version as _gv
+        from os import path as _path
 
-    __version__ = _gv(_path.join(_path.dirname(__file__), _path.pardir))
-
-
-from raman_fitting.config import filepath_settings
-from raman_fitting.config import logging_config
+        __version__ = _gv(_path.join(_path.dirname(__file__), _path.pardir))
+    except ModuleNotFoundError:
+        __version__ = "importerr_modulenotfound_version"
+    except Exception as e:
+        __version__ = "importerr_exception_version"
+except Exception as e:
+    __version__ = "catch_exception_version"
 
 # VERSION_PATH = config.PACKAGE_ROOT / 'VERSION.txt'
 # with open(VERSION_PATH, 'r') as version_file:
@@ -54,8 +57,9 @@ logging.basicConfig(
 
 formatter = logging.Formatter(log_format)
 # logger.setLevel(logging.DEBUG)
-# from raman_fitting.config import logging_config
-# logger.addHandler(logging_config.get_console_handler())
+from raman_fitting.config import logging_config
+
+logger.addHandler(logging_config.get_console_handler())
 # logger.propagate = False
 
 # create console handler
