@@ -1,32 +1,19 @@
 """ Indexer for raman data files """
-import hashlib
-from typing import List
-
-# get_directory_paths_for_run_mode
-# from .index_selection import index_selection
 import logging
-import sys
 from pathlib import Path
+import sys
+from typing import List
 
 import pandas as pd
 
 from raman_fitting.config.filepath_helper import get_directory_paths_for_run_mode
-
-# parse_filepath_to_sid_and_pos
 from raman_fitting.indexing.filename_parser import index_dtypes_collection
 from raman_fitting.indexing.filename_parser_collector import make_collection
-
-# from raman_fitting.utils._dev_sqlite_db import df_to_db_sqlalchemy
-
-# from .. import __package_name__
-
 
 logger = logging.getLogger(__name__)
 logger.propagate = False
 
 __all__ = ["MakeRamanFilesIndex"]
-
-# %%
 
 
 class MakeRamanFilesIndex:
@@ -37,20 +24,10 @@ class MakeRamanFilesIndex:
 
     """
 
-    # index_file_sample_cols = {'FileStem': 'string',
-    #                           'SampleID': 'string',
-    #                           'SamplePos': 'int64',
-    #                           'SampleGroup': 'string',
-    #                           'FilePath': 'string')
-    # index_file_stat_cols = ('FileCreationDate' , 'FileCreation','FileModDate', 'FileMod', 'FileHash')
-    # INDEX_FILE_NAME = 'index.csv'
     debug = False
 
     table_name = "ramanfiles"
 
-    # RESULTS_DIR = config.RESULTS_DIR,
-    #              DATASET_DIR = config.DATASET_DIR,
-    #              INDEX_FILE = config.INDEX_FILE,
     def __init__(
         self, force_reload=True, run_mode="normal", dataset_dirs=None, **kwargs
     ):
@@ -67,7 +44,6 @@ class MakeRamanFilesIndex:
         for k, val in self.dataset_dirs.items():
             if isinstance(val, Path):
                 setattr(self, k, val)
-                # if val.is_dir() or val.is_file():
 
         self.raman_files = self.find_files(data_dir=self.DATASET_DIR)
         self.index = pd.DataFrame()
@@ -163,8 +139,6 @@ class MakeRamanFilesIndex:
 
             _dtypes = index.dtypes.to_frame("dtypes")
             _dtypes.to_csv(self._dtypes_filepath())
-
-            # self.save_merge_to_db(DB_filepath, index, self.table_name)
 
             logger.info(
                 f"{self._cqnm} Succesfully Exported Raman Index file to:\n\t{self.INDEX_FILE}\nwith len({len(index)})."
@@ -357,5 +331,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # print(getattr(__file__, 'testdt'))
     RamanIndex = main()

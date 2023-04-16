@@ -58,35 +58,5 @@ RESULTS_DIR = PACKAGE_HOME / "results"
 # Optional local configuration file
 LOCAL_CONFIG_FILE = PACKAGE_HOME / "local_config.py"
 
-# ADAPT to your own configurations
-if 0:  # pragma: no cover
-    # IDEA implement config file handling
-    # LOCAL_CONFIG_FILE.is_file():
-    try:
-        # PACKAGE_ROOT, MODEL_DIR are not locally configurated
-        from .local_config import DATASET_DIR, RESULTS_DIR
-
-        logger.info(
-            " Importing settings from local config...",
-            "\n",
-            f"RESULTS DIR : {RESULTS_DIR}",
-            "\n",
-            "\n",
-            f"DATASET DIR : {DATASET_DIR}",
-            "\n",
-            f"From file: {LOCAL_CONFIG_FILE}",
-        )
-
-    except Exception as e:
-        logger.warning(
-            f"Failed importing settings from local config...{LOCAL_CONFIG_FILE} because {e}"
-        )
-
 # Storage file of the index
 INDEX_FILE_NAME = f"{__package_name__}_index.csv"
-DB_FILE_NAME = f"{__package_name__}_sqlite.db"
-# INDEX_FILE = RESULTS_DIR / INDEX_FILE_NAME
-
-# import configparser
-# config = configparser.ConfigParser()
-# config['DEFAULT'] = {'A': 1}

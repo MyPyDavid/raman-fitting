@@ -1,25 +1,14 @@
-""" The member of the validated collection of BasePeaks are here assembled into fitting Models"""
-
+""" The members of the validated collection of BasePeaks are assembled here into fitting Models"""
 import logging
 from warnings import warn
 
 from lmfit import Model
 
-# from .. import __package_name__
+from raman_fitting.deconvolution_models.peak_validation import PeakModelValidator
 
 logger = logging.getLogger(__name__)
 
-
 _SUBSTRATE_PEAK = "Si1_peak"
-
-from raman_fitting.deconvolution_models.peak_validation import PeakModelValidator
-
-# if __name__ == "__main__":
-#     pass
-# else:
-#     from .peak_validation import PeakModelValidator
-
-# %%
 
 
 # ====== InitializeMode======= #
@@ -46,7 +35,6 @@ class InitializeModels:
 
         self.all_models = {}
         self.construct_standard_models()
-        # self.normalization_model = self.peak_collection.normalization
 
     def get_peak_collection(self, func):
         try:
@@ -121,14 +109,9 @@ class BaseModel:
         self.peak_collection = peak_collection
         self.peak_options = self.set_peak_options()
         self.substrate_peak_name = substrate_peak_name
-        # self.include_substrate = include_substrate
-        # has_substrate: bool = False,
         self._substrate_name = self.substrate_peak_name.split(self._SUFFIX)[0]
         self.model_name = model_name
-
         self.lmfit_model = self.model_constructor_from_model_name(self.model_name)
-        # self.model_constructor()
-        # self.peak_dict = self.peak_collection.get_dict()
 
     def set_peak_options(self):
         _opts = {}
@@ -158,7 +141,6 @@ class BaseModel:
                 _ch = False
         if _ch:
             self.lmfit_model = self.model_constructor_from_model_name(name)
-            # self._equalize_name_choice(name)
             self._model_name = name
 
     @property
@@ -171,18 +153,9 @@ class BaseModel:
 
     @has_substrate.setter
     def has_substrate(self, value):
-        # _hasattr_model = hasattr(self, 'model')
         raise AttributeError(
             f'{self.__class__.__name__} this property can not be set "{value}", use add_ or remove_ substrate function.'
         )
-        # _ch = True
-        # if hasattr(self,'_include_substrate'):
-        #     if _choice == self._include_substrate:
-        #         _ch = False
-        # if _ch:
-        #     self._equalize_name_choice(None, _choice)
-        #     self._include_substrate = _choice
-        # self._include_substrate = _choice
 
     def name_contains_substrate(self, _name):
         """Checks if name contains the substrate name, returns bool"""
@@ -206,7 +179,6 @@ class BaseModel:
                 )  # remove substr name
                 if _new_name != _name:
                     self.model_name = _new_name
-        # return _name
 
     def add_substrate(self):
         if hasattr(self, "model_name"):
@@ -215,7 +187,6 @@ class BaseModel:
                 _new_name = _name + f"+{self._substrate_name}"  # add substr name
                 if _new_name != _name:
                     self.model_name = _new_name
-        # return _name
 
     def validate_model_name_input(self, value):
         """checks if given input name is valid"""
@@ -267,7 +238,6 @@ class BaseModel:
         elif len(_peak_models) == 1:
             _lmfit_model = _peak_models[0].peak_model
         elif len(_peak_models) >= 2:
-            # _eval_model_name = ' + '.join([i[0] for i in _peak_models])
             _composite_model = None
             for _pkmod in _peak_models:
                 _mod = _pkmod.peak_model
