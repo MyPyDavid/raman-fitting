@@ -85,18 +85,18 @@ message = "Version updated from {current_version} to {new_version}"
 
 [[bumpversion.files]]
 filename= "README.md"
-search = "current version is v{current_version}"
-replace = "current version is v{new_version}"
+search = "The current version is v{current_version}"
+replace = "The current version is v{new_version}"
 
-[[bumpversion.files]]
-filename= "src/raman_fitting/__init__.py"
-search = "__version__ = '{current_version}'"
-replace = "__version__ = '{new_version}'"
+# [[bumpversion.files]]
+# filename= "src/raman_fitting/__init__.py"
+# search = "__version__ = '{current_version}'"
+# replace = "__version__ = '{new_version}'"
 
-[[bumpversion.files]]
-filename= "src/raman_fitting/_version.py"
-search = "version = '{current_version}'"
-replace = "version = '{new_version}'"
+# [[bumpversion.files]]
+# filename= "src/raman_fitting/_version.py"
+# search = "version = '{current_version}'"
+# replace = "version = '{new_version}'"
 
 [[bumpversion.files]]
 filename= "pyproject.toml"
