@@ -33,7 +33,7 @@ jobs:
         python3 -m pip install -U pip
         python3 -m pip install -U build
         python3 -m pip install flake8 pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        python3 -m pip install -r requirements.txt
 
     - name: Lint with flake8
       run: |
