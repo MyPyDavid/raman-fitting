@@ -16,8 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.8]
-        #[3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8, 3.9, 3.10, 3.11]
+
 
     steps:
     - uses: actions/checkout@v2
@@ -29,7 +29,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python3 -m pip install --upgrade pip  setuptools wheel
+        python3 -m pip install -U pip
+        python3 -m pip install -U build
         python3 -m pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
@@ -42,12 +43,9 @@ jobs:
 
     - name: Build wheels
       run: |
-        python3 setup.py sdist bdist_wheel
+        python3 -m build
         # install the package in editable mode for the coverage report
-        python -m pip install -e ./
-        # Install the package from setup.py
-        # python3 setup.py install
-
+        python -m pip install -e .
 
     - name: Install dependencies for coverage report
       run: |
@@ -56,12 +54,5 @@ jobs:
     - name: Generate coverage report
       run: |
         pytest --cov --cov-report=xml --cov-report=term-missing
-        # there were problems with coverage therefore pytest --cov is used here
-        # coverage xml
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v1
-
-   #   with:
-   # - name: Test with pytest
-   #   run: |
-   #     pytest

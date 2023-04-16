@@ -52,12 +52,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-lates, windows-latest, macos-latest]
         # windows-latest !=> gives error in 'if' statetement
-        python-version: ["3.8", "3.9"]
-        include:
-          - os: macos-latest
-            python-version: "3.9"
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
     env:
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python-version }}
@@ -75,8 +72,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install flake8
         python -m pip install pytest pytest-cov coverage
-        python -m pip install setuptools-scm
-        python3 -m pip install setuptools wheel build
+        python3 -m pip install -U build
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         python -m pip install --editable .[test]
 
@@ -105,8 +101,8 @@ jobs:
 
     - name: Build wheels
       run: |
-        python -m pip install --upgrade setuptools wheel twine
-        python setup.py sdist bdist_wheel
+        python3 -m pip install -U build
+        python3 -m build
 
     - name: Store wheel artifacts
       uses: actions/upload-artifact@v2
@@ -114,19 +110,10 @@ jobs:
         name: wheel-${{ runner.os }}
         path: dist/*
 
-    #- name: Build HTML docs
-    #  run: |
-    #    python -m pip install --editable .[docs]
-    #    cd docs
-    #    make html
-    #    cd ..
 
   publish:
-
     # Disabled by default
     if: startsWith(github.ref, 'refs/tags/')
-    #false &&
-
     needs: test-build
 
     runs-on: ubuntu-latest

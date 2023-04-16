@@ -29,26 +29,23 @@ jobs:
       - name: Fetch all history for all tags and branches
         run: git fetch --prune --unshallow
 
-      - name: Set up python 3.8
+      - name: Set up python 3.11
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: 3.11
 
-      # Installs and upgrades pip, installs other dependencies and installs the package from setup.py
+      # Installs and upgrades pip, installs other dependencies and installs the package from pyproject.toml
       - name: Installs and upgrades pip and installs other dependencies
         run: |
           # Upgrade pip
           python3 -m pip install --upgrade pip
           # Install build deps
-          python3 -m pip install setuptools wheel build
-          python3 -m pip install setuptools-scm
+          python3 -m pip install -U build
           # If requirements.txt exists, install from it
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Builds the package
         run: |
-          # Install the package from setup.py
-          # python3 setup.py sdist bdist_wheel
           # Install package with build
           python3 -m build
 
@@ -83,7 +80,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Check to TestPyPI
         run: |
-          python3 -m pip install twine
+          python3 -m pip install -U twine
           # Check twine in advance even though gh-action-pypi also does that
           twine check dist/*
         # Upload to TestPyPI
