@@ -68,3 +68,37 @@ addopts = [
 testpaths = [
     "tests",
 ]
+
+[tool.bumpversion]
+current_version = "0.6.18"
+commit = true
+commit_args = "--no-verify"
+tag = true
+allow_dirty = true
+tag_name = "{new_version}"
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)(\\.dev(?P<dev>\\d+))?"
+serialize =[
+    "{major}.{minor}.{patch}.dev{dev}",
+    "{major}.{minor}.{patch}"
+]
+message = "Version updated from {current_version} to {new_version}"
+
+[[bumpversion.files]]
+filename= "README.md"
+search = "current version is v{current_version}"
+replace = "current version is v{new_version}"
+
+[[bumpversion.files]]
+filename= "src/raman_fitting/__init__.py"
+search = "__version__ = '{current_version}'"
+replace = "__version__ = '{new_version}'"
+
+[[bumpversion.files]]
+filename= "src/raman_fitting/_version.py"
+search = "version = '{current_version}'"
+replace = "version = '{new_version}'"
+
+[[bumpversion.files]]
+filename= "pyproject.toml"
+search = "current_version = '{current_version}'"
+replace = "current_version = '{new_version}'"
