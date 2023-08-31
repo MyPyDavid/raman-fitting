@@ -65,6 +65,11 @@ class SpectrumReader:
         self.spectrum_hash = self.get_hash_text(self.spectrum)
         self.spectrum_length = len(self.spectrum)
 
+        # sort spectrum data by ramanshift
+        self.spectrum = self.sort_spectrum(
+            self.spectrum, sort_by="ramanshift", ignore_index=True
+        )
+
         for key in self.spectrum_data_keys:
             setattr(self, key, self.spectrum[key].to_numpy())
 
@@ -188,6 +193,16 @@ class SpectrumReader:
             logger.warning(f" file too large ({filesize})=> skipped")
 
         return _text
+
+    def sort_spectrum(
+        self, spectrum: pd.DataFrame, sort_by="ramanshift", ignore_index=True
+    ):
+        """sort the spectrum by the given column"""
+        if sort_by in spectrum.columns:
+            spectrum = spectrum.sort_values(by=sort_by, ignore_index=ignore_index)
+        else:
+            logger.warning(f"sort_by column {sort_by} not in spectrum")
+        return spectrum
 
     def load_data(self, filepath):
         """old method taken out from SpectrumConstructor"""
