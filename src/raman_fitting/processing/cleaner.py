@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import copy
+import re
+from venv import logger
 
 import numpy as np
 import pandas as pd
@@ -94,9 +96,12 @@ class BaselineSubtractorNormalizer(SpectrumSplitter):
         super().__init__(*args, **kws)
         self.split_data()
         self.windowlimits = SpectrumWindowLimits()
-        self.subtract_loop()
-        self.get_normalization_factor()
-        self.set_normalized_data()
+        blcorr_data, blcorr_info = self.subtract_loop()
+        self.blcorr_data = blcorr_data
+        self.blcorr_info = blcorr_info
+        normalization_intensity = self.get_normalization_factor()
+        self.norm_factor = 1 / normalization_intensity
+        self.norm_data = self.normalize_data(self.blcorr_data, self.norm_factor)
 
     def subtract_loop(self):
         _blcorr = {}
@@ -109,16 +114,20 @@ class BaselineSubtractorNormalizer(SpectrumSplitter):
             _data = self.data(spec.ramanshift, blcorr_int, label)
             _blcorr.update(**{windowname: _data})
             _info.update(**{windowname: blcorr_lin})
-        self.blcorr_data = _blcorr
-        self.blcorr_info = _info
+        return _blcorr, _info
 
     def subtract_baseline_per_window(self, windowname, spec):
         rs = spec.ramanshift
+        if not rs.any():
+            return spec.intensity, (0, 0)
+
         if windowname[0:4] in ("full", "norm"):
             i_fltrd_dspkd_fit = self.windows_data.get("1st_order").intensity
         else:
             i_fltrd_dspkd_fit = spec.intensity
         _limits = self.windowlimits.get(windowname)
+
+        # breakpoint()
         # assert bool(_limits),f'no limits for {windowname}'
         bl_linear = linregress(
             rs[[0, -1]],
@@ -131,39 +140,38 @@ class BaselineSubtractorNormalizer(SpectrumSplitter):
         #        blcor = pd.DataFrame({'Raman-shift' : w, 'I_bl_corrected' :i_blcor, 'I_raw_data' : i})
         return i_blcor, bl_linear
 
-    def get_normalization_factor(self, norm_method="simple"):
-        if norm_method == "simple":
-            normalization_intensity = np.nanmax(
-                self.blcorr_data["normalization"].intensity
-            )
-
-        if 0:
-            # IDEA not implemented
-            if norm_method == "fit":
+    def get_normalization_factor(self, norm_method="simple") -> float:
+        try:
+            if norm_method == "simple":
+                normalization_intensity = np.nanmax(
+                    self.blcorr_data["normalization"].intensity
+                )
+            elif norm_method == "fit":
+                # IDEA not implemented
                 normalization = NormalizeFit(
                     self.blcorr_data["1st_order"], plotprint=False
                 )  # IDEA still implement this NormalizeFit
                 normalization_intensity = normalization["IG"]
+            else:
+                logger.warning(f"unknown normalization method {norm_method}")
+                normalization_intensity = 1
+        except Exception as exc:
+            logger.error(f"normalization error {exc}")
+            normalization_intensity = 1
 
-        self.norm_factor = 1 / normalization_intensity
-        norm_dict = {
-            "norm_factor": self.norm_factor,
-            "norm_method": norm_method,
-            "norm_int": normalization_intensity,
-        }
-        self.norm_dict = norm_dict
+        return normalization_intensity
 
-    def set_normalized_data(self):
-        _normd = {}
-        for windowname, spec in self.blcorr_data.items():
+
+    def normalize_data(self, data, norm_factor) -> dict:
+        ret = {}
+        for windowname, spec in data.items():
             label = f"norm_blcorr_{windowname}"
             if self.label:
                 label = f"{self.label}_{label}"
 
             _data = self.data(spec.ramanshift, spec.intensity * self.norm_factor, label)
-            _normd.update(**{windowname: _data})
-        self.norm_data = _normd
-
+            ret.update(**{windowname: _data})
+        return ret
 
 def NormalizeFit(spec, plotprint=False):
     pass  # IDEA placeholder
