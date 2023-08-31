@@ -70,7 +70,6 @@ class Exporter:
                 ]
             )
             _info = fitter_args[0].fitter.info
-            # self.fitter[0].fitter.info
             self.export_fitparams_grp_per_model(FitRes, _info)
 
     def export_fitparams_grp_per_model(self, FitRes, _info):
@@ -84,12 +83,6 @@ class Exporter:
 
     def raw_export(self):
         raw_data_export(self.fitter.spectra_arg.fitting_spectra)
-
-    def split_results(self):
-        pass
-        # self._2nd = _2nd
-        # _1st = {k:val for k,val in self.fitter.FitResults.items() if k.startswith('1st')}
-        # self._1st = _1st
 
     def export_fitting_plotting_models(self):
         pars1, pars2 = [], []
@@ -124,18 +117,10 @@ class Exporter:
 
     def export_xls_from_spec(self, res_peak_spec):
         try:
-            # sID = res_peak_spec.extrainfo['SampleID']
-            # peak_destpath = res_peak_spec.extrainfo['DestFittingComps.unique()[0].joinpath(f'Model_{res_peak_spec.peak_model}_{sID}')
-            # peak_destpath_extra = res_peak_spec.extrainfo.DestFittingComps.unique()[0].joinpath(f'Extra_{res_peak_spec.peak_model}_{sID}')
             res_peak_spec.FitComponents.to_excel(
                 res_peak_spec.extrainfo["DestFittingModel"].with_suffix(".xlsx"),
                 index=False,
             )
-            # res_peak_spec.extrainfo.to_excel(peak_destpath_extra.with_suffix('.xlsx'), index=False)
+
         except Exception as e:
             print("Error export_xls_from_spec", e)
-        # IDEA define fuction for exporting all the indexes _all_index_export
-        # index = RamanExport().export_FitParams_Grp(FitParams1, FitParams2, export_info_out, grpnm,sID)
-        # all_index.append(index)
-        # pars_index = pd.DataFrame(*all_index,columns=list(GrpNames.sGrp_cols[0:2] +('PeakModel','DestPars')))
-        # pars_index.to_excel( export_info_out.get('DestGrpDir').joinpath(f'{sGr}_index.xlsx'))

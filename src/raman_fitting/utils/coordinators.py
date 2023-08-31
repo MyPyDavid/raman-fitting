@@ -80,11 +80,6 @@ class FieldsTracker:
             _fval = _src.get(field, None)
             if _fval:
                 _fsvals.update({source: _fval})
-        # if _fsvals:
-        #     if not dict in map(type, _fsvals.values()):
-        #         breakpoint()
-        #         _setvals = set(_fsvals.values())
-        #     else:
         _setvals = _fsvals.values()
         _setsources = set(_fsvals.keys())
         _lstsources = list(_setsources)
@@ -100,7 +95,6 @@ class FieldsTracker:
                 )
             _result = {_src: _fval}
         elif len(_setvals) > 1:
-            # breakpoint()
             _firstval = list(_fsvals.items())[0]
             warn(
                 f"Field {field} has multiple sources {_setsources}, different values follow order of sources ",
@@ -110,9 +104,7 @@ class FieldsTracker:
         return _result
 
     def multi_store(self, source: str, **kwargs):
-        # _fields_dict = {k: val for k, val in _dict.items() if k in self.fields}
         _fields_kwargs = {k: val for k, val in kwargs.items() if k in self.fields}
-        # _input_dict = {**_fields_kwargs, **_fields_dict}
         if _fields_kwargs:
             for field, val in _fields_kwargs.items():
                 self.store(source, field, val)
@@ -146,4 +138,3 @@ class FieldsTracker:
                 f"Store in {source} at {field} not in {self.sources} or not in {self.fields} or not {val}, ignored.",
                 FieldsTrackerWarning,
             )
-            pass  # store values not recognized

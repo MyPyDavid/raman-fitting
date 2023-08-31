@@ -127,8 +127,6 @@ class BaselineSubtractorNormalizer(SpectrumSplitter):
             i_fltrd_dspkd_fit = spec.intensity
         _limits = self.windowlimits.get(windowname)
 
-        # breakpoint()
-        # assert bool(_limits),f'no limits for {windowname}'
         bl_linear = linregress(
             rs[[0, -1]],
             [
@@ -137,7 +135,6 @@ class BaselineSubtractorNormalizer(SpectrumSplitter):
             ],
         )
         i_blcor = spec.intensity - (bl_linear[0] * rs + bl_linear[1])
-        #        blcor = pd.DataFrame({'Raman-shift' : w, 'I_bl_corrected' :i_blcor, 'I_raw_data' : i})
         return i_blcor, bl_linear
 
     def get_normalization_factor(self, norm_method="simple") -> float:
@@ -294,12 +291,6 @@ class Despiker(SpectrumMethods):
         Z_t_filtered[np.abs(Z_t) > Z_threshold] = np.nan
         Z_t_filtered[0] = Z_t_filtered[-1] = 0
         return Z_t_filtered
-        # self.Z_t_filtered = Z_t_filtered
-
-    #        Z_threshold = 3.5
-    #        Z_t_filtered = [Z_t
-    #        Z_t_filtered[Z_filter_indx] = np.nan
-    #        y_out,n = intensity,len(intensity)
     @staticmethod
     def despike_filter(
         intensity, Z_t_filtered, moving_window_size, ignore_lims=(20, 46)
@@ -317,8 +308,6 @@ class Despiker(SpectrumMethods):
                     i_despiked[i] = np.mean(intensity[w])
                 else:
                     i_despiked[i] = intensity[i]
-            # else:
-            # pass  # ignored
         return i_despiked
 
     def plot_Z(self):

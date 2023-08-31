@@ -1,13 +1,10 @@
 # pylint: disable=W0614,W0401,W0611,W0622,C0103,E0401,E0402
 import logging
 import sys
-from itertools import repeat, starmap
 from pathlib import Path
 
 import pandas as pd
 
-import raman_fitting
-from raman_fitting.config import filepath_settings
 from raman_fitting.config.filepath_helper import get_directory_paths_for_run_mode
 from raman_fitting.deconvolution_models.fit_models import Fitter
 from raman_fitting.deconvolution_models.base_model import InitializeModels
@@ -17,6 +14,7 @@ from raman_fitting.processing.spectrum_constructor import (
     SpectrumDataCollection,
     SpectrumDataLoader,
 )
+from raman_fitting.utils.exceptions import MainDelegatorError
 
 from raman_fitting.processing.spectrum_template import SpectrumTemplate
 from raman_fitting.interfaces.cli import RUN_MODES
@@ -25,14 +23,6 @@ if __name__ == "__main__":
     pass
 
 logger = logging.getLogger(__name__)
-
-
-class prdError(Exception):
-    """Base error raised by pyramdeconv (future package name of raman_fitting)."""
-
-
-class MainDelegatorError(prdError):
-    """Raised when a method in the main delegator fails."""
 
 
 class MainDelegator:

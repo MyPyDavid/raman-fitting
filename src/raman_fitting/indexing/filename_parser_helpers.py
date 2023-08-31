@@ -4,7 +4,6 @@
 import datetime
 from typing import Tuple
 
-# class ParserMethods
 
 __all__ = ["filestem_to_sid_and_pos", "sID_to_sgrpID", "get_fstats"]
 
@@ -51,14 +50,7 @@ def filestem_to_sid_and_pos(stem: str, seps=("_", " ", "-")) -> Tuple[str, str]:
     elif len(split) >= 3:
         sID = "_".join(split[0:-1])
         position = int("".join(filter(str.isdigit, split[-1])))
-    #                split =[split_Nr0] + [position]
     return (sID, position)
-    # else:
-    #     sID = split[0] # default take split[0]
-    #     if ''.join(((filter(str.isdigit,split[-1])))) == '':
-    #         position = 0
-    #     else:
-    #         position = int(''.join(filter(str.isdigit,split[-1])))
 
 
 def sID_to_sgrpID(sID: str, max_len=4) -> str:
@@ -90,11 +82,3 @@ def get_fstats(fstat) -> Tuple:
         pass
 
     return c_tdate, c_t, m_tdate, m_t, fstat.st_size
-
-    # def _extra_sID_check_if_reference(self, ref_ID = 'Si-ref'):
-    #     if ref_ID in self.stem:
-    #         position = 0
-    #         sID = 'Si-ref'
-    #         return (sID, position)
-    #     else:
-    #         return None

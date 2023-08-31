@@ -41,13 +41,6 @@ class TestMainDelegator(unittest.TestCase):
         _sID_arg = next(_sID_gen)
         self.assertTrue(_sID_arg)
 
-        # while True:
-
-        #     try:
-
-        #     except StopIteration as e:
-        #         print(e)
-
 
 if __name__ == "__main__":
     unittest.main()

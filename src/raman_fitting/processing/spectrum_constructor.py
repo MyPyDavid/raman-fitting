@@ -91,7 +91,6 @@ class SpectrumDataLoader:
             self.info = {"FilePath": self.file}
         raw_spectrum = SpectrumReader(self.file)
         self._raw_spectrum = raw_spectrum
-        # print("======== ", raw_spectrum)
         self.register_spectrum(raw_spectrum.ramanshift, raw_spectrum.intensity, "raw")
         if raw_spectrum.spectrum_length > 0:
             self.spectrum_length = raw_spectrum.spectrum_length

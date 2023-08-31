@@ -5,15 +5,11 @@ from pathlib import Path
 
 from typing import Dict, List
 
-# from .. import __package_name__
-
 from .filedata_parser import SpectrumReader
 from .filename_parser_helpers import filestem_to_sid_and_pos, sID_to_sgrpID, get_fstats
 
 logger = logging.getLogger(__name__)
 
-# %%
-# _extra_sID_name = 'Si-ref'
 index_primary_key = "rfID"
 index_file_primary_keys = {f"{index_primary_key}": "string"}
 index_file_path_keys = {"FileStem": "string", "FilePath": "Path"}

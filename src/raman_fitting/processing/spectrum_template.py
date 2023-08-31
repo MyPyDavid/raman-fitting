@@ -65,10 +65,7 @@ class SpectrumTemplate:
             "all": info_cols,
         }
         Names = namedtuple("GrpNames", names.keys())
-        #        output_ary = np.array(output)   # this is your matrix
-        #        output_vec = output_ary.ravel() # this is your 1d-array
         self.grp_names = Names(**names)
 
     def set_template(self):
-        # name = 'spectrum_info'
         self.template = namedtuple(self.spec_name, self.grp_names.all)
