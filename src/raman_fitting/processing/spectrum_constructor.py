@@ -43,10 +43,14 @@ class SpectrumDataLoader:
     info: Dict = field(default_factory=dict, repr=False)
     ovv: pd.DataFrame = field(default_factory=pd.DataFrame, repr=False)
     run_kwargs: Dict = field(default_factory=dict, repr=False)
+    post_process_methods = [
+        ("filter_data", "raw", "filtered"),
+        ("despike", "filtered", "despiked"),
+        ("baseline_correction", "despiked", "clean_data"),
+    ]
 
     def __post_init__(self):
         self._qcnm = self.__class__.__qualname__
-
         self.register = {}  # this stores the data of each method as they are performed
         self.filtered_intensity = None
         self._despike = None
@@ -81,26 +85,28 @@ class SpectrumDataLoader:
             if FP_from_info:
                 if Path(FP_from_info) != self.file:
                     raise ValueError(
-                        f"Mismatch in value for FilePath:\{self.file} != {FP_from_info}"
+                        f"Mismatch in value for FilePath: {self.file} != {FP_from_info}"
                     )
         else:
             self.info = {"FilePath": self.file}
-
         raw_spectrum = SpectrumReader(self.file)
+        self._raw_spectrum = raw_spectrum
         # print("======== ", raw_spectrum)
-
         self.register_spectrum(raw_spectrum.ramanshift, raw_spectrum.intensity, "raw")
         if raw_spectrum.spectrum_length > 0:
             self.spectrum_length = raw_spectrum.spectrum_length
             self.spectrum_methods_delegator()
         else:
-            logger.warning(f"{self._qcnm} load data fail for:\n\t {self.file}")
+            logger.error(f"{self._qcnm} load data fail for:\n\t {self.file}")
         self.info = {**self.info, **self.run_kwargs}
 
     def spectrum_methods_delegator(self):
-        self.filter_data(on_lbl="raw", out_lbl="filtered")
-        self.despike(on_lbl="filtered", out_lbl="despiked")
-        self.baseline_correction(on_lbl="despiked", out_lbl="clean_data")
+        for method, on_lbl, out_lbl in self.post_process_methods:
+            try:
+                getattr(self, method)(on_lbl=on_lbl, out_lbl=out_lbl)
+            except Exception as exc:
+                logger.error(f"{self._qcnm} {method} failed for {self.file} with {exc}")
+
         self.set_clean_data_df()
         self.set_df_from_register()
 
