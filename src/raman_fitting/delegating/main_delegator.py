@@ -7,7 +7,7 @@ import pandas as pd
 
 from raman_fitting.config.filepath_helper import get_directory_paths_for_run_mode
 from raman_fitting.deconvolution_models.fit_models import Fitter
-from raman_fitting.deconvolution_models.base_model import InitializeModels
+from raman_fitting.deconvolution_models.init_models import InitializeModels
 from raman_fitting.exporting.exporter import Exporter
 from raman_fitting.indexing.indexer import MakeRamanFilesIndex
 from raman_fitting.processing.spectrum_constructor import (
