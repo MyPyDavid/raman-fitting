@@ -64,9 +64,9 @@ ch.setFormatter(formatter)
 # add the handlers to the logger
 logger.addHandler(ch)
 
-# This code is written for Python 3.
-if sys.version_info.major < 3 and sys.version_info.minor < 7:
-    logger.error(f"{__package_name__} requires Python 3.7 or higher.")
+# This code is written for Python 3.11 and higher
+if sys.version_info.major < 3 and sys.version_info.minor < 11:
+    logger.error(f"{__package_name__} requires Python 3.11 or higher.")
     sys.exit(1)
 
 # Let users know if they're missing any hard dependencies
@@ -74,7 +74,7 @@ hard_dependencies = ("numpy", "pandas", "scipy", "matplotlib", "lmfit")
 soft_dependencies = {}
 missing_dependencies = []
 
-import importlib
+import importlib.util
 
 for dependency in hard_dependencies:
     if not importlib.util.find_spec(dependency):
