@@ -1,0 +1,16 @@
+
+[spectrum]
+[spectrum.ramanshift]
+expected_values.min = -95
+expected_values.max = 3600
+expected_values.len = 1600
+
+[spectrum.intensity]
+expected_values.min = 0
+expected_values.max = 1e4
+expected_values.len = 1600
+
+[data_files]
+supported_filetypes = [".txt", ".xlsx", ".csv"]
+
+
