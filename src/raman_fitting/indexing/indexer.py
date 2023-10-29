@@ -46,6 +46,7 @@ class MakeRamanFilesIndex:
                 setattr(self, k, val)
 
         self.raman_files = self.find_files(data_dir=self.DATASET_DIR)
+
         self.index = pd.DataFrame()
         self._error_parse_filenames = []
         if "normal" in run_mode and not self.debug and not self.force_reload:
@@ -73,7 +74,7 @@ class MakeRamanFilesIndex:
                 raman_files_raw = [
                     i
                     for i in RFs
-                    if not "fail" in i.stem and not "Labjournal" in str(i)
+                    if "fail" not in i.stem and not "Labjournal" in str(i)
                 ]
                 logger.info(
                     f"find_files {len(raman_files_raw)} files were found in the chosen data dir:\n\t{data_dir}"

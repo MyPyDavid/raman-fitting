@@ -108,64 +108,66 @@ class PathParser(Path):
         self, read_data=False, store_data=False, **kwargs
     ) -> Dict:
         """performs all the steps for parsing the filepath"""
-        parse_res_collect = {}
 
-        if self.exists():
-            if self.is_file():
-                self.stats_ = self.stat()
-
-                _fnID = self.make_dict_from_keys(
-                    index_file_primary_keys, (self.get_rfID_from_path(self),)
-                )
-                _filepath = self.make_dict_from_keys(
-                    index_file_path_keys, (self.stem, self)
-                )
-                _sample = self.parse_sample_with_checks()
-                _filestats = self.parse_filestats(self.stats_)
-                if read_data == True:
-                    try:
-                        self.data = SpectrumReader(self)
-                    except Exception as exc:
-                        logger.warning(
-                            f"{self._qcnm} {self} SpectrumReader failed.\n{exc}"
-                        )
-
-                parse_res_collect = {**_fnID, **_filepath, **_sample, **_filestats}
-            else:
-                logger.warning(f"{self._qcnm} {self} is not a file => skipped")
-        else:
+        if not self.exists():
             logger.warning(f"{self._qcnm} {self} does not exist => skipped")
+            return {}
+        if not self.is_file():
+            logger.warning(f"{self._qcnm} {self} is not a file => skipped")
+            return {}
+
+        parse_res_collect = {}
+        self.stats_ = self.stat()
+
+        _fnID = self.make_dict_from_keys(
+            index_file_primary_keys, (self.get_rfID_from_path(self),)
+        )
+        _filepath = self.make_dict_from_keys(
+            index_file_path_keys, (self.stem, self)
+        )
+        _sample = self.parse_sample_with_checks()
+        _filestats = self.parse_filestats(self.stats_)
+        if read_data:
+            try:
+                self.data = SpectrumReader(self)
+            except Exception as exc:
+                logger.warning(
+                    f"{self._qcnm} {self} SpectrumReader failed.\n{exc}"
+                )
+        parse_res_collect = {**_fnID, **_filepath, **_sample, **_filestats}
         return parse_res_collect
 
-    def parse_sample_with_checks(self):
+    def parse_sample_with_checks(self) -> Dict:
         """parse the sID, position and sgrpID from stem"""
 
         _parse_res = filestem_to_sid_and_pos(self.stem)
 
-        if len(_parse_res) == 2:
-            sID, position = _parse_res
-
-            try:
-                sID = _extra_overwrite_sID_from_mapper(sID)
-            except Exception as exc:
-                logger.info(
-                    f"{self._qcnm} {self} _extra_overwrite_sID_from_mapper failed => skipped.\n{exc}"
-                )
-
-            sgrpID = sID_to_sgrpID(sID)
-
-            try:
-                sgrpID = _extra_overwrite_sgrpID_from_parts(self.parts, sgrpID)
-            except Exception as exc:
-                logger.info(
-                    f"{self._qcnm} {self} _extra_overwrite_sgrpID_from_parts failed => skipped.\n{exc}"
-                )
-
-            _parse_res = sID, position, sgrpID
-        else:
+        if not len(_parse_res) == 2:
             logger.warning(
                 f"{self._qcnm} {self} failed to parse filename to sID and position."
             )
+            return {}
+
+        sID, position = _parse_res
+
+        try:
+            sID = _extra_overwrite_sID_from_mapper(sID)
+        except Exception as exc:
+            logger.info(
+                f"{self._qcnm} {self} _extra_overwrite_sID_from_mapper failed => skipped.\n{exc}"
+            )
+
+        sgrpID = sID_to_sgrpID(sID)
+
+        try:
+            sgrpID = _extra_overwrite_sgrpID_from_parts(self.parts, sgrpID)
+        except Exception as exc:
+            logger.info(
+                f"{self._qcnm} {self} _extra_overwrite_sgrpID_from_parts failed => skipped.\n{exc}"
+            )
+
+        _parse_res = sID, position, sgrpID
+    
         return self.make_dict_from_keys(index_file_sample_keys, _parse_res)
 
     def parse_filestats(self, fstat) -> Dict:
