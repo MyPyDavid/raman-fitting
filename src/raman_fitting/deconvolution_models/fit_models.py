@@ -5,7 +5,7 @@ from collections import OrderedDict, namedtuple
 import pandas as pd
 
 from ..processing.spectrum_constructor import SpectrumDataCollection, SpectrumDataLoader
-from .base_model import InitializeModels
+from .init_models import InitializeModels
 
 logger = logging.getLogger(__name__)
 

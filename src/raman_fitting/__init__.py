@@ -105,7 +105,8 @@ from raman_fitting.processing.spectrum_constructor import (
 )
 
 # Modelling / fitting
-from raman_fitting.deconvolution_models.fit_models import InitializeModels, Fitter
+from raman_fitting.deconvolution_models.init_models import InitializeModels
+from raman_fitting.deconvolution_models.fit_models import Fitter
 
 # Exporting / Plotting
 from raman_fitting.exporting.exporter import Exporter
