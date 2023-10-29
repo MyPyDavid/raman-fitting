@@ -12,9 +12,6 @@ logger = logging.getLogger(__name__)
 from .filepath_settings import Config
 
 
-# %%
-
-
 def get_directory_paths_for_run_mode(run_mode: str = "", **kwargs) -> Dict:
     """
     Parameters
