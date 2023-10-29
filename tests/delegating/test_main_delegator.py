@@ -11,7 +11,7 @@ from raman_fitting.delegating.main_delegator import (
 
 class TestMainDelegator(unittest.TestCase):
     def setUp(self):
-        self.maindebug = MainDelegator(run_mode="DEBUG")
+        self.maindebug = MainDelegator(run_mode="debug")
         self.models = self.maindebug.initialize_default_models()
 
     def test_initialize_models(self):
