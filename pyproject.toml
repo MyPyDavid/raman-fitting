@@ -17,7 +17,6 @@ classifiers = [
 	"Natural Language :: English",
 	"Programming Language :: Python",
 	"Programming Language :: Python :: 3 :: Only",
-	"Programming Language :: Python :: 3.7",
 	"Programming Language :: Python :: 3.8",
 	"Programming Language :: Python :: 3.9",
 	"Programming Language :: Python :: 3.10",
@@ -79,7 +78,7 @@ serialize =[
 ]
 message = "Version updated from {current_version} to {new_version}"
 
-[[bumpversion.files]]
+[[tool.bumpversion.files]]
 filename= "README.md"
 search = "The current version is v{current_version}"
 replace = "The current version is v{new_version}"
@@ -94,7 +93,7 @@ replace = "The current version is v{new_version}"
 # search = "version = '{current_version}'"
 # replace = "version = '{new_version}'"
 
-[[bumpversion.files]]
+[[tool.bumpversion.files]]
 filename= "pyproject.toml"
 search = "current_version = '{current_version}'"
 replace = "current_version = '{new_version}'"
