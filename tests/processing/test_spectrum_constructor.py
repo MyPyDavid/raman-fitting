@@ -32,7 +32,7 @@ class TestSpectrumDataLoader(unittest.TestCase):
         )
 
     def test_SpectrumDataLoader_empty(self):
-        spd = SpectrumDataLoader()
+        spd = SpectrumDataLoader("empty.txt")
         self.assertEqual(spd.file.name, "empty.txt")
 
     def test_SpectrumDataLoader_file(self):
