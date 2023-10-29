@@ -59,7 +59,7 @@ def _extra_overwrite_sID_from_mapper(
 def _extra_overwrite_sgrpID_from_parts(
     parts: List[str], sgrpID: str, mapper: dict = _extra_sgrpID_name_mapper
 ) -> str:
-    for k, val in _extra_sgrpID_name_mapper.items():
+    for k, val in mapper.items():
         if k in parts:
             sgrpID = val
     return sgrpID
