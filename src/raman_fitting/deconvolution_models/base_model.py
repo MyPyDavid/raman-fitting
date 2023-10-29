@@ -92,7 +92,7 @@ class BaseModel:
     def name_contains_substrate(self, _name):
         """Checks if name contains the substrate name, returns bool"""
         _name_contains_any = False
-        if type(_name) == str:
+        if isinstance(_name, str):
             _name_contains_any = any(
                 i == self._substrate_name for i in _name.split("+")
             )
@@ -122,7 +122,7 @@ class BaseModel:
 
     def validate_model_name_input(self, value):
         """checks if given input name is valid"""
-        if type(value) != str:
+        if not isinstance(value, str):
             raise TypeError(
                 f'Given name "{value}" for model_name should be a string insteady of type({type(value).__name__})'
             )

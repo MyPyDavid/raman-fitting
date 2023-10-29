@@ -55,7 +55,7 @@ class Fitter:
         _specs = {
             k: val
             for k, val in _data.items()
-            if k in self.fit_windows and type(val) == pd.DataFrame
+            if k in self.fit_windows and isinstance(val, pd.DataFrame)
         }
         # assert bool(_specs), _errtxt
         if not _specs:
@@ -111,7 +111,7 @@ class Fitter:
 
     def run_fit(self, model, _data, method="leastsq", **kws):
         # ideas: improve fitting loop so that starting parameters from modelX and modelX+Si are shared, faster...
-        _fit_res, _param_res = {}, {}
+
         init_params = model.make_params()
         x, y = _data.ramanshift, _data[kws.get("_int_lbl")]
         out = model.fit(y, init_params, x=x, method=method)  # 'leastsq'
@@ -126,20 +126,21 @@ class Fitter:
                 setattr(out, _attrkey, val)
         return out
 
-    def get_int_label(self, value):
+    def get_int_label(self, value: pd.DataFrame):
         _lbl = ""
-        if isinstance(value, pd.DataFrame):
-            cols = [i for i in value.columns if "ramanshift" not in i]
-            if len(cols) == 0:
-                _lbl = ""
-            if len(cols) == 1:
-                _lbl = cols[0]
-            elif len(cols) > 1:
-                if any("mean" in i for i in cols):
-                    _lbl = [i for i in cols if "mean" in i][0]
-                elif any("int" in i for i in cols):
-                    _lbl = [i for i in cols if "int" in i][0]
+        if not isinstance(value, pd.DataFrame):
+            return _lbl
+        cols = [i for i in value.columns if "ramanshift" not in i]
+        if not cols:
+            return _lbl
 
+        if len(cols) == 1:
+            _lbl = cols[0]
+        elif len(cols) > 1:
+            if any("mean" in i for i in cols):
+                _lbl = [i for i in cols if "mean" in i][0]
+            elif any("int" in i for i in cols):
+                _lbl = [i for i in cols if "int" in i][0]
         return _lbl
 
 
