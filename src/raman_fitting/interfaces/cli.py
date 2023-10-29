@@ -70,8 +70,8 @@ def main():
         pass
         # _org_index = OrganizeRamanFiles()
         # RL = RamanLoop(_org_index, run_mode ='normal')
-    elif args.run_mode.upper() == "DEBUG":
-        args.run_mode = args.run_mode.upper()
+    elif args.run_mode.lower() == "debug":
+        pass
         # IDEA Add a FAST TRACK for DEBUG
     elif args.run_mode == "testing":
         pass
