@@ -28,6 +28,12 @@ from raman_fitting.processing.spectrum_template import SpecTemplate, SpectrumWin
 
 logger = logging.getLogger(__name__)
 
+POST_PROCESS_METHODS = [
+        ("filter_data", "raw", "filtered"),
+        ("despike", "filtered", "despiked"),
+        ("baseline_correction", "despiked", "clean_data"),
+    ]
+
 
 @dataclass(order=True, frozen=False)
 class SpectrumDataLoader:
@@ -38,18 +44,14 @@ class SpectrumDataLoader:
     """
 
     _fields = ("ramanshift", "intensity")
-    file: Path = field(default=Path(Path.cwd().joinpath("empty.txt")))
+    file: Path = field(default_factory=Path)
     spectrum_length: int = field(default=0, init=False)
     info: Dict = field(default_factory=dict, repr=False)
     ovv: pd.DataFrame = field(default_factory=pd.DataFrame, repr=False)
     run_kwargs: Dict = field(default_factory=dict, repr=False)
-    post_process_methods = [
-        ("filter_data", "raw", "filtered"),
-        ("despike", "filtered", "despiked"),
-        ("baseline_correction", "despiked", "clean_data"),
-    ]
-
+ 
     def __post_init__(self):
+        self.file = Path(self.file)
         self._qcnm = self.__class__.__qualname__
         self.register = {}  # this stores the data of each method as they are performed
         self.filtered_intensity = None
@@ -100,7 +102,7 @@ class SpectrumDataLoader:
         self.info = {**self.info, **self.run_kwargs}
 
     def spectrum_methods_delegator(self):
-        for method, on_lbl, out_lbl in self.post_process_methods:
+        for method, on_lbl, out_lbl in POST_PROCESS_METHODS:
             try:
                 getattr(self, method)(on_lbl=on_lbl, out_lbl=out_lbl)
             except Exception as exc:
