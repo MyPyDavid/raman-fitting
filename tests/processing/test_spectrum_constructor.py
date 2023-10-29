@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from raman_fitting.datafiles import example_files
+import raman_fitting.test_fixtures as fixtures
 from raman_fitting.processing.spectrum_constructor import (
     SpectrumDataCollection,
     SpectrumDataLoader,
@@ -21,7 +21,7 @@ from raman_fitting.processing.spectrum_constructor import (
 
 class TestSpectrumDataLoader(unittest.TestCase):
     def setUp(self):
-        _example_path = Path(example_files.__path__[0])
+        _example_path = Path(fixtures.__path__[0])
         _example_files_contents = list(Path(_example_path).rglob("*txt"))
 
         self.testfile = next(

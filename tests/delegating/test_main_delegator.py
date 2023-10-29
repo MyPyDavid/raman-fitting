@@ -6,8 +6,8 @@ import pandas as pd
 import pytest
 
 import raman_fitting
-from raman_fitting.datafiles import example_files
-from raman_fitting.deconvolution_models.base_model import InitializeModels
+
+from raman_fitting.deconvolution_models.init_models import InitializeModels
 from raman_fitting.delegating.main_delegator import (
     MainDelegator,
     add_make_sample_group_destdirs,

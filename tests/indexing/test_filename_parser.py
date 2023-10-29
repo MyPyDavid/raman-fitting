@@ -5,8 +5,8 @@ from importlib import resources
 from pathlib import Path
 
 # from raman_fitting.deconvolution_models import first_order_peaks
-import raman_fitting
-from raman_fitting.datafiles import example_files
+
+import raman_fitting.test_fixtures as fixtures
 from raman_fitting.indexing.filename_parser import PathParser
 from raman_fitting.indexing.filename_parser import (
     _extra_sID_name_mapper,
@@ -39,7 +39,7 @@ class TestFilenameParser(unittest.TestCase):
     result_attr = "parse_result"
 
     def setUp(self):
-        _example_path = Path(example_files.__path__[0])
+        _example_path = Path(fixtures.__path__[0])
         _example_files_contents = list(Path(_example_path).rglob("*txt"))
 
         self.datafiles = _example_files_contents
