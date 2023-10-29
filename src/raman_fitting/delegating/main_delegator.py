@@ -67,7 +67,7 @@ class MainDelegator:
         self.export_collect = []
 
         # assert type(self.index) == type(pd.DataFrame())
-        if self.run_mode in ("normal", "DEBUG", "make_index", "make_examples"):
+        if self.run_mode in ("normal", "debug", "make_index", "make_examples"):
             RF_indexer = self.index_delegator(
                 run_mode=self.run_mode, dataset_dirs=self.dest_dirs, **kwargs
             )
@@ -97,7 +97,7 @@ class MainDelegator:
                 else:
                     pass
                 # info raman loop finished because index is empty
-            elif self.run_mode == "DEBUG":
+            elif self.run_mode == "debug":
                 logger.debug(f"Debug run mode {self}. Models initialized {models}")
 
                 try:
