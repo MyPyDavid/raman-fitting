@@ -2,14 +2,15 @@
 
 from typing import Dict
 import logging
-import sys
+
 from pathlib import Path
 
-# from .. import __package_name__
+import raman_fitting
 
 logger = logging.getLogger(__name__)
 
-from raman_fitting.config import filepath_settings as config
+from .filepath_settings import Config
+
 
 # %%
 
@@ -29,58 +30,46 @@ def get_directory_paths_for_run_mode(run_mode: str = "", **kwargs) -> Dict:
         dict containing 3 keys [RESULTS_DIR, DATASET_DIR, INDEX_FILE]
 
     """
-    dest_dirs = {}
-    DATASET_DIR = None
-    RESULTS_DIR = None
+    dataset_dir, results_dir = None, None
 
-    if run_mode in ("DEBUG", "testing"):
-        # self.debug = True
-        RESULTS_DIR = config.TESTS_RESULTS_DIR
-        DATASET_DIR = config.TESTS_DATASET_DIR
+    run_mode_config = run_mode.lower()
+    config_aliases = {"make_index": "normal"}
+    if run_mode_config in config_aliases.keys():
+        run_mode_config = config_aliases[run_mode_config]
+    
+    config = Config().CONFIG
 
-    elif run_mode == "make_examples":
-        RESULTS_DIR = config.PACKAGE_HOME.joinpath("example_results")
-        DATASET_DIR = config.TESTS_DATASET_DIR
-        # self._kwargs.update({'default_selection' : 'all'})
-
-    elif run_mode in ("normal", "make_index"):
-        RESULTS_DIR = config.RESULTS_DIR
-        DATASET_DIR = config.DATASET_DIR
-        # INDEX_FILE = config.INDEX_FILE
+    if run_mode_config in config.keys():
+        dataset_dir = config[run_mode_config]["DATASET_DIR"]
+        results_dir = config[run_mode_config]["RESULTS_DIR"]
     else:
         logger.warning(f"Run mode {run_mode} not recognized. Exiting...")
 
-    INDEX_FILE = RESULTS_DIR / config.INDEX_FILE_NAME
+    index_file = config["defaults"]["USER_PACKAGE_HOME"] / config["defaults"]["INDEX_FILE_NAME"]
 
     dest_dirs = {
-        "RESULTS_DIR": Path(RESULTS_DIR),
-        "DATASET_DIR": Path(DATASET_DIR),
-        "INDEX_FILE": Path(INDEX_FILE),
+        "RESULTS_DIR": Path(results_dir),
+        "DATASET_DIR": Path(dataset_dir),
+        "INDEX_FILE": Path(index_file),
     }
 
     if kwargs:
         dest_dirs = override_from_kwargs(dest_dirs, **kwargs)
 
-    check_and_make_dirs(dest_dirs)
+    check_and_make_dirs(dest_dirs['DATASET_DIR'], dest_dirs['RESULTS_DIR'])
 
     return dest_dirs
 
 
-def check_and_make_dirs(dest_dirs: dict = {}):
-    DATASET_DIR = dest_dirs.get("DATASET_DIR", None)
-    if DATASET_DIR:
-        create_dataset_dir(DATASET_DIR)
-    else:
-        logger.warning(f"No datafiles directory was set for . Exiting...")
+def check_and_make_dirs(dataset_dir: Path, results_dir: Path) -> None:
+    
+    create_dataset_dir(dataset_dir)
 
-    RESULTS_DIR = dest_dirs.get("RESULTS_DIR", None)
-    if RESULTS_DIR:
-        if not RESULTS_DIR.is_dir():
-            RESULTS_DIR.mkdir(exist_ok=True, parents=True)
-            logger.info(
-                f"check_and_make_dirs the results directory did not exist and was created at:\n{RESULTS_DIR}\n"
-            )
-    """ returns index file path """
+    if not results_dir.is_dir():
+        results_dir.mkdir(exist_ok=True, parents=True)
+        logger.info(
+            f"check_and_make_dirs the results directory did not exist and was created at:\n{results_dir}\n"
+        )
 
 
 def override_from_kwargs(_dict, **kwargs):
@@ -110,12 +99,10 @@ def create_dataset_dir(DATASET_DIR):  # pragma: no cover
             logger.warning(
                 f"""The datafiles directory has now been created at:
 {DATASET_DIR}
-please place your raman datafiles in this folder and run {config.__package_name__} again.
-{config.__package_name__} exits now.
+please place your raman datafiles in this folder and run {raman_fitting.__package_name__} again.
+{raman_fitting.__package_name__} exits now.
 """
             )
-            sys.exit()
-            # IDEA build in daemon version with folder watcher....
         except Exception as exc:
             logger.warning(
                 f"""The datafiles directory could not be created at:
@@ -138,3 +125,35 @@ please place your files in here or
 change this path in the config settings.
 """
             )
+
+
+def create_package_home_dir(package_home: Path):
+    if package_home.is_dir():
+        logger.info(
+            f"Package home directory exists at:\n{package_home}\n--------------------"
+        )
+        return
+    package_home_choice = input(
+        f"""Package home directory did not exist, will now be created at:)
+        {package_home}  
+        --------------------
+        Choose yes(y) to continue or no(n) to select your directory."""
+    )
+    if package_home_choice.startswith('n'):
+        from tkinter import Tk, filedialog
+        root = Tk()
+        root.withdraw()
+        root.attributes('-topmost', True)
+        package_home = Path(filedialog.askdirectory())
+
+    try:
+        logger.warning(
+            f"Package home directory did not exist, will now be created at:\n{package_home}\n--------------------"
+        )
+        package_home.mkdir()
+    except Exception as exc:
+        logger.warning(
+            f"Package home mkdir unexpected error\n{exc}.\nFolder{package_home} could not be created, exiting."
+        )
+        exit()
+
