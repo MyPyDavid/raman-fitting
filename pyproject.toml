@@ -10,7 +10,6 @@ authors = [
 ]
 description = "Python framework for the batch processing and deconvolution of raman spectra."
 readme = {file = "README.md", content-type = "text/markdown"}
-long_description = {file = "README.md", content-type = "text/markdown"}
 keywords = ["spectroscopy", "Raman", "fitting", "deconvolution", "batch processing", "carbonaceous materials"]
 classifiers = [
 	"License :: OSI Approved :: MIT License",
@@ -24,7 +23,34 @@ classifiers = [
 	"Topic :: Scientific/Engineering :: Physics",
 	"Topic :: Scientific/Engineering :: Chemistry",
 ]
-dynamic = ["version", "long_description"]
+dynamic = ["version"]
+dependencies = [
+	"pandas~=2.1.2",
+	"scipy~=1.11.3",
+	"lmfit~=1.2.2",
+	"matplotlib~=3.8.0",
+	"numpy~=1.26.1",
+	"tablib~=3.5.0",
+	"pydantic~=2.4.1"
+]
+
+[project.optional-dependencies]
+testing = [
+	"pytest",
+	"pytest-cov",
+	"pytest-flake8",
+	"mock",
+	"wheel"
+	]
+dev = [
+	"isort",
+	"pylint",
+	"flake8",
+	"autopep8",
+	"pydocstyle",
+	"black",
+	"bump2version"
+	]
 
 [project.urls]
 homepage = "https://pypi.org/project/raman-fitting/"
@@ -33,6 +59,7 @@ repository = "https://github.com/MyPyDavid/raman-fitting.git"
 
 [project.scripts]
 raman_fitting = "raman_fitting.interfaces:main"
+
 
 [tool.hatch.version]
 source = "vcs"
