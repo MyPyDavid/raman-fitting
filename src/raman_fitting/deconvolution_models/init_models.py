@@ -1,15 +1,19 @@
+from dataclasses import dataclass
 import logging
 from warnings import warn
 
 from lmfit import Model
 
-from .peak_validation import PeakModelValidator
-from .base_model import BaseModel
+from raman_fitting.config.filepath_helper import load_settings
+
+
+from raman_fitting.deconvolution_models.base_model import SEP
+from raman_fitting.deconvolution_models.base_peak import BasePeak
 
 logger = logging.getLogger(__name__)
 
 
-# ====== InitializeMode======= #
+@dataclass
 class InitializeModels:
     """
     This class will initialize and validate the different fitting models.
@@ -17,62 +21,60 @@ class InitializeModels:
     for the models as keys.
     """
 
-    _standard_1st_order_models = {
-        "2peaks": "G+D",
-        "3peaks": "G+D+D3",
-        "4peaks": "G+D+D3+D4",
-        "5peaks": "G+D+D2+D3+D4",
-        "6peaks": "G+D+D2+D3+D4+D5",
-    }
-    _standard_2nd_order_models = {"2nd_4peaks": "D4D4+D1D1+GD1+D2D2"}
+    settings: dict = None
+    peaks: dict = None
+    lmfit_models: dict = None
 
-    def __init__(self, standard_models=True):
-        self._cqnm = self.__class__.__name__
+    def __post_init__(self):
+        self.settings = self.settings or {}
+        self.peaks = self.peaks or {}
+        self.lmfit_models = self.lmfit_models or {}
+        if not self.settings:
+            self.settings = load_settings()
+        if not self.lmfit_models:
+            self.lmfit_models = self.construct_lmfit_models(self.settings)
 
-        self.peak_collection = self.get_peak_collection(PeakModelValidator)
+    def construct_basepeaks(self, settings: dict):
+        peaks = {}
+        peak_items = {
+            **settings["first_order"]["peaks"],
+            **settings["second_order"]["peaks"],
+        }.items()
+        for k, v in peak_items:
+            peaks.update({k: BasePeak(**v)})
+        return peaks
 
-        self.all_models = {}
-        self.construct_standard_models()
+    def construct_lmfit_models(self, settings: dict):
+        peaks = self.construct_basepeaks(settings)
 
-    def get_peak_collection(self, func):
-        try:
-            peak_collection = func()
-            logger.debug(
-                f"{self._cqnm} collection of peaks validated with {func}:\n{peak_collection}"
+        model_items = {
+            **settings["first_order"]["models"],
+            **settings["second_order"]["models"],
+        }.items()
+        models = {}
+        for model_name, model_comp in model_items:
+            peak_comps = [peaks[i] for i in model_comp.split(SEP)]
+            lmfit_comp_model = sum(
+                map(lambda x: x.lmfit_model, peak_comps), peak_comps.pop().lmfit_model
             )
-
-        except Exception as e:
-            logger.error(f"{self._cqnm} failure in call {func}.\n\t{e}")
-            peak_collection = []
-        return peak_collection
-
-    def construct_standard_models(self):
-        _models = {}
-        _models_1st = {
-            f"1st_{key}": BaseModel(
-                peak_collection=self.peak_collection, model_name=value
-            )
-            for key, value in self._standard_1st_order_models.items()
-        }
-        _models.update(_models_1st)
-        _models_1st_no_substrate = {
-            f"1st_{key}": BaseModel(
-                peak_collection=self.peak_collection, model_name=value
-            )
-            for key, value in self._standard_1st_order_models.items()
-        }
-        _models.update(_models_1st_no_substrate)
-        self.first_order = {**_models_1st, **_models_1st_no_substrate}
-
-        _models_2nd = {
-            key: BaseModel(peak_collection=self.peak_collection, model_name=value)
-            for key, value in self._standard_2nd_order_models.items()
-        }
-        _models.update(_models_2nd)
-        self.second_order = _models_2nd
-        self.all_models = _models
+            models[model_name] = lmfit_comp_model
+        return models
 
     def __repr__(self):
-        _t = "\n".join(map(str, self.all_models.values()))
+        _t = ", ".join(map(str, self.lmfit_models.keys()))
+        _t += "\n"
+        _t += "\n".join(map(str, self.lmfit_models.values()))
         return _t
 
+
+def main():
+    from raman_fitting.config.filepath_helper import load_settings
+
+    settings = load_settings()
+    models = InitializeModels()
+    print(models)
+    breakpoint()
+
+
+if __name__ == "__main__":
+    main()

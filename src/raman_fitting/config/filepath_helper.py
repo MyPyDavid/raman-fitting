@@ -12,6 +12,17 @@ logger = logging.getLogger(__name__)
 from .filepath_settings import Config
 
 
+def load_settings() -> dict:
+    from pathlib import Path
+
+    toml_files = [i for i in Path.cwd().glob("src/**/*.toml")]
+    import tomllib
+
+    settings = {}
+    [settings.update(tomllib.loads(i.read_bytes().decode())) for i in toml_files]
+    return settings
+
+
 def get_directory_paths_for_run_mode(run_mode: str = "", **kwargs) -> Dict:
     """
     Parameters
@@ -33,7 +44,7 @@ def get_directory_paths_for_run_mode(run_mode: str = "", **kwargs) -> Dict:
     config_aliases = {"make_index": "normal"}
     if run_mode_config in config_aliases.keys():
         run_mode_config = config_aliases[run_mode_config]
-    
+
     config = Config().CONFIG
 
     if run_mode_config in config.keys():
@@ -42,7 +53,9 @@ def get_directory_paths_for_run_mode(run_mode: str = "", **kwargs) -> Dict:
     else:
         logger.warning(f"Run mode {run_mode} not recognized. Exiting...")
 
-    index_file = config["defaults"]["USER_PACKAGE_HOME"] / config["defaults"]["INDEX_FILE_NAME"]
+    index_file = (
+        config["defaults"]["USER_PACKAGE_HOME"] / config["defaults"]["INDEX_FILE_NAME"]
+    )
 
     dest_dirs = {
         "RESULTS_DIR": Path(results_dir),
@@ -53,13 +66,12 @@ def get_directory_paths_for_run_mode(run_mode: str = "", **kwargs) -> Dict:
     if kwargs:
         dest_dirs = override_from_kwargs(dest_dirs, **kwargs)
 
-    check_and_make_dirs(dest_dirs['DATASET_DIR'], dest_dirs['RESULTS_DIR'])
+    check_and_make_dirs(dest_dirs["DATASET_DIR"], dest_dirs["RESULTS_DIR"])
 
     return dest_dirs
 
 
 def check_and_make_dirs(dataset_dir: Path, results_dir: Path) -> None:
-    
     create_dataset_dir(dataset_dir)
 
     if not results_dir.is_dir():
@@ -132,15 +144,16 @@ def create_package_home_dir(package_home: Path):
         return
     package_home_choice = input(
         f"""Package home directory did not exist, will now be created at:)
-        {package_home}  
+        {package_home}
         --------------------
         Choose yes(y) to continue or no(n) to select your directory."""
     )
-    if package_home_choice.startswith('n'):
+    if package_home_choice.startswith("n"):
         from tkinter import Tk, filedialog
+
         root = Tk()
         root.withdraw()
-        root.attributes('-topmost', True)
+        root.attributes("-topmost", True)
         package_home = Path(filedialog.askdirectory())
 
     try:
@@ -153,4 +166,3 @@ def create_package_home_dir(package_home: Path):
             f"Package home mkdir unexpected error\n{exc}.\nFolder{package_home} could not be created, exiting."
         )
         exit()
-
