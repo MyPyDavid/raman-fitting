@@ -70,7 +70,7 @@ if sys.version_info.major < 3 and sys.version_info.minor < 11:
     sys.exit(1)
 
 # Let users know if they're missing any hard dependencies
-hard_dependencies = ("numpy", "pandas", "scipy", "matplotlib", "lmfit")
+hard_dependencies = ("numpy", "pandas", "scipy", "matplotlib", "lmfit", "pydantic")
 soft_dependencies = {}
 missing_dependencies = []
 
@@ -107,6 +107,7 @@ from raman_fitting.processing.spectrum_constructor import (
 # Modelling / fitting
 from raman_fitting.deconvolution_models.init_models import InitializeModels
 from raman_fitting.deconvolution_models.fit_models import Fitter
+
 
 # Exporting / Plotting
 from raman_fitting.exporting.exporter import Exporter

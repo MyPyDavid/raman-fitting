@@ -1,19 +1,16 @@
 import inspect
 from functools import partialmethod
 
-from os import name
-from pyexpat import model
-
-from unittest.mock import DEFAULT
 from warnings import warn
 from enum import StrEnum
 
 from lmfit import Parameter, Parameters
 
 from lmfit.models import GaussianModel, LorentzianModel, Model, VoigtModel
+from .lmfit_models import LMFIT_MODEL_MAPPER, LMFitParameterHints, parmeter_to_dict
+from ..config.filepath_helper import load_default_peak_toml_files
 
 from typing import List, Literal, Optional, Dict, final
-import numpy
 
 from pydantic import (
     BaseModel,
@@ -38,70 +35,26 @@ class BasePeakWarning(UserWarning):  # pragma: no cover
 PEAK_TYPE_OPTIONS = StrEnum("PEAK_TYPE_OPTIONS", ["Lorentzian", "Gaussian", "Voigt"])
 
 
-class LMFitParameterHints(BaseModel):
-    """
-    https://github.com/lmfit/lmfit-py/blob/master/lmfit/model.py#L566
-
-    The given hint can include optional bounds and constraints
-    ``(value, vary, min, max, expr)``, which will be used by
-    `Model.make_params()` when building default parameters.
-
-    While this can be used to set initial values, `Model.make_params` or
-    the function `create_params` should be preferred for creating
-    parameters with initial values.
-
-    The intended use here is to control how a Model should create
-    parameters, such as setting bounds that are required by the mathematics
-    of the model (for example, that a peak width cannot be negative), or to
-    define common constrained parameters.
-
-    Parameters
-    ----------
-    name : str
-        Parameter name, can include the models `prefix` or not.
-    **kwargs : optional
-        Arbitrary keyword arguments, needs to be a Parameter attribute.
-        Can be any of the following:
-
-        - value : float, optional
-            Numerical Parameter value.
-        - vary : bool, optional
-            Whether the Parameter is varied during a fit (default is
-            True).
-        - min : float, optional
-            Lower bound for value (default is ``-numpy.inf``, no lower
-            bound).
-        - max : float, optional
-            Upper bound for value (default is ``numpy.inf``, no upper
-            bound).
-        - expr : str, optional
-            Mathematical expression used to constrain the value during
-            the fit.
-
-    Example
-    --------
-    >>> model = GaussianModel()
-    >>> model.set_param_hint('sigma', min=0)
-
-    """
-
-    name: str
-    value: Optional[float]
-    vary: Optional[bool] = True
-    min: Optional[float] = numpy.inf * -1
-    max: Optional[float] = numpy.inf
-    expr: Optional[str] = None
-
-
-DEFAULT_GAMMA_PARAM_HINT = LMFitParameterHints(
-    name="gamma", value=1, min=1e-05, max=70, vary=False
-)
-
 LMFIT_MODEL_MAPPER = {
     "Lorentzian": LorentzianModel,
     "Gaussian": GaussianModel,
     "Voigt": VoigtModel,
 }
+
+
+def get_lmfit_model_from_peak_type(peak_type: str, prefix: str = "") -> Optional[Model]:
+    """returns the lmfit model instance according to the chosen peak type and sets the prefix from peak_name"""
+    model = None
+
+    capitalized = peak_type.capitalize()
+    try:
+        lmfit_model_class = LMFIT_MODEL_MAPPER[capitalized]
+        model = lmfit_model_class(prefix=prefix)
+    except IndexError:
+        raise NotImplementedError(
+            f'This peak type or model "{peak_type}" has not been implemented.'
+        )
+    return model
 
 
 class BasePeak(BaseModel):
@@ -149,7 +102,7 @@ class BasePeak(BaseModel):
         peak_type = 'Voigt' #'Voigt'
         peak_name ='R2D2'
 
-    New_peak().peak_model == <lmfit.Model: Model(voigt, prefix='R2D2_')>
+    New_peak().lmfit_model == <lmfit.Model: Model(voigt, prefix='R2D2_')>
 
     "Example class definition with keyword arguments"
 
@@ -161,7 +114,7 @@ class BasePeak(BaseModel):
     New_peak()
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True)
 
     peak_name: str
     param_hints: Optional[
@@ -169,13 +122,28 @@ class BasePeak(BaseModel):
     ] = None
     peak_type: Optional[str] = None
     is_substrate: Optional[bool] = False
-    normalization_peak: Optional[bool] = False
+    is_for_normalization: Optional[bool] = False
     docstring: Optional[str] = Field(None, repr=False)
     lmfit_model: Optional[InstanceOf[Model]] = None
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.lmfit_model = self.create_peak_model()
+    @field_validator("peak_type")
+    @classmethod
+    def check_peak_type(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        if isinstance(v, str):
+            try:
+                v = PEAK_TYPE_OPTIONS[v].name
+                return v
+            except KeyError:
+                raise KeyError(
+                    f"peak_type is not in {map(lambda x: x.name, PEAK_TYPE_OPTIONS)}, but {v}"
+                )
+        elif isinstance(v, PEAK_TYPE_OPTIONS):
+            v = v.name
+            return v
+        else:
+            raise TypeError(f"peak_type is not a string or enum, but {type(v)}")
 
     @field_validator("param_hints")
     @classmethod
@@ -193,7 +161,7 @@ class BasePeak(BaseModel):
         if isinstance(v, list):
             assert all(isinstance(i, LMFitParameterHints) for i in v)
 
-        pars_hints = [Parameter(**i.model_dump()) for i in valid_p_hints]
+        pars_hints = [i.parameter for i in valid_p_hints]
         params = Parameters()
         params.add_many(*pars_hints)
         return params
@@ -208,35 +176,22 @@ class BasePeak(BaseModel):
                     f"lmfit_model is not a Model instance, but {type(self.lmfit_model)}"
                 )
         peak_type = self.peak_type
-        peak_name = self.peak_name
-        param_hints = self.param_hints
         if peak_type is None:
             raise ValueError("peak_type is None")
 
-        lmfit_model = self.create_peak_model()
+        lmfit_model = get_lmfit_model_from_peak_type(
+            peak_type, prefix=self.peak_name_prefix
+        )
         if lmfit_model is None:
             raise ValueError("lmfit_model is None")
-        for k, v in lmfit_model.param_hints.items():
-            lmfit_model.set_param_hint(k, **v)
 
+        # breakpoint()
+        if self.param_hints is not None:
+            for k, v in self.param_hints.items():
+                par_dict = parmeter_to_dict(v)
+                lmfit_model.set_param_hint(k, **par_dict)
         self.lmfit_model = lmfit_model
-
         return self
-
-    def create_peak_model(self):
-        """returns the lmfit model instance according to the chosen peak type and sets the prefix from peak_name"""
-        model = None
-        if self.peak_name:
-            # breakpoint()
-            capitalized = self.peak_type.capitalize()
-            try:
-                lmfit_model_class = LMFIT_MODEL_MAPPER[capitalized]
-                model = lmfit_model_class(prefix=self.peak_name_prefix)
-            except IndexError:
-                raise NotImplementedError(
-                    f'This peak type or model "{self.peak_type}" has not been implemented.'
-                )
-        return model
 
     @property
     def peak_name_prefix(self):
@@ -246,200 +201,47 @@ class BasePeak(BaseModel):
             return self.peak_name
         return self.peak_name + "_"
 
-    def repr__(self):
-        _repr = f"{self.__class__.__name__}"
-        if hasattr(self, "peak_model"):
-            _repr += f", {self.peak_model}"
-            _param_center = ""
-            if self.peak_model:
-                _param_center = self.peak_model.param_hints.get("center", {})
-            if _param_center:
-                _center_txt = ""
-                _center_val = _param_center.get("value")
-                _center_min = _param_center.get("min", _center_val)
-                if _center_min != _center_val:
-                    _center_txt += f"{_center_min} < "
-                _center_txt += f"{_center_val}"
-                _center_max = _param_center.get("max", _center_val)
-                if _center_max != _center_val:
-                    _center_txt += f" > {_center_max}"
-                _repr += f", center : {_center_txt}"
-        else:
+    def __str__(self):
+        _repr = f"{self.__class__.__name__}('{self.peak_name}'"
+        if self.lmfit_model is None:
             _repr += ": no Model set"
+        _repr += f", {self.lmfit_model}"
+        param_text = make_string_from_param_hints(self.param_hints)
+        _repr += f"{param_text})"
         return _repr
 
 
-class _OldBasePeak(type):
-    """ """
-
-    _fields = ["peak_name", "peak_type", "param_hints"]
-    _sources = ("user_input", "kwargs", "cls_dict", "init", "class_name")
-    _synonyms = {
-        "peak_name": [],
-        "peak_type": [],
-        "param_hints": ["input_param_settings"],
-    }
-
-    PEAK_TYPE_OPTIONS = PEAK_TYPE_OPTIONS
-
-    # ('value', 'vary', 'min', 'max', 'expr') # optional
-    default_settings = {"gamma": {"value": 1, "min": 1e-05, "max": 70, "vary": False}}
-
-    @property
-    def peak_model(self):
-        if not hasattr(self, "_peak_model"):
-            self.create_peak_model()
-        else:
-            return self._peak_model
-
-    @peak_model.setter
-    def peak_model(self, value):
-        """
-        This property is an instance of lmfit.Model,
-        constructed from peak_type, peak_name and param_hints setters
-        """
-        if not isinstance(value, Model):
-            self._peak_model = self.create_peak_model()
-        else:
-            self._peak_model = value
-
-    def create_peak_model(self):
-        _peak_model = None
-        if self.fco.status:
-            if all(hasattr(self, field) for field in self._fields):
-                try:
-                    create_model_kwargs = dict(
-                        peak_name=self.peak_name,
-                        peak_type=self.peak_type,
-                        param_hints=self.param_hints,
-                    )
-
-                    if hasattr(self, "create_model_kwargs"):
-                        _orig_kwargs = self.create_model_kwargs
-
-                    _peak_model = create_peak_model_from_name_type_param_hints(
-                        **create_model_kwargs
-                    )
-                    self.create_model_kwargs = create_model_kwargs
-                except Exception as e:
-                    print(f"try make models:\n{self}, \n\t {e}")
-            else:
-                pass
-        else:
-            pass
-            print(f"missing field {self.fco.missing} {self},\n")
-        return _peak_model
-
-    def print_params(self):
-        if self.peak_model:
-            self.peak_model.print_param_hints()
-        else:
-            print(f"No model set for: {self}")
+def make_string_from_param_hints(param_hints: Parameters) -> str:
+    text = ""
+    param_center = param_hints.get("center", {})
+    if param_center:
+        center_txt = ""
+        center_val = param_center.value
+        center_min = param_center.min
+        if center_min != center_val:
+            center_txt += f"{center_min} < "
+        center_txt += f"{center_val}"
+        center_max = param_center.max
+        if center_max != center_val:
+            center_txt += f" > {center_max}"
+        text += f", center : {center_txt}"
+    return text
 
 
-PARAMETER_ARGS = inspect.signature(Parameter).parameters.keys()
-
-
-def create_peak_model_from_name_type_param_hints(
-    peak_model: Model = None,
-    peak_name: str = None,
-    peak_type: str = None,
-    param_hints: Parameters = None,
-):
-    if peak_model:
-        param_hints = peak_model.make_params()
-        peak_name_ = peak_model.prefix
-        peak_type_ = peak_model.func.__name__
-        if peak_name:
-            if peak_name != peak_name_:
-                raise Warning("changed name of peak model")
-        else:
-            peak_name = peak_name_
-        if peak_type:
-            if peak_type != peak_type_:
-                raise Warning("changed type of peak model")
-                peak_model = make_model_from_peak_type_and_name(
-                    peak_name=peak_name, peak_type=peak_type
-                )
-        if param_hints:
-            if param_hints != param_hints:
-                peak_model = set_params_hints_on_model(peak_model, param_hints)
-        else:
-            peak_model = set_params_hints_on_model(peak_model, param_hints)
-    else:
-        if peak_name:
-            pass
-        else:
-            raise Warning(
-                "no peak_name given for create_peak_model, peak_name will be default"
-            )
-        if peak_type:
-            peak_model = make_model_from_peak_type_and_name(
-                peak_name=peak_name, peak_type=peak_type
-            )
-            if param_hints:
-                peak_model = set_params_hints_on_model(peak_model, param_hints)
-    return peak_model
-
-
-def param_hints_constructor(param_hints: dict = {}, default_settings: dict = {}):
-    """
-    This method validates and converts the input parameter settings (dict) argument
-    into a lmfit Parameters class instance.
-    """
-    params = Parameters()
-
-    if default_settings:
-        try:
-            _default_params = [
-                Parameter(k, **val) for k, val in default_settings.items()
-            ]
-            params.add_many(*_default_params)
-        except Exception as e:
-            raise ValueError(
-                f"Unable to create a Parameter from default_parameters {default_settings}:\n{e}"
-            )
-    if not isinstance(param_hints, dict):
-        raise TypeError(
-            f"input_param_hints should be of type dictionary not {type(param_hints)}"
-        )
-
-    try:
-        params_list = [Parameter(k, **val) for k, val in param_hints.items()]
-        params.add_many(*params_list)
-    except Exception as exc:
-        raise ValueError(
-            f"Unable to create a Parameter from {param_hints}:\n{exc}"
-        ) from exc
-
-    return params
-
-
-def set_params_hints_on_model(model, param_hints):
-    _error = ""
-    if isinstance(model, Model) and isinstance(param_hints, Parameters):
-        try:
-            for pname, par in param_hints.items():
-                try:
-                    _par_hint_dict = {
-                        pn: getattr(par, pn, None)
-                        for pn in PARAMETER_ARGS
-                        if getattr(par, pn, None)
-                    }
-                    model.set_param_hint(**_par_hint_dict)
-                except Exception as e:
-                    _error += f"Error in make_model_hints, check param_hints for {pname} with {par}, {e}"
-        except Exception as e:
-            _error += f"Error in make_model_hints, check param_hints \n{e}"
-    else:
-        _error += f"TypeError in make_model_hints, check types of model {type(model)} param_hints{type(param_hints)}"
-    if _error:
-        warn("Errors found in setting of param hints: {_error}", BasePeakWarning)
-    return model
+def get_default_peaks() -> Dict[str, BasePeak]:
+    settings = load_default_peak_toml_files()
+    peak_settings = {k: val.get("peaks") for k, val in settings.items()}
+    peak_models = {}
+    for peak_type, peak_type_defs in peak_settings.items():
+        for peak_name, peak_def in peak_type_defs.items():
+            peak_models[peak_name] = BasePeak(**peak_def)
+    return peak_models
 
 
 def _main():
+    settings = load_default_peak_toml_files()
     print(settings["first_order"]["models"])
+    # PARAMETER_ARGS = inspect.signature(Parameter).parameters.keys()
     peaks = {}
     peak_items = {
         **settings["first_order"]["peaks"],

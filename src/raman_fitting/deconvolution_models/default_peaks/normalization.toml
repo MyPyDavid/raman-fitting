@@ -11,7 +11,7 @@ G_peak used for normalization
 """
 peak_name = "norm_G"
 peak_type = "Lorentzian"
-normalization_peak = true
+is_for_normalization = true
 [normalization.peaks.norm_G.input_param_settings]
 center = {"value" = 1581, "min" = 1500, "max" = 1600}
 sigma = {"value" = 40, "min" = 1e-05, "max" = 1e3}
@@ -23,7 +23,7 @@ D_peak for normalization
 """
 peak_name = "norm_D"
 peak_type = "Lorentzian"
-normalization_peak = true
+is_for_normalization = true
 [normalization.peaks.norm_D.input_param_settings]
 center = {"value" = 1350, "min" = 1300, "max" = 1400}
 sigma = {"value" = 90, "min" = 1e-05}
