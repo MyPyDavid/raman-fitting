@@ -1,13 +1,46 @@
 import logging
 from pathlib import Path
+import re
 
 from warnings import warn
-from typing import List
+from typing import List, Sequence, Type, Optional
 
 import numpy as np
 import pandas as pd
+from tablib import Dataset
 
 logger = logging.getLogger(__name__)
+
+
+def filter_data_for_numeric(data: Dataset):
+    filtered_data = Dataset()
+    filtered_data.headers = data.headers
+
+    for row in data:
+        try:
+            digits_row = tuple(map(lambda x: float(x), row))
+        except ValueError:
+            continue
+        except TypeError:
+            continue
+
+        if not any(i is None for i in digits_row):
+            filtered_data.append(digits_row)
+    return filtered_data
+
+
+def read_file_with_tablib(filepath, headers_keys: Sequence[str], **kwargs):
+    with open(filepath, "r") as fh:
+        imported_data = Dataset().load(fh)
+
+    if headers_keys and set(imported_data.headers) not in set(headers_keys):
+        with open(filepath, "r") as fh:
+            imported_data = Dataset().load(fh, headers=False)
+        imported_data.headers = headers_keys
+
+    numeric_data = filter_data_for_numeric(imported_data)
+    data_df = numeric_data.export("df")
+    return data_df
 
 
 def read_text(filepath, max_bytes=10**6, encoding="utf-8", errors=None):
@@ -54,9 +87,7 @@ def cast_array_into_spectrum_frame(array, keys: List[str] = None) -> pd.DataFram
         )
 
     try:
-        spectrum_data = pd.DataFrame(
-            array, columns=keys
-        )
+        spectrum_data = pd.DataFrame(array, columns=keys)
         return spectrum_data
     except Exception as exc:
         _msg = f"Can not create DataFrame from array object: {array}\n{exc}"
