@@ -12,14 +12,17 @@ logger = logging.getLogger(__name__)
 from .filepath_settings import Config
 
 
-def load_settings() -> dict:
+def load_default_peak_toml_files() -> dict:
+    from raman_fitting.deconvolution_models import default_peaks
     from pathlib import Path
-
-    toml_files = [i for i in Path.cwd().glob("src/**/*.toml")]
     import tomllib
 
+    default_peaks_path = Path(default_peaks.__file__).parent
+    toml_files = [i for i in default_peaks_path.glob("*.toml")]
+
     settings = {}
-    [settings.update(tomllib.loads(i.read_bytes().decode())) for i in toml_files]
+    for i in toml_files:
+        settings.update(tomllib.loads(i.read_bytes().decode()))
     return settings
 
 
