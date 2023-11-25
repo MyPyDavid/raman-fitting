@@ -10,40 +10,47 @@ from pathlib import Path
 import re
 
 from warnings import warn
-from typing import List
+from typing import List, Sequence
 
 import numpy as np
 import pandas as pd
 
-from .file_parsers import load_spectrum_from_txt
+from .file_parsers import read_file_with_tablib
 from .validators import ValidateSpectrumValues
 
 logger = logging.getLogger(__name__)
 
 
 SPECTRUM_FILETYPE_PARSERS = {
-        ".txt": { 
-            "method": load_spectrum_from_txt,
-            "kwargs": {
-                "usecols": (0, 1),
-                "keys": ("ramanshift", "intensity"),
-                },
+    ".txt": {
+        "method": read_file_with_tablib,  # load_spectrum_from_txt,
+        "_kwargs": {
+            "usecols": (0, 1),
+            "keys": ("ramanshift", "intensity"),
         },
-        ".xlsx": {
-            "method": pd.read_excel,
-            "kwargs": {},
-        },
-        ".csv": {
-            "method": pd.read_csv,
-            "kwargs": {},
-        },
+    },
+    ".xlsx": {
+        "method": read_file_with_tablib,  # pd.read_excel,
+        "kwargs": {},
+    },
+    ".csv": {
+        "method": read_file_with_tablib,  # pd.read_csv,
+        "kwargs": {},
+    },
+    ".json": {
+        "method": read_file_with_tablib,
+    },
 }
 
 supported_filetypes = [".txt"]
 spectrum_data_keys = ("ramanshift", "intensity")
 
-ramanshift_expected_values = ValidateSpectrumValues(spectrum_key="ramanshift", min=-95, max=3600, len=1600)
-intensity_expected_values = ValidateSpectrumValues(spectrum_key="intensity", min=0, max=1e4, len=1600)
+ramanshift_expected_values = ValidateSpectrumValues(
+    spectrum_key="ramanshift", min=-95, max=3600, len=1600
+)
+intensity_expected_values = ValidateSpectrumValues(
+    spectrum_key="intensity", min=0, max=1e4, len=1600
+)
 
 
 @dataclass
@@ -55,14 +62,16 @@ class SpectrumReader:
     Double checks the values
     Sets a hash attribute afterwards
     """
+
     filepath: Path | str
     max_bytesize: int = 10**6
     spectrum_data_keys: tuple = ("ramanshift", "intensity")
-    spectrum_keys_expected_values: List[ValidateSpectrumValues] = field(default_factory=list)
+    spectrum_keys_expected_values: List[ValidateSpectrumValues] = field(
+        default_factory=list
+    )
     spectrum: pd.DataFrame = field(default_factory=pd.DataFrame)
     spectrum_hash: str = ""
     spectrum_length: int = 0
-
 
     def __post_init__(self, **kwargs):
         super().__init__()
@@ -85,9 +94,14 @@ class SpectrumReader:
             logger.warning(f"File too large ({filesize})=> skipped")
             return
 
-        self.spectrum = self.spectrum_parser(self.filepath)
+        self.spectrum = self.spectrum_parser(self.filepath, self.spectrum_data_keys)
         for spectrum_key in self.spectrum.columns:
-            validators = list(filter(lambda x: x.spectrum_key == spectrum_key, self.spectrum_keys_expected_values))
+            validators = list(
+                filter(
+                    lambda x: x.spectrum_key == spectrum_key,
+                    self.spectrum_keys_expected_values,
+                )
+            )
             for validator in validators:
                 self.validate_spectrum_keys_expected_values(self.spectrum, validator)
 
@@ -102,7 +116,7 @@ class SpectrumReader:
         for key in self.spectrum_data_keys:
             setattr(self, key, self.spectrum[key].to_numpy())
 
-    def spectrum_parser(self, filepath: Path):
+    def spectrum_parser(self, filepath: Path, header_keys: Sequence[str]):
         """
         Reads data from a file and converts into pd.DataFrame object
 
@@ -116,20 +130,11 @@ class SpectrumReader:
         pd.DataFrame
             Contains the data of the spectrum in a DataFrame with the selected spectrum keys as columns
         """
-
-        spectrum_data = pd.DataFrame()
-
         suffix = filepath.suffix
-
-        if suffix not in SPECTRUM_FILETYPE_PARSERS:
-            raise ValueError(f"Filetype {suffix} not supported")
-        
         parser = SPECTRUM_FILETYPE_PARSERS[suffix]["method"]
-        kwargs = SPECTRUM_FILETYPE_PARSERS[suffix]["kwargs"]
-        spectrum_data = parser(filepath, **kwargs)
-
+        kwargs = SPECTRUM_FILETYPE_PARSERS[suffix].get("kwargs", {})
+        spectrum_data = parser(filepath, header_keys, **kwargs)
         return spectrum_data
-
 
     def validate_spectrum_keys_expected_values(
         self, spectrum_data: pd.DataFrame, expected_values: ValidateSpectrumValues
@@ -142,15 +147,13 @@ class SpectrumReader:
             logger.error("Spectrum data is empty")
             return
 
-        validation = expected_values.validate_spectrum(spectrum_data)
-  
+        validation = expected_values.validate(spectrum_data)
+
         if not validation:
             logger.warning(
                 f"The {expected_values.spectrum_key} of this spectrum does not match the expected values {expected_values}"
             )
 
-
-   
     def sort_spectrum(
         self, spectrum: pd.DataFrame, sort_by="ramanshift", ignore_index=True
     ):
@@ -177,4 +180,3 @@ class SpectrumReader:
             self.spectrum.plot(x="ramanshift", y="intensity")
         except TypeError:
             logger.warning("No numeric data to plot")
-
