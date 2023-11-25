@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import re
 
 import pandas as pd
 import numpy as np
@@ -24,9 +23,8 @@ class ValidateSpectrumValues:
         data_len = len(spectrum_data)
         return np.isclose(data_len, self.len, rtol=0.1)
 
-    def validate_spectrum(self, spectrum_data: pd.DataFrame):
+    def validate(self, spectrum_data: pd.DataFrame):
         ret = []
         for _func in [self.validate_min, self.validate_max, self.validate_len]:
             ret.append(_func(spectrum_data))
         return all(ret)
-

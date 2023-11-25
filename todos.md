@@ -3,10 +3,6 @@
 # IDEA change version definition
 
 # IDEA list:
-# added setup.cfg
-# added unittests
-# added README.md
-# add project.toml only for
 # improved logger, each module needs a getlogger(name)
 # IDEA future daemonize the fitting process for using the package and dropping files in the datafiles folder
 # IDEA add docs with Sphinx, readthedocs
