@@ -6,16 +6,21 @@ Created on Sun Jun  6 09:35:02 2021
 
 import unittest
 from functools import partial
+from operator import itemgetter
 
 import pytest
 from lmfit import Model
 
-from raman_fitting.deconvolution_models.base_model import _SUBSTRATE_PEAK, BaseModel
+from raman_fitting.deconvolution_models.base_model import (
+    SUBSTRATE_PEAK,
+    BaseModelCollection,
+)
+from pydantic import ValidationError
 
-_SUBSTRATE_PREFIX = _SUBSTRATE_PEAK.split("peak")[0]
+SUBSTRATE_PREFIX = SUBSTRATE_PEAK.split("peak")[0]
 
 
-def _get_list_components(bm):
+def helper_get_list_components(bm):
     _listcompsprefix = partial(map, lambda x,: getattr(x, "prefix"))
     _bm_prefix = list(_listcompsprefix(bm.lmfit_model.components))
     return _bm_prefix
@@ -23,30 +28,29 @@ def _get_list_components(bm):
 
 class TestBaseModel(unittest.TestCase):
     def test_empty_base_model(self):
-        bm = BaseModel()
-        self.assertEqual(bm.model_name, "")
-        self.assertFalse(bm.has_substrate)
-        bm.add_substrate()
-        self.assertIn(bm.model_name, _SUBSTRATE_PEAK)
-        self.assertEqual(type(bm.lmfit_model).__qualname__, "GaussianModel")
-        self.assertIn(bm.lmfit_model.prefix, _SUBSTRATE_PEAK)
-        self.assertTrue(issubclass(type(bm.lmfit_model), Model))
+        self.assertRaises(ValidationError, BaseModelCollection)
+        self.assertRaises(ValidationError, BaseModelCollection, name="Test_empty")
+        self.assertRaises(ValidationError, BaseModelCollection, peaks="A+B")
+        bm = BaseModelCollection(name="Test_empty", peaks="A+B")
 
     def test_base_model_2peaks(self):
-        bm = BaseModel(model_name="K2+D+G")
+        bm = BaseModelCollection(name="Test_2peaks", peaks="K2+D+G")
+        print(bm)
 
-        self.assertListEqual(_get_list_components(bm), ["D_", "G_"])
+        self.assertSetEqual(set(helper_get_list_components(bm)), set(["D_", "G_"]))
         bm.add_substrate()
-        self.assertListEqual(_get_list_components(bm), ["D_", "G_", _SUBSTRATE_PREFIX])
+        self.assertSetEqual(
+            set(helper_get_list_components(bm)), set(["D_", "G_", SUBSTRATE_PREFIX])
+        )
         bm.remove_substrate()
-        self.assertListEqual(_get_list_components(bm), ["D_", "G_"])
+        self.assertSetEqual(set(helper_get_list_components(bm)), set(["D_", "G_"]))
 
     def test_base_model_wrong_chars_model_name(self):
-        bm = BaseModel(model_name="K2+---////+  +7 +K1111+1D+D2")
-        self.assertListEqual(_get_list_components(bm), ["D2_"])
+        bm = BaseModelCollection(
+            name="Test_wrong_chars", peaks="K2+---////+  +7 +K1111+1D+D2"
+        )
+        self.assertSetEqual(set(helper_get_list_components(bm)), set(["D2_"]))
         bm.add_substrate()
-        self.assertListEqual(_get_list_components(bm), ["D2_", _SUBSTRATE_PREFIX])
-
-
-if __name__ == "__main__":
-    unittest.main()
+        self.assertSetEqual(
+            set(helper_get_list_components(bm)), set(["D2_", SUBSTRATE_PREFIX])
+        )
