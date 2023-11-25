@@ -4,7 +4,7 @@ from warnings import warn
 
 from lmfit import Model
 
-from raman_fitting.config.filepath_helper import load_settings
+from raman_fitting.config.filepath_helper import load_default_peak_toml_files
 
 
 from raman_fitting.deconvolution_models.base_model import SEP
@@ -30,7 +30,7 @@ class InitializeModels:
         self.peaks = self.peaks or {}
         self.lmfit_models = self.lmfit_models or {}
         if not self.settings:
-            self.settings = load_settings()
+            self.settings = load_default_peak_toml_files()
         if not self.lmfit_models:
             self.lmfit_models = self.construct_lmfit_models(self.settings)
 
@@ -68,9 +68,9 @@ class InitializeModels:
 
 
 def main():
-    from raman_fitting.config.filepath_helper import load_settings
+    from raman_fitting.config.filepath_helper import load_default_peak_toml_files
 
-    settings = load_settings()
+    settings = load_default_peak_toml_files()
     models = InitializeModels()
     print(models)
     breakpoint()

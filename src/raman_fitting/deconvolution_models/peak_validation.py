@@ -18,21 +18,12 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from lmfit import Parameters
 
-if __name__ == "__main__":  # or _file_parent_name == 'deconvolution_models':
-    # import first_order_peaks
-    # import second_order_peaks
-    # import normalization_peaks
-    from default_peaks import BasePeak
-
-    __package_name__ = __name__
-else:
-    from .. import __package_name__
-    from .default_peaks.base_peak import BasePeak
+from .. import __package_name__
+from .base_peak import BasePeak
 
 logger = logging.getLogger(__package_name__)
 
 
-# %%
 class PeakValidationWarning(UserWarning):
     pass
 
@@ -51,7 +42,6 @@ class PeakModelValidator:
     constructs an iterable collection of all defined Child class.
     Each subclass of BasePeak is:
         - validated: instance check
-        - filtered: optional
         - sorted: sorting for valid models based on defined center position of BasePeak
 
     Followed by color assignment to each BasePeak and collection of lmfit_models
@@ -71,17 +61,14 @@ class PeakModelValidator:
     debug = False
 
     def __init__(self, *args, cmap_options=CMAP_OPTIONS_DEFAULT, **kwargs):
-        self.debug = self._set_debug(**kwargs)
         self._cmap_options = cmap_options
 
-        self._inspect_models = self.get_subclasses_from_base(self.BASE_PEAK)
-
+        self._inspect_models = []
         self.valid_models = []
         self._invalid_models = []
         self.valid_models, self._invalid_models = self.validation_inspect_models(
             inspect_models=self._inspect_models
         )
-        self.selected_models = self.filter_valid_models(self.valid_models)
         self.selected_models = self.sort_selected_models(self.selected_models)
 
         self.lmfit_models = self.assign_colors_to_lmfit_mod_inst(self.selected_models)
@@ -89,13 +76,6 @@ class PeakModelValidator:
 
         self.model_dict = self.get_model_dict(self.lmfit_models)
         self.options = self.model_dict.keys()
-
-    def _set_debug(self, **value):
-        _debug = self.debug
-        if isinstance(value, dict):
-            if "debug" in value.keys():
-                _debug = bool(value.get("debug", False))
-        return _debug
 
     def get_subclasses_from_base(self, _BaseClass):
         """Finds subclasses of the BasePeak metaclass, these should give already valid models"""
@@ -159,10 +139,6 @@ class PeakModelValidator:
 
         return valid_models, _invalid_models
 
-    def filter_valid_models(self, value):
-        """Optional method for extra filters on valid model selection"""
-        return value
-
     def sort_selected_models(self, value):
         """Sorting the selected valid models for color assigment etc.."""
         _sorted = value
@@ -190,11 +166,7 @@ class PeakModelValidator:
         """
 
         try:
-            if self.debug:
-                print(f"validate model inst value:", value)
             _inst = value()
-            if self.debug:
-                print(f"validate model inst:", _inst)
         except Exception as e:
             _err = f"Unable to initialize model {value},\n{e}"
             warn(f"{_err}", CanNotInitializeModelWarning)
@@ -257,7 +229,7 @@ class PeakModelValidator:
             _m_inst = _arg.model_inst
             _m_inst._modelvalidation = _arg
             _m_inst.color = ", ".join([str(i) for i in cmap_get[n]])
-            _m_inst._lenpars = len(_m_inst.peak_model.param_names)
+            _m_inst._lenpars = len(_m_inst.lmfit_model.param_names)
             lmfit_models.append(_m_inst)
         return lmfit_models
 
@@ -267,23 +239,9 @@ class PeakModelValidator:
 
     def add_model_names_var_names(self, lmfit_models):
         _mod_param_names = {
-            i.peak_model.name: i.peak_model.param_names for i in lmfit_models
+            i.lmfit_model.name: i.lmfit_model.param_names for i in lmfit_models
         }
         return _mod_param_names
-
-    def get_df_models_parameters(self):
-        _models = pd.DataFrame(
-            [
-                (
-                    i.model.name,
-                    len(i.peak_model.param_names),
-                    ", ".join(i.peak_model.param_names),
-                )
-                for i in self.lmfit_models
-            ],
-            columns=["Model_EEC", "model_lenpars", "model_parnames"],
-        )
-        return _models
 
     def get_model_dict(self, lmfit_models):
         model_dict = {i.__class__.__name__: i for i in lmfit_models}
@@ -305,9 +263,6 @@ class PeakModelValidator:
         except AttributeError:
             raise AttributeError(f'Chosen name "{name}" not in attributes')
 
-    def normalization_model(self):
-        pass  # IDEA separate peaks in groups
-
     def __iter__(self):
         for mod_inst in self.lmfit_models:
             yield mod_inst
@@ -324,7 +279,3 @@ class PeakModelValidator:
         else:
             _repr += ", empty selected models"
         return _repr
-
-
-if __name__ == "__main__":
-    a = PeakModelValidator(debug=True)
