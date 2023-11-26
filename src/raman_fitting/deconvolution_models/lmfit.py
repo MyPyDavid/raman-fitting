@@ -1,33 +1,17 @@
 from ast import main
-import inspect
-from functools import partialmethod
 import math
-
-from os import name
-from pyexpat import model
-
-from unittest.mock import DEFAULT
-from warnings import warn
 from enum import StrEnum
+from typing import List, Optional, Dict
 
-from lmfit import Parameter, Parameters
-
+from lmfit import Parameter
 from lmfit.models import GaussianModel, LorentzianModel, Model, VoigtModel
-
-from typing import List, Literal, Optional, Dict, final
-import numpy
 
 from pydantic import (
     BaseModel,
     ConfigDict,
-    InstanceOf,
     Field,
-    ValidationError,
-    ValidationInfo,
-    field_validator,
     model_validator,
 )
-from pytest import param
 
 
 param_hint_dict = Dict[str, Dict[str, Optional[float | bool | str]]]
@@ -40,6 +24,13 @@ class BasePeakWarning(UserWarning):  # pragma: no cover
 PEAK_TYPE_OPTIONS = StrEnum("PEAK_TYPE_OPTIONS", ["Lorentzian", "Gaussian", "Voigt"])
 
 LMFIT_PARAM_KWARGS = ("value", "vary", "min", "max", "expr")
+
+
+LMFIT_MODEL_MAPPER = {
+    "Lorentzian": LorentzianModel,
+    "Gaussian": GaussianModel,
+    "Voigt": VoigtModel,
+}
 
 
 class LMFitParameterHints(BaseModel):
@@ -130,21 +121,25 @@ class LMFitParameterHints(BaseModel):
         return self
 
 
-DEFAULT_GAMMA_PARAM_HINT = LMFitParameterHints(
-    name="gamma", value=1, min=1e-05, max=70, vary=False
-)
-
-LMFIT_MODEL_MAPPER = {
-    "Lorentzian": LorentzianModel,
-    "Gaussian": GaussianModel,
-    "Voigt": VoigtModel,
-}
+def construct_lmfit_model_from_components(models: List[Model]) -> "Model":
+    """
+    Construct the lmfit model from a collection of (known) peaks
+    """
+    if not models:
+        raise ValueError("No peaks given to construct lmfit model from.")
+    lmfit_composite_model = sum(models, models.pop())
+    return lmfit_composite_model
 
 
 def parmeter_to_dict(parameter: Parameter) -> dict:
     ret = {k: getattr(parameter, k) for k in LMFIT_PARAM_KWARGS}
     ret = {k: v for k, v in ret.items() if v is not None}
     return ret
+
+
+DEFAULT_GAMMA_PARAM_HINT = LMFitParameterHints(
+    name="gamma", value=1, min=1e-05, max=70, vary=False
+)
 
 
 def main():

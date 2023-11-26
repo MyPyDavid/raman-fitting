@@ -4,8 +4,8 @@ from collections import OrderedDict, namedtuple
 
 import pandas as pd
 
-from ..processing.spectrum_constructor import SpectrumDataCollection, SpectrumDataLoader
-from .init_models import InitializeModels
+# from ..processing.spectrum_constructor import SpectrumDataCollection, SpectrumDataLoader
+# from .init_models import InitializeModels
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +19,11 @@ class Fitter:
 
     fit_windows = ["1st_order", "2nd_order"]
 
-    def __init__(self, spectra_arg, RamanModels=InitializeModels(), start_fit=True):
+    def __init__(self, spectra_arg, models=None, start_fit=True):
         self._qcnm = self.__class__.__qualname__
         logger.debug(f"{self._qcnm} is called with spectrum\n\t{spectra_arg}\n")
         self.start_fit = start_fit
-        self.models = RamanModels
+        self.models = models
 
         self.spectra_arg = spectra_arg
         self.spectra = spectra_arg

@@ -1,12 +1,7 @@
 from dataclasses import dataclass
 import logging
-from warnings import warn
-
-from lmfit import Model
 
 from raman_fitting.config.filepath_helper import load_default_peak_toml_files
-
-
 from raman_fitting.deconvolution_models.base_model import SEP
 from raman_fitting.deconvolution_models.base_peak import BasePeak
 
