@@ -32,8 +32,7 @@ jobs:
       run: |
         python3 -m pip install -U pip
         python3 -m pip install -U build
-        python3 -m pip install flake8 pytest
-        python3 -m pip install -r requirements.txt
+        python3 -m pip install flake8
 
     - name: Lint with flake8
       run: |
@@ -46,11 +45,7 @@ jobs:
       run: |
         python3 -m build
         # install the package in editable mode for the coverage report
-        python3 -m pip install -e .
-
-    - name: Install dependencies for coverage report
-      run: |
-        python3 -m pip install pytest pytest-cov coverage
+        python3 -m pip install -e .["pytest"]
 
     - name: Generate coverage report
       run: |
