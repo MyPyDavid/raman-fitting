@@ -6,16 +6,13 @@ Created on Sun Jun  6 09:35:02 2021
 
 import unittest
 from functools import partial
-from operator import itemgetter
 
-import pytest
-from lmfit import Model
+from pydantic import ValidationError
 
 from raman_fitting.deconvolution_models.base_model import (
     SUBSTRATE_PEAK,
-    BaseModelCollection,
+    BaseModel,
 )
-from pydantic import ValidationError
 
 SUBSTRATE_PREFIX = SUBSTRATE_PEAK.split("peak")[0]
 
@@ -28,13 +25,13 @@ def helper_get_list_components(bm):
 
 class TestBaseModel(unittest.TestCase):
     def test_empty_base_model(self):
-        self.assertRaises(ValidationError, BaseModelCollection)
-        self.assertRaises(ValidationError, BaseModelCollection, name="Test_empty")
-        self.assertRaises(ValidationError, BaseModelCollection, peaks="A+B")
-        bm = BaseModelCollection(name="Test_empty", peaks="A+B")
+        self.assertRaises(ValidationError, BaseModel)
+        self.assertRaises(ValidationError, BaseModel, name="Test_empty")
+        self.assertRaises(ValidationError, BaseModel, peaks="A+B")
+        bm = BaseModel(name="Test_empty", peaks="A+B")
 
     def test_base_model_2peaks(self):
-        bm = BaseModelCollection(name="Test_2peaks", peaks="K2+D+G")
+        bm = BaseModel(name="Test_2peaks", peaks="K2+D+G")
         print(bm)
 
         self.assertSetEqual(set(helper_get_list_components(bm)), set(["D_", "G_"]))
@@ -46,9 +43,7 @@ class TestBaseModel(unittest.TestCase):
         self.assertSetEqual(set(helper_get_list_components(bm)), set(["D_", "G_"]))
 
     def test_base_model_wrong_chars_model_name(self):
-        bm = BaseModelCollection(
-            name="Test_wrong_chars", peaks="K2+---////+  +7 +K1111+1D+D2"
-        )
+        bm = BaseModel(name="Test_wrong_chars", peaks="K2+---////+  +7 +K1111+1D+D2")
         self.assertSetEqual(set(helper_get_list_components(bm)), set(["D2_"]))
         bm.add_substrate()
         self.assertSetEqual(

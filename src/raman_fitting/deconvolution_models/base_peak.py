@@ -1,31 +1,21 @@
-import inspect
-from functools import partialmethod
-
-from warnings import warn
 from enum import StrEnum
-
-from lmfit import Parameter, Parameters
-
-from lmfit.models import GaussianModel, LorentzianModel, Model, VoigtModel
-from .lmfit_models import LMFIT_MODEL_MAPPER, LMFitParameterHints, parmeter_to_dict
-from ..config.filepath_helper import load_default_peak_toml_files
-
-from typing import List, Literal, Optional, Dict, final
+from typing import List, Optional, Dict
 
 from pydantic import (
     BaseModel,
     ConfigDict,
     InstanceOf,
     Field,
-    ValidationError,
-    ValidationInfo,
     field_validator,
     model_validator,
 )
-from pytest import param
+from lmfit import Parameters
+from lmfit.models import Model
 
+from .lmfit import LMFIT_MODEL_MAPPER, LMFitParameterHints, parmeter_to_dict
+from ..config.filepath_helper import load_default_peak_toml_files
 
-param_hint_dict = Dict[str, Dict[str, Optional[float | bool | str]]]
+ParamHintDict = Dict[str, Dict[str, Optional[float | bool | str]]]
 
 
 class BasePeakWarning(UserWarning):  # pragma: no cover
@@ -33,13 +23,6 @@ class BasePeakWarning(UserWarning):  # pragma: no cover
 
 
 PEAK_TYPE_OPTIONS = StrEnum("PEAK_TYPE_OPTIONS", ["Lorentzian", "Gaussian", "Voigt"])
-
-
-LMFIT_MODEL_MAPPER = {
-    "Lorentzian": LorentzianModel,
-    "Gaussian": GaussianModel,
-    "Voigt": VoigtModel,
-}
 
 
 def get_lmfit_model_from_peak_type(peak_type: str, prefix: str = "") -> Optional[Model]:
@@ -117,9 +100,7 @@ class BasePeak(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True)
 
     peak_name: str
-    param_hints: Optional[
-        Parameters | List[LMFitParameterHints] | param_hint_dict
-    ] = None
+    param_hints: Optional[Parameters | List[LMFitParameterHints] | ParamHintDict] = None
     peak_type: Optional[str] = None
     is_substrate: Optional[bool] = False
     is_for_normalization: Optional[bool] = False
@@ -148,7 +129,7 @@ class BasePeak(BaseModel):
     @field_validator("param_hints")
     @classmethod
     def check_param_hints(
-        cls, v: Optional[Parameters | List[LMFitParameterHints] | param_hint_dict]
+        cls, v: Optional[Parameters | List[LMFitParameterHints] | ParamHintDict]
     ) -> Optional[Parameters]:
         if v is None:
             return v

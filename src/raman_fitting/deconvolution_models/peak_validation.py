@@ -6,22 +6,18 @@ Created on Wed Apr 28 15:08:26 2021
 @author: zmg
 """
 
-import inspect
 import logging
 from collections import namedtuple
-from itertools import groupby
-from pathlib import Path
 from typing import Tuple
 from warnings import warn
 
 import matplotlib.pyplot as plt
-import pandas as pd
-from lmfit import Parameters
 
-from .. import __package_name__
-from .base_peak import BasePeak
+logger = logging.getLogger(__file__)
 
-logger = logging.getLogger(__package_name__)
+
+CMAP_OPTIONS_DEFAULT = ("Dark2", "tab20")
+fallback_color = (0.4, 0.4, 0.4, 1.0)
 
 
 class PeakValidationWarning(UserWarning):
@@ -48,15 +44,9 @@ class PeakModelValidator:
 
     """
 
-    # _standard_modules = [first_order_peaks, second_order_peaks, normalization_peaks]
-    BASE_PEAK = BasePeak
-
     ModelValidation = namedtuple(
         "ModelValidation", "valid peak_group model_inst message"
     )
-
-    CMAP_OPTIONS_DEFAULT = ("Dark2", "tab20")
-    fallback_color = (0.4, 0.4, 0.4, 1.0)
 
     debug = False
 
@@ -76,38 +66,6 @@ class PeakModelValidator:
 
         self.model_dict = self.get_model_dict(self.lmfit_models)
         self.options = self.model_dict.keys()
-
-    def get_subclasses_from_base(self, _BaseClass):
-        """Finds subclasses of the BasePeak metaclass, these should give already valid models"""
-
-        _all_subclasses = []
-        if inspect.isclass(_BaseClass):
-            if hasattr(_BaseClass, "subclasses"):
-                _all_subclasses = _BaseClass.subclasses
-            elif hasattr(_BaseClass, "__subclassess__"):
-                _all_subclasses = _BaseClass.__subclasses__
-            else:
-                warn(
-                    f"\nNo baseclasses were found for {str(_BaseClass)}:\n missing attributes",
-                    NotFoundAnyModelsWarning,
-                )
-        else:
-            warn(
-                f"\nNo baseclasses were found for {str(_BaseClass)}:\n is not a class",
-                NotFoundAnyModelsWarning,
-            )
-
-        if not _all_subclasses:
-            warn(
-                f"\nNo baseclasses were found in inspected modules for {str(_BaseClass)}:\n",
-                NotFoundAnyModelsWarning,
-            )
-
-        return _all_subclasses
-
-    def _inspect_modules_for_classes(self):
-        """Optional method Inspect other modules for subclasses"""
-        pass
 
     def validation_inspect_models(self, inspect_models: list = []):
         """Validates each member of a list for making a valid model instance"""
@@ -159,35 +117,6 @@ class PeakModelValidator:
             _sorted = sorted(_sorted, key=lambda x: x.peak_group)
             return _sorted
 
-    def validate_model_instance(self, value):
-        """
-        Returns a boolean, model and message depending on the validation of the model class.
-        Invalid classes can raise warnings, but exception only when no valid models are found.
-        """
-
-        try:
-            _inst = value()
-        except Exception as e:
-            _err = f"Unable to initialize model {value},\n{e}"
-            warn(f"{_err}", CanNotInitializeModelWarning)
-            return (False, value, _err)
-
-        for field in self.BASE_PEAK._fields:
-            if not hasattr(_inst, field):
-                return (False, value, f"instance {_inst} has no attr {field}.\n")
-            if not getattr(_inst, field):
-                return (False, value, f"instance {_inst}, {field} is None.\n")
-            if "param_hints" in field:
-                _settings = getattr(_inst, field)
-                _center = _settings.get("center", None)
-                if not _center:
-                    return (
-                        False,
-                        value,
-                        f"instance {_inst}, settings {_settings} center is None.\n",
-                    )
-        return (True, _inst, f"{_inst} is a valid model")
-
     @staticmethod
     def get_cmap_list(
         lst, cmap_options: Tuple = (), fallback_color: Tuple = ()
@@ -232,40 +161,6 @@ class PeakModelValidator:
             _m_inst._lenpars = len(_m_inst.lmfit_model.param_names)
             lmfit_models.append(_m_inst)
         return lmfit_models
-
-    def add_standard_init_params(self):
-        self.standard_init_params = Parameters()
-        self.standard_init_params.add_many(*BasePeak._params_guesses_base)
-
-    def add_model_names_var_names(self, lmfit_models):
-        _mod_param_names = {
-            i.lmfit_model.name: i.lmfit_model.param_names for i in lmfit_models
-        }
-        return _mod_param_names
-
-    def get_model_dict(self, lmfit_models):
-        model_dict = {i.__class__.__name__: i for i in lmfit_models}
-        return model_dict
-
-    def get_dict(self):
-        return {
-            i.__module__ + ", " + i.__class__.__name__: i for i in self.lmfit_models
-        }
-
-    def __getattr__(self, name):
-        try:
-            _options = self.__getattribute__("options")
-            if name in _options:
-                return self.model_dict.get(name, None)
-            raise AttributeError(
-                f'Chosen name "{name}" not in options: "{", ".join(_options)}".'
-            )
-        except AttributeError:
-            raise AttributeError(f'Chosen name "{name}" not in attributes')
-
-    def __iter__(self):
-        for mod_inst in self.lmfit_models:
-            yield mod_inst
 
     def __repr__(self):
         _repr = "Validated Peak model collection"

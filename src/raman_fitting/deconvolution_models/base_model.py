@@ -1,24 +1,19 @@
 """ The members of the validated collection of BasePeaks are assembled here into fitting Models"""
 import logging
-
+from typing import Optional, Dict
 from warnings import warn
-from typing import List, Optional, Dict
 
-from lmfit.models import Model, GaussianModel
-
-from raman_fitting.deconvolution_models.peak_validation import PeakModelValidator
-from .base_peak import BasePeak, get_default_peaks
-
+from lmfit.models import Model
 from pydantic import (
     BaseModel,
-    PositiveInt,
     Field,
     ConfigDict,
     model_validator,
-    ValidationInfo,
-    field_validator,
-    ValidationError,
 )
+
+from .base_peak import BasePeak, get_default_peaks
+from .lmfit import construct_lmfit_model_from_components
+from ..config.filepath_helper import load_default_peak_toml_files
 
 logger = logging.getLogger(__name__)
 
@@ -31,19 +26,7 @@ class BaseModelWarning(UserWarning):
     pass
 
 
-def construct_lmfit_model_from_base_peaks(base_peaks: List[BasePeak]) -> Model:
-    """
-    Construct the lmfit model from a collection of (known) peaks
-    """
-    if not base_peaks:
-        raise ValueError("No peaks given to construct lmfit model from.")
-    lmfit_composite_model = sum(
-        map(lambda x: x.lmfit_model, base_peaks), base_peaks.pop().lmfit_model
-    )
-    return lmfit_composite_model
-
-
-class BaseModelCollection(BaseModel):
+class BaseModel(BaseModel):
     """
     This Model class combines the collection of valid peaks from BasePeak into a regression model
     of type lmfit.model.CompositeModel
@@ -116,10 +99,31 @@ class BaseModelCollection(BaseModel):
         self.lmfit_model = lmfit_model
         return self
 
-    def construct_lmfit_model(self, peaks, default_peaks) -> "Model":
+    def construct_lmfit_model(self, peaks, default_peaks) -> Optional["Model"]:
         peak_names = peaks.split(SEP)
         base_peaks = [default_peaks[i] for i in peak_names if i in default_peaks]
         if not base_peaks:
-            return GaussianModel()
-        lmfit_model = construct_lmfit_model_from_base_peaks(base_peaks)
+            return None
+        base_peaks_lmfit = [i.lmfit_model for i in base_peaks]
+        lmfit_model = construct_lmfit_model_from_components(base_peaks_lmfit)
         return lmfit_model
+
+
+def get_default_models() -> Dict[str, BasePeak]:
+    settings = load_default_peak_toml_files()
+    default_peaks = get_default_peaks()
+    models_settings = {k: val.get("models") for k, val in settings.items()}
+    base_models = {}
+    for model_name, model_peaks in models_settings.items():
+        base_models[model_name] = BaseModel(
+            name=model_name, peaks=model_peaks, default_peaks=default_peaks
+        )
+    return base_models
+
+
+def main():
+    models = get_default_models()
+
+
+if __name__ == "__main__":
+    main()
