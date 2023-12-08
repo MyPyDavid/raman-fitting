@@ -87,14 +87,14 @@ class BaseModel(BaseModel):
         return {k: val for k, val in self.default_peaks.items() if val.is_substrate}
 
     @model_validator(mode="after")
-    def check_peaks_in_default_peaks(self) -> "BaseModelCollection":
+    def check_peaks_in_default_peaks(self) -> "BaseModel":
         peak_names = self.peaks.split(SEP)
         default_peak_names = self.default_peaks.keys()
         assert set(peak_names).union(set(default_peak_names))
         return self
 
     @model_validator(mode="after")
-    def check_lmfit_model(self) -> "BaseModelCollection":
+    def check_lmfit_model(self) -> "BaseModel":
         lmfit_model = self.construct_lmfit_model(self.peaks, self.default_peaks)
         self.lmfit_model = lmfit_model
         return self
@@ -123,6 +123,7 @@ def get_default_models() -> Dict[str, BasePeak]:
 
 def main():
     models = get_default_models()
+    print("Models: ", len(models))
 
 
 if __name__ == "__main__":

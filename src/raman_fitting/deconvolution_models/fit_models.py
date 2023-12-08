@@ -5,7 +5,7 @@ from collections import OrderedDict, namedtuple
 import pandas as pd
 
 # from ..processing.spectrum_constructor import SpectrumDataCollection, SpectrumDataLoader
-# from .init_models import InitializeModels
+from .init_models import InitializeModels
 
 logger = logging.getLogger(__name__)
 
@@ -40,10 +40,10 @@ class Fitter:
         _errtxt = f"This assignment {value} does not contain valid spectra"
         if isinstance(value, dict):
             _data = value
-        elif isinstance(value, SpectrumDataCollection):
+        elif isinstance(value, "SpectrumDataCollection"):
             _data = value.mean_data
             _fit_lbl = "mean"
-        elif isinstance(value, SpectrumDataLoader):
+        elif isinstance(value, "SpectrumDataLoader"):
             _data = value.clean_df
             _fit_lbl = "int"
         elif isinstance(value, pd.DataFrame):

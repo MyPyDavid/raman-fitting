@@ -1,11 +1,9 @@
 import datetime
 import unittest
-from importlib import resources
 from pathlib import Path
 
 # from raman_fitting.deconvolution_models import first_order_peaks
 import pandas as pd
-import pytest
 
 
 import raman_fitting.test_fixtures as fixtures

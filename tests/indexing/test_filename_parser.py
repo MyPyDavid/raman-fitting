@@ -1,7 +1,6 @@
 import unittest
 
 # import importlib
-from importlib import resources
 from pathlib import Path
 
 # from raman_fitting.deconvolution_models import first_order_peaks

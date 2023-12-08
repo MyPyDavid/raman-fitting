@@ -6,10 +6,9 @@ Created on Wed Jan 29 14:49:50 2020
 @author: DW
 """
 import matplotlib
-import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
-from matplotlib.ticker import AutoMinorLocator, FormatStrFormatter, MultipleLocator
+from matplotlib.ticker import AutoMinorLocator
 
 matplotlib.rcParams.update({"font.size": 14})
 
@@ -48,32 +47,28 @@ def raw_data_spectra_plot(fitting_specs):  # pragma: no cover
         ax_wn = []
 
         for spec in fitting_specs:
-            try:
-                ax_wn = ax[plotting_info(spec.windowname)]
-                _legend = True if "full" == spec.windowname else False
-                spec.mean_spec.plot(
-                    x="ramanshift",
-                    y=spec.sID_rawcols,
-                    ax=ax_wn,
-                    alpha=0.5,
-                    legend=_legend,
-                )
-                spec.mean_spec.plot(
-                    x="ramanshift",
-                    y=spec.sIDmean_col,
-                    ax=ax_wn,
-                    c="k",
-                    alpha=0.7,
-                    lw=3,
-                    legend=_legend,
-                )
+            ax_wn = ax[plotting_info(spec.windowname)]
+            _legend = True if "full" == spec.windowname else False
+            spec.mean_spec.plot(
+                x="ramanshift",
+                y=spec.sID_rawcols,
+                ax=ax_wn,
+                alpha=0.5,
+                legend=_legend,
+            )
+            spec.mean_spec.plot(
+                x="ramanshift",
+                y=spec.sIDmean_col,
+                ax=ax_wn,
+                c="k",
+                alpha=0.7,
+                lw=3,
+                legend=_legend,
+            )
 
-                ax_wn.set_title(spec.windowname)
-                if _legend:
-                    ax_wn.legend(fontsize=10)
-
-            except:
-                pass
+            ax_wn.set_title(spec.windowname)
+            if _legend:
+                ax_wn.legend(fontsize=10)
 
         plt.suptitle(spec.sIDmean_col, fontsize=16)
         plt.savefig(
@@ -111,26 +106,23 @@ def fit_spectrum_plot(
     plot_Annotation=True,
     plot_Residuals=True,
 ):  # pragma: no cover
-    modname_2 = peak2
     # %%
-    sID = res1_peak_spec.extrainfo["SampleID"]
+    res1_peak_spec.extrainfo["SampleID"]
     SampleBgmean_col = res1_peak_spec.raw_data_col
 
     FitData_1st = res1_peak_spec.FitComponents
-    Model_peak_col_1st = res1_peak_spec.model_name
     Model_data_col_1st = res1_peak_spec.model_name
     compscols_1st = [
         i for i in FitData_1st.columns if i.endswith("_") and not i.startswith("Si")
     ]
 
     FitData_2nd = res2_peak_spec.FitComponents
-    Model_peak_col_2nd = res2_peak_spec.model_name
     Model_data_col_2nd = res2_peak_spec.model_name
     compscols_2nd = [i for i in FitData_2nd.columns if i.endswith("_")]
 
     FitPars, FitPars_2nd = res1_peak_spec.FitParameters, res2_peak_spec.FitParameters
 
-    fig = plt.figure(figsize=(28, 24))
+    plt.figure(figsize=(28, 24))
     gs = gridspec.GridSpec(4, 1, height_ratios=[4, 1, 4, 1])
     ax = plt.subplot(gs[0])
     axRes = plt.subplot(gs[1])
@@ -280,11 +272,15 @@ def fit_spectrum_plot(
             bbox=props,
         )
 
-    ax.legend(loc=1), ax.set_xlabel("Raman shift (cm$^{-1}$)"), ax.set_ylabel(
-        "normalized I / a.u."
+    (
+        ax.legend(loc=1),
+        ax.set_xlabel("Raman shift (cm$^{-1}$)"),
+        ax.set_ylabel("normalized I / a.u."),
     )
-    ax2nd.legend(loc=1), ax2nd.set_xlabel("Raman shift (cm$^{-1}$)"), ax2nd.set_ylabel(
-        "normalized I / a.u."
+    (
+        ax2nd.legend(loc=1),
+        ax2nd.set_xlabel("Raman shift (cm$^{-1}$)"),
+        ax2nd.set_ylabel("normalized I / a.u."),
     )
 
     plt.savefig(

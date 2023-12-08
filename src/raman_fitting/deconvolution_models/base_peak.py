@@ -232,6 +232,7 @@ def _main():
         peaks.update({k: BasePeak(**v)})
 
     D_peak = BasePeak(**settings["first_order"]["peaks"]["D"])
+    print(D_peak)
     model_items = {
         **settings["first_order"]["models"],
         **settings["second_order"]["models"],

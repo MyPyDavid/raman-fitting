@@ -29,10 +29,10 @@ from raman_fitting.processing.spectrum_template import SpecTemplate, SpectrumWin
 logger = logging.getLogger(__name__)
 
 POST_PROCESS_METHODS = [
-        ("filter_data", "raw", "filtered"),
-        ("despike", "filtered", "despiked"),
-        ("baseline_correction", "despiked", "clean_data"),
-    ]
+    ("filter_data", "raw", "filtered"),
+    ("despike", "filtered", "despiked"),
+    ("baseline_correction", "despiked", "clean_data"),
+]
 
 
 @dataclass(order=True, frozen=False)
@@ -49,7 +49,7 @@ class SpectrumDataLoader:
     info: Dict = field(default_factory=dict, repr=False)
     ovv: pd.DataFrame = field(default_factory=pd.DataFrame, repr=False)
     run_kwargs: Dict = field(default_factory=dict, repr=False)
- 
+
     def __post_init__(self):
         self.file = Path(self.file)
         self._qcnm = self.__class__.__qualname__
@@ -183,6 +183,8 @@ class SpectrumDataCollection:
     to take the mean of several spectra from the same SampleID.
     """
 
+    # TODO change to pydantic model
+
     MeanSpecTemplate = namedtuple(
         "MeanSpectras", "windowname sID_rawcols sIDmean_col mean_info mean_spec"
     )
@@ -220,7 +222,7 @@ class SpectrumDataCollection:
             mean_spec_info = {
                 k: list(val)[0] for k, val in _all_spec_info_sets if len(val) == 1
             }
-        except Exception as exc:
+        except Exception:
             logger.warning(f"get_mean_spectra_info failed for spectra {spectra}")
             mean_spec_info = {}
 
@@ -247,7 +249,7 @@ class SpectrumDataCollection:
                 k: [(i.SamplePos, i.clean_data.get(k, None)) for i in _all_spec]
                 for k in _all_spec_clean_data_keys
             }
-        except Exception as exc:
+        except Exception:
             logger.warning(f"get_mean_spectra_prep_data failed for spectra {spectra}")
             clean_prep_data = {}
 
@@ -306,7 +308,7 @@ class Validators:
         ]
         if _false_spectra:
             logger.warning(
-                f'_check_members not all spectra members are "SpectrumDataLoader" or missing clean_data attribute'
+                '_check_members not all spectra members are "SpectrumDataLoader" or missing clean_data attribute'
             )
 
     @staticmethod

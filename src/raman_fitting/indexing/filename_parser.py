@@ -122,18 +122,14 @@ class PathParser(Path):
         _fnID = self.make_dict_from_keys(
             index_file_primary_keys, (self.get_rfID_from_path(self),)
         )
-        _filepath = self.make_dict_from_keys(
-            index_file_path_keys, (self.stem, self)
-        )
+        _filepath = self.make_dict_from_keys(index_file_path_keys, (self.stem, self))
         _sample = self.parse_sample_with_checks()
         _filestats = self.parse_filestats(self.stats_)
         if read_data:
             try:
                 self.data = SpectrumReader(self)
             except Exception as exc:
-                logger.warning(
-                    f"{self._qcnm} {self} SpectrumReader failed.\n{exc}"
-                )
+                logger.warning(f"{self._qcnm} {self} SpectrumReader failed.\n{exc}")
         parse_res_collect = {**_fnID, **_filepath, **_sample, **_filestats}
         return parse_res_collect
 
@@ -167,7 +163,7 @@ class PathParser(Path):
             )
 
         _parse_res = sID, position, sgrpID
-    
+
         return self.make_dict_from_keys(index_file_sample_keys, _parse_res)
 
     def parse_filestats(self, fstat) -> Dict:

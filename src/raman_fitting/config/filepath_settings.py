@@ -56,4 +56,4 @@ class Config:
             "USER_CONFIG_FILE": USER_PACKAGE_HOME / "raman_fitting.toml",
         },
     }
-    CONFIG['debug'] = CONFIG['testing']
+    CONFIG["debug"] = CONFIG["testing"]
