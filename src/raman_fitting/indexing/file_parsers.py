@@ -1,9 +1,6 @@
 import logging
-from pathlib import Path
-import re
 
-from warnings import warn
-from typing import List, Sequence, Type, Optional
+from typing import List, Sequence
 
 import numpy as np
 import pandas as pd

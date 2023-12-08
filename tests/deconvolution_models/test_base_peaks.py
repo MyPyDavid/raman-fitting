@@ -1,17 +1,11 @@
-import copy
 import logging
 import unittest
-
-import pytest
-from lmfit import Model
 
 
 from raman_fitting.deconvolution_models.base_peak import (
     BasePeak,
-    BasePeakWarning,
 )
 
-from pydantic import ValidationError
 
 logger = logging.getLogger(__name__)
 logging.captureWarnings(True)  # sends these warning to the logger
@@ -19,7 +13,7 @@ logging.captureWarnings(True)  # sends these warning to the logger
 
 def _error_message_contains(excinfo, testmsg: str, verbose: bool = False):
     _fltr_str = [
-        i if not i in ["(", ")"] else " "
+        i if i not in ["(", ")"] else " "
         for i in str(excinfo.value)
         if i.isalnum() or i in (",", ".", " ", "_", "(", ")")
     ]

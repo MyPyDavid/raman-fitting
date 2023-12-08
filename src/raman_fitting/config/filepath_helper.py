@@ -7,9 +7,9 @@ from pathlib import Path
 
 import raman_fitting
 
-logger = logging.getLogger(__name__)
-
 from .filepath_settings import Config
+
+logger = logging.getLogger(__name__)
 
 
 def load_default_peak_toml_files() -> dict:

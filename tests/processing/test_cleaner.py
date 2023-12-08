@@ -16,5 +16,6 @@ class TestDespiker(unittest.TestCase):
 
         desp = Despiker(np.array([2, 2, 2, 2, 2, 2, 30, 20, 2, 2, 2, 2, 2, 2]))
 
+
 if __name__ == "__main__":
     unittest.main()

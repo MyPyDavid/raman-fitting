@@ -7,9 +7,7 @@ from dataclasses import dataclass, field
 import hashlib
 import logging
 from pathlib import Path
-import re
 
-from warnings import warn
 from typing import List, Sequence
 
 import numpy as np

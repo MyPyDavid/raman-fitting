@@ -76,9 +76,9 @@ def get_fstats(fstat) -> Tuple:
         m_t = datetime.datetime.fromtimestamp(fstat.st_mtime)
         c_tdate = c_t.date()
         m_tdate = m_t.date()
-    except OverflowError as e:
+    except OverflowError:
         pass
-    except OSError as e:
+    except OSError:
         pass
 
     return c_tdate, c_t, m_tdate, m_t, fstat.st_size

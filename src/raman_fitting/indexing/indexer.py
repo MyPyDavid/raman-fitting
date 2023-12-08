@@ -74,7 +74,7 @@ class MakeRamanFilesIndex:
                 raman_files_raw = [
                     i
                     for i in RFs
-                    if "fail" not in i.stem and not "Labjournal" in str(i)
+                    if "fail" not in i.stem and "Labjournal" not in str(i)
                 ]
                 logger.info(
                     f"find_files {len(raman_files_raw)} files were found in the chosen data dir:\n\t{data_dir}"
@@ -253,7 +253,7 @@ class MakeRamanFilesIndex:
         _keys = _kws.keys()
 
         default_selection = _kws.get("default_selection", default_selection)
-        if not "normal" in _kws.get("run_mode", default_selection):
+        if "normal" not in _kws.get("run_mode", default_selection):
             default_selection = "all"
         index_selection = pd.DataFrame()
         logger.info(

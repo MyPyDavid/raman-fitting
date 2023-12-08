@@ -28,7 +28,7 @@ class TestBaseModel(unittest.TestCase):
         self.assertRaises(ValidationError, BaseModel)
         self.assertRaises(ValidationError, BaseModel, name="Test_empty")
         self.assertRaises(ValidationError, BaseModel, peaks="A+B")
-        bm = BaseModel(name="Test_empty", peaks="A+B")
+        BaseModel(name="Test_empty", peaks="A+B")
 
     def test_base_model_2peaks(self):
         bm = BaseModel(name="Test_2peaks", peaks="K2+D+G")

@@ -6,9 +6,9 @@ Created on Sun Aug  8 18:20:20 2021
 from typing import List, Collection
 import logging
 
-logger = logging.getLogger(__name__)
-
 from .filename_parser import PathParser
+
+logger = logging.getLogger(__name__)
 
 
 def make_collection(raman_files: Collection, **kwargs) -> List[PathParser]:

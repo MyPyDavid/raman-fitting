@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import copy
-import re
 from venv import logger
 
 import numpy as np
@@ -158,7 +157,6 @@ class BaselineSubtractorNormalizer(SpectrumSplitter):
 
         return normalization_intensity
 
-
     def normalize_data(self, data, norm_factor) -> dict:
         ret = {}
         for windowname, spec in data.items():
@@ -169,6 +167,7 @@ class BaselineSubtractorNormalizer(SpectrumSplitter):
             _data = self.data(spec.ramanshift, spec.intensity * self.norm_factor, label)
             ret.update(**{windowname: _data})
         return ret
+
 
 def NormalizeFit(spec, plotprint=False):
     pass  # IDEA placeholder
@@ -291,6 +290,7 @@ class Despiker(SpectrumMethods):
         Z_t_filtered[np.abs(Z_t) > Z_threshold] = np.nan
         Z_t_filtered[0] = Z_t_filtered[-1] = 0
         return Z_t_filtered
+
     @staticmethod
     def despike_filter(
         intensity, Z_t_filtered, moving_window_size, ignore_lims=(20, 46)

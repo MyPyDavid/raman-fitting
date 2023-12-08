@@ -66,6 +66,7 @@ def main():
     from raman_fitting.config.filepath_helper import load_default_peak_toml_files
 
     settings = load_default_peak_toml_files()
+    print("settings: ", settings)
     models = InitializeModels()
     print(models)
     breakpoint()
