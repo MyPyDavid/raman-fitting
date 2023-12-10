@@ -111,7 +111,6 @@ class Fitter:
 
     def run_fit(self, model, _data, method="leastsq", **kws):
         # ideas: improve fitting loop so that starting parameters from modelX and modelX+Si are shared, faster...
-
         init_params = model.make_params()
         x, y = _data.ramanshift, _data[kws.get("_int_lbl")]
         out = model.fit(y, init_params, x=x, method=method)  # 'leastsq'
@@ -254,74 +253,6 @@ class PrepareParams:
             {"_run_date_YmdH": dt.datetime.now().strftime(format="%Y-%m-%d %H:00")}
         )
         self.FitParameters = pd.DataFrame(self.result, index=[self.model_name_lbl])
-
-    def add_ratio_params(self):
-        # peaks = [i.prefix for i in self.out.model.components]
-        RatioParams = {}
-        for a, t in self.ratio_params:
-            if {"G_", "D_"}.issubset(self.peaks):
-                RatioParams.update(
-                    {f"{a}D/{a}G": self.result["D" + t] / self.result["G" + t]}
-                )
-                RatioParams.update(
-                    {f"La_{a}G": 4.4 * RatioParams.get(f"{a}D/{a}G") ** -1}
-                )
-                #                , 'ID/IG' : fit_params_od['D_height']/fit_params_od['G_height']}
-                if "D2_" in self.peaks:
-                    RatioParams.update(
-                        {
-                            f"{a}D/({a}G+{a}D2)": self.result["D" + t]
-                            / (self.result["G" + t] + self.result["D2" + t])
-                        }
-                    )
-                    RatioParams.update(
-                        {
-                            f"La_{a}G+D2": 4.4
-                            * RatioParams.get(f"{a}D/({a}G+{a}D2)") ** -1
-                        }
-                    )
-                    #               : fit_params_od['D'+t]/(fit_params_od['G'+t]+fit_params_od['D2'+t])})
-                    if "D3_" in self.peaks:
-                        RatioParams.update(
-                            {
-                                f"{a}D3/({a}G+{a}D2": self.result["D3" + t]
-                                / (self.result["G" + t] + self.result["D2" + t])
-                            }
-                        )
-            if "D3_" in self.peaks:
-                RatioParams.update(
-                    {f"{a}D3/{a}G": self.result["D3" + t] / self.result["G" + t]}
-                )
-            if "D4_" in self.peaks:
-                RatioParams.update(
-                    {f"{a}D4/{a}G": self.result["D4" + t] / self.result["G" + t]}
-                )
-
-            if {"D1D1_", "GD1_"}.issubset(self.peaks):
-                RatioParams.update(
-                    {
-                        f"{a}D1D1/{a}GD1": self.result["D1D1" + t]
-                        / self.result["GD1" + t]
-                    }
-                )
-            if self.extra_fit_results:
-                RatioParams.update(self.add_ratio_combined_params(a, t))
-        self.ratio_params = RatioParams
-        self.result.update(RatioParams)
-
-    def add_ratio_combined_params(self, a, t):
-        _2nd = self._standard_2nd_order
-        if (
-            self.model_result._modelname.startswith("1st")
-            and _2nd in self.extra_fit_results.keys()
-        ):
-            _D1D1 = self.extra_fit_results[_2nd].FitParameters.loc[
-                f"Model_{_2nd}", "D1D1" + t
-            ]
-            self.result.update({"D1D1" + t: _D1D1})
-            return {f"Leq_{a}": 8.8 * _D1D1 / self.result["D" + t]}
-        else:
-            return {}
 
     def prep_components(self):
         # FittingParams = pd.DataFrame(fit_params_od,index=[peak_model])

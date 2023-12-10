@@ -12,7 +12,7 @@ from pydantic import (
 from lmfit import Parameters
 from lmfit.models import Model
 
-from .lmfit import LMFIT_MODEL_MAPPER, LMFitParameterHints, parmeter_to_dict
+from .lmfit_parameter import LMFIT_MODEL_MAPPER, LMFitParameterHints, parmeter_to_dict
 from ..config.filepath_helper import load_default_peak_toml_files
 
 ParamHintDict = Dict[str, Dict[str, Optional[float | bool | str]]]
@@ -209,8 +209,9 @@ def make_string_from_param_hints(param_hints: Parameters) -> str:
     return text
 
 
-def get_default_peaks() -> Dict[str, BasePeak]:
-    settings = load_default_peak_toml_files()
+def get_peaks_from_settings(settings: Optional[Dict] = None) -> Dict[str, BasePeak]:
+    if settings is None:
+        settings = load_default_peak_toml_files()
     peak_settings = {k: val.get("peaks") for k, val in settings.items()}
     peak_models = {}
     for peak_type, peak_type_defs in peak_settings.items():

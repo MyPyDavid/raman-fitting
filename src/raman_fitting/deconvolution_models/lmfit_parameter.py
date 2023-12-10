@@ -1,3 +1,4 @@
+from logging import warn
 import math
 from enum import StrEnum
 from typing import List, Optional, Dict
@@ -99,11 +100,15 @@ class LMFitParameterHints(BaseModel):
     @model_validator(mode="after")
     def check_value_min_max(self) -> "LMFitParameterHints":
         value, min, max = self.value, self.min, self.max
-        if value is not None:
-            if min is not None and value < min:
-                raise ValueError("Value must be greater than min")
-            if max is not None and value > max:
-                raise ValueError("Value must be less than max")
+        if value is None:
+            raise ValueError("Value must not be None")
+        if min is not None:
+            assert value >= min
+        if max is not None:
+            assert value <= max
+        if max and min:
+            assert min <= value <= max
+            assert min < max
         return self
 
     @model_validator(mode="after")
@@ -120,14 +125,30 @@ class LMFitParameterHints(BaseModel):
         return self
 
 
-def construct_lmfit_model_from_components(models: List[Model]) -> "Model":
+def construct_lmfit_model_from_components(
+    models: List[Model], sort_on_center=True
+) -> "Model":
     """
     Construct the lmfit model from a collection of (known) peaks
     """
     if not models:
         raise ValueError("No peaks given to construct lmfit model from.")
+    if sort_on_center:
+        models = sort_lmfit_models(models)
     lmfit_composite_model = sum(models, models.pop())
     return lmfit_composite_model
+
+
+def sort_lmfit_models(
+    models: List[Model], key: str = "center", reverse: bool = False
+) -> List[Model]:
+    try:
+        sorted_models = sorted(
+            models, key=lambda x: x.param_hints[key]["value"], reverse=reverse
+        )
+    except KeyError:
+        warn(f"Sorting on model on key {key} failed")
+    return sorted_models
 
 
 def parmeter_to_dict(parameter: Parameter) -> dict:
