@@ -7,8 +7,8 @@ from typing import List
 import pandas as pd
 
 from raman_fitting.config.filepath_helper import get_directory_paths_for_run_mode
-from raman_fitting.indexing.filename_parser import index_dtypes_collection
-from raman_fitting.indexing.filename_parser_collector import make_collection
+from raman_fitting.imports.filename_parser import index_dtypes_collection
+from raman_fitting.imports.filename_parser_collector import make_collection
 
 logger = logging.getLogger(__name__)
 logger.propagate = False
