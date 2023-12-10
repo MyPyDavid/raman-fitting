@@ -27,12 +27,13 @@ class SpectrumMethodsMixin:
     def spectrum_methods_delegator(self):
         for method, on_lbl, out_lbl in POST_PROCESS_METHODS:
             try:
-                breakpoint()
+                # breakpoint()
                 getattr(self, method)(on_lbl=on_lbl, out_lbl=out_lbl)
             except Exception as exc:
                 logger.error(
                     f"spectrum_methods_delegator, {self._qcnm} {method} failed for {self.file} with {exc}"
                 )
+                raise exc from exc
 
         self.set_clean_data_df()
         self.set_df_from_register()
@@ -54,7 +55,10 @@ class SpectrumMethodsMixin:
         _r, _int, _lbl = self.register.get(on_lbl)
         _baseline_corrected = BaselineSubtractorNormalizer(_r, _int, label="despiked")
         self._baseline_corrected = _baseline_corrected
-
-        _fullspec = _baseline_corrected.norm_data["full"]
-        self.register_spectrum(_fullspec.ramanshift, _fullspec.intensity, out_lbl)
+        full_keys = list(
+            filter(lambda x: x.endswith("full"), _baseline_corrected.norm_data)
+        )
+        if full_keys:
+            _fullspec = _baseline_corrected.norm_data[full_keys[0]]
+            self.register_spectrum(_fullspec.ramanshift, _fullspec.intensity, out_lbl)
         self.clean_data = _baseline_corrected.norm_data

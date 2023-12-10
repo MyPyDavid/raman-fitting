@@ -93,6 +93,9 @@ class SpectrumDataLoader(SpectrumMethodsMixin):
         self.info = {**self.info, **self.run_kwargs}
 
     def set_clean_data_df(self):
+        if self.clean_data is None:
+            return
+
         self.clean_df = {
             k: pd.DataFrame(
                 {"ramanshift": val.ramanshift, f"int_{self.SamplePos}": val.intensity}

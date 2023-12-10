@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from collections import namedtuple
+from dataclasses import dataclass
 
+import numpy as np
 
 SpecTemplate = namedtuple("Spectrum", "ramanshift intensity label")
+
+
+@dataclass
+class SpectrumData:
+    ramanshift: np.array
+    intensity: np.array
+    label: str
+    window_name: str
 
 
 class SpectrumTemplate:
