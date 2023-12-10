@@ -1,6 +1,6 @@
 import pandas as pd
 
-from raman_fitting.exporting.plotting import fit_spectrum_plot, raw_data_export
+from raman_fitting.exports.plotting import fit_spectrum_plot, raw_data_export
 
 import logging
 

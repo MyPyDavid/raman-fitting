@@ -95,7 +95,7 @@ del hard_dependencies, soft_dependencies, dependency, missing_dependencies
 from raman_fitting.delegating.main_delegator import MainDelegator, make_examples
 
 # Indexer
-from raman_fitting.indexing.indexer import MakeRamanFilesIndex as make_index
+from raman_fitting.imports.indexer import MakeRamanFilesIndex as make_index
 
 # Processing
 from raman_fitting.processing.spectrum_template import SpectrumTemplate
@@ -110,5 +110,5 @@ from raman_fitting.deconvolution_models.fit_models import Fitter
 
 
 # Exporting / Plotting
-from raman_fitting.exporting.exporter import Exporter
+from raman_fitting.exports.exporter import Exporter
 from raman_fitting.config import filepath_settings
