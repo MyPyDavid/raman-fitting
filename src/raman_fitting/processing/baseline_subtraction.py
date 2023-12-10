@@ -1,9 +1,11 @@
 import logging
 
-logger = logging.getLogger(__name__)
-
+import numpy as np
+from scipy.stats import linregress
 
 from .splitter import get_default_spectrum_windows
+
+logger = logging.getLogger(__name__)
 
 
 class BaselineSubtractorNormalizer:
@@ -62,11 +64,12 @@ class BaselineSubtractorNormalizer:
                     self.blcorr_data["normalization"].intensity
                 )
             elif norm_method == "fit":
+                raise NotImplementedError("NormalizeFit not yet implemented")
                 # IDEA not implemented
-                normalization = NormalizeFit(
-                    self.blcorr_data["1st_order"], plotprint=False
-                )  # IDEA still implement this NormalizeFit
-                normalization_intensity = normalization["IG"]
+                # normalization = NormalizeFit(
+                #     self.blcorr_data["1st_order"], plotprint=False
+                # )  # IDEA still implement this NormalizeFit
+                # normalization_intensity = normalization["IG"]
             else:
                 logger.warning(f"unknown normalization method {norm_method}")
                 normalization_intensity = 1

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from ast import main
 from collections import namedtuple
 
 
@@ -44,12 +43,3 @@ class SpectrumTemplate:
 
     def set_template(self):
         self.template = namedtuple(self.spec_name, self.grp_names.all)
-
-
-def main():
-    breakpoint()
-    pass
-
-
-if __name__ == "__main__":
-    main()
