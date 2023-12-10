@@ -10,11 +10,9 @@ Created on Fri May 14 09:01:57 2021
 import unittest
 from pathlib import Path
 
-import pytest
 
 import raman_fitting.test_fixtures as fixtures
 from raman_fitting.processing.spectrum_constructor import (
-    SpectrumDataCollection,
     SpectrumDataLoader,
 )
 
@@ -36,7 +34,6 @@ class TestSpectrumDataLoader(unittest.TestCase):
         self.assertEqual(spd.file.name, "empty.txt")
 
     def test_SpectrumDataLoader_file(self):
-        pass
         spd = SpectrumDataLoader(
             self.testfile, run_kwargs=dict(SampleID="testfile", SamplePos=1)
         )
