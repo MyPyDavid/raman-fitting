@@ -1,32 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from ast import main
 from collections import namedtuple
-
-
-def SpectrumWindows():
-    windows = {
-        "full": (200, 3600),
-        "full_1st_2nd": (800, 3500),
-        "low": (150, 850),
-        "1st_order": (900, 2000),
-        "mid": (1850, 2150),
-        "2nd_order": (2150, 3380),
-        "normalization": (1500, 1675),
-    }
-    return windows
-
-
-def SpectrumWindowLimits():
-    windows = {
-        "full": (20, -20),
-        "full_1st_2nd": (20, -20),
-        "low": (10, -10),
-        "1st_order": (20, -20),
-        "mid": (10, -10),
-        "2nd_order": (20, -20),
-        "normalization": (10, -10),
-    }
-    return windows
 
 
 SpecTemplate = namedtuple("Spectrum", "ramanshift intensity label")
@@ -69,3 +44,12 @@ class SpectrumTemplate:
 
     def set_template(self):
         self.template = namedtuple(self.spec_name, self.grp_names.all)
+
+
+def main():
+    breakpoint()
+    pass
+
+
+if __name__ == "__main__":
+    main()

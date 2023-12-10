@@ -14,31 +14,22 @@ from operator import itemgetter
 from pathlib import Path
 from typing import Dict, List
 
-import numpy as np
 import pandas as pd
 
 
-from raman_fitting.indexing.filedata_parser import SpectrumReader
-from raman_fitting.processing.cleaner import (
-    BaselineSubtractorNormalizer,
-    Despiker,
-    SpectrumMethods,
-)
-from raman_fitting.processing.spectrum_template import SpecTemplate, SpectrumWindows
+from raman_fitting.imports.filedata_parser import SpectrumReader
+
+from .post_processing import SpectrumMethodsMixin
+from raman_fitting.processing.spectrum_template import SpecTemplate
 
 logger = logging.getLogger(__name__)
 
-POST_PROCESS_METHODS = [
-    ("filter_data", "raw", "filtered"),
-    ("despike", "filtered", "despiked"),
-    ("baseline_correction", "despiked", "clean_data"),
-]
-
 
 @dataclass(order=True, frozen=False)
-class SpectrumDataLoader:
+class SpectrumDataLoader(SpectrumMethodsMixin):
     """
-    Raman Spectrum Loader Dataclass, reads in the file and constructs a clean spectrum from the data.
+    Raman Spectrum Loader Dataclass, reads in the file and constructs
+    a clean spectrum from the data.
     A sequence of steps is performed on the raw data from SpectrumReader.
     The steps/methods are: smoothening filter, despiking and baseline correction.
     """
@@ -101,38 +92,6 @@ class SpectrumDataLoader:
             logger.error(f"{self._qcnm} load data fail for:\n\t {self.file}")
         self.info = {**self.info, **self.run_kwargs}
 
-    def spectrum_methods_delegator(self):
-        for method, on_lbl, out_lbl in POST_PROCESS_METHODS:
-            try:
-                getattr(self, method)(on_lbl=on_lbl, out_lbl=out_lbl)
-            except Exception as exc:
-                logger.error(f"{self._qcnm} {method} failed for {self.file} with {exc}")
-
-        self.set_clean_data_df()
-        self.set_df_from_register()
-
-    def filter_data(self, on_lbl="raw", out_lbl="filtered"):
-        _r, _int, _lbl = self.register.get(on_lbl)
-        logger.debug(f"{self.file} try to filter len int({len(_int)}),({type(_int)})")
-        filtered_intensity = SpectrumMethods.filtered_int(intensity=_int)
-        self.filtered_intensity = filtered_intensity
-        self.register_spectrum(_r, filtered_intensity, out_lbl)
-
-    def despike(self, on_lbl="filtered", out_lbl="despiked"):
-        _r, _int, _lbl = self.register.get(on_lbl)
-        _despike = Despiker(_int)  # IDEA check for nan in array
-        self._despike = _despike
-        self.register_spectrum(_r, _despike.despiked_intensity, out_lbl)
-
-    def baseline_correction(self, on_lbl="despiked", out_lbl="clean_data"):
-        _r, _int, _lbl = self.register.get(on_lbl)
-        _baseline_corrected = BaselineSubtractorNormalizer(_r, _int, label="despiked")
-        self._baseline_corrected = _baseline_corrected
-
-        _fullspec = _baseline_corrected.norm_data["full"]
-        self.register_spectrum(_fullspec.ramanshift, _fullspec.intensity, out_lbl)
-        self.clean_data = _baseline_corrected.norm_data
-
     def set_clean_data_df(self):
         self.clean_df = {
             k: pd.DataFrame(
@@ -166,14 +125,6 @@ class SpectrumDataLoader:
             if not any(a in i for a in ["ramanshift", "clean_data"])
         ]
         self.register_df.plot(x="ramanshift", y=_raw_lbls)
-
-    def split_data(self, on_lbl="filtered"):
-        _r, _int, _lbl = self.register.get(on_lbl)  # unpacking data from register
-        for windowname, limits in SpectrumWindows().items():
-            ind = (_r >= np.min(limits)) & (_r <= np.max(limits))
-            _intslice = _int[ind]
-            label = f"{_lbl}_window_{windowname}"
-            self.register_spectrum(_r, _intslice, label)
 
 
 class SpectrumDataCollection:
