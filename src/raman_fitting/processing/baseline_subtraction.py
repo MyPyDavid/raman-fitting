@@ -76,9 +76,8 @@ def subtract_loop(windows_data: dict, window_limits: dict, label=None):
         blcorr_int, blcorr_lin = subtract_baseline_per_window(
             spec, window_name, windows_data, window_limits
         )
-        label = f"blcorr_{window_name}"
         if label:
-            label = f"{label}_{label}"
+            label = f"blcorr_{label}"
         _data = SpectrumData(spec.ramanshift, blcorr_int, label, window_name)
         _blcorr.update(**{window_name: _data})
         _info.update(**{window_name: blcorr_lin})

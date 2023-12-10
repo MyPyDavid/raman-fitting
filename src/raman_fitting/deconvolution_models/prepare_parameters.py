@@ -37,22 +37,26 @@ def add_D4_ratio(a: str, t: str, peaks, result):
 
 
 def add_ratio_combined_params(
-    windowname: str, a: str, t: str, result={}, extra_fit_results=None
+    windowname, a: str, t: str, result={}, extra_fit_results=None
 ):
     windowname_2nd = "2nd_4peaks"
+    if windowname is None:
+        return {}
+
     if windowname.startswith("1st") and windowname_2nd in extra_fit_results.keys():
         _D1D1 = extra_fit_results[windowname_2nd].FitParameters.loc[
             f"Model_{windowname_2nd}", "D1D1" + t
         ]
         result.update({"D1D1" + t: _D1D1})
         return {f"Leq_{a}": 8.8 * _D1D1 / result["D" + t]}
-    else:
-        return {}
+    return {}
 
 
-def add_D1D1_GD1_ratio(a: str, t: str, peaks, result, extra_fit_results):
+def add_D1D1_GD1_ratio(
+    a: str, t: str, peaks, result, extra_fit_results, window_name=None
+):
     RatioParams = {}
     if {"D1D1_", "GD1_"}.issubset(peaks):
         RatioParams.update({f"{a}D1D1/{a}GD1": result["D1D1" + t] / result["GD1" + t]})
     if extra_fit_results:
-        RatioParams.update(add_ratio_combined_params(a, t))
+        RatioParams.update(add_ratio_combined_params(window_name, a, t))
