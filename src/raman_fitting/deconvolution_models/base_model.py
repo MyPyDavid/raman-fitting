@@ -11,8 +11,8 @@ from pydantic import (
     model_validator,
 )
 
-from .base_peak import BasePeak, get_default_peaks
-from .lmfit import construct_lmfit_model_from_components
+from .base_peak import BasePeak, get_peaks_from_settings
+from .lmfit_parameter import construct_lmfit_model_from_components
 from ..config.filepath_helper import load_default_peak_toml_files
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class BaseModel(BaseModel):
     name: str
     peaks: str
     default_peaks: Dict[str, BasePeak] = Field(
-        default_factory=get_default_peaks, validate_default=True
+        default_factory=get_peaks_from_settings, validate_default=True
     )
     lmfit_model: Optional[Model] = None
 
@@ -109,20 +109,24 @@ class BaseModel(BaseModel):
         return lmfit_model
 
 
-def get_default_models() -> Dict[str, BasePeak]:
-    settings = load_default_peak_toml_files()
-    default_peaks = get_default_peaks()
+def get_models_from_settings(settings: Optional[Dict] = None) -> Dict[str, BasePeak]:
+    if settings is None:
+        settings = load_default_peak_toml_files()
+    # breakpoint()
+    default_peaks = get_peaks_from_settings(settings=settings)
     models_settings = {k: val.get("models") for k, val in settings.items()}
-    base_models = {}
-    for model_name, model_peaks in models_settings.items():
-        base_models[model_name] = BaseModel(
-            name=model_name, peaks=model_peaks, default_peaks=default_peaks
-        )
-    return base_models
+    all_models = {}
+    for window_name, window_model_settings in models_settings.items():
+        all_models[window_name] = {}
+        for model_name, model_peaks in window_model_settings.items():
+            all_models[window_name][model_name] = BaseModel(
+                name=model_name, peaks=model_peaks, default_peaks=default_peaks
+            )
+    return all_models
 
 
 def main():
-    models = get_default_models()
+    models = get_models_from_settings()
     print("Models: ", len(models))
 
 
