@@ -58,7 +58,7 @@ repository = "https://github.com/MyPyDavid/raman-fitting.git"
 # documentation = "https://raman-fitting.readthedocs.io/en/latest/"
 
 [project.scripts]
-raman_fitting = "raman_fitting.interfaces:main"
+raman_fitting = "raman_fitting.interfaces.cli:main"
 
 
 [tool.hatch.version]
