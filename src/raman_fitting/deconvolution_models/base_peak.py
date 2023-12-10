@@ -248,7 +248,7 @@ def _main():
         )
         models[model_name] = lmfit_comp_model
         print(lmfit_comp_model)
-    breakpoint()
+    # breakpoint()
 
 
 if __name__ == "__main__":
