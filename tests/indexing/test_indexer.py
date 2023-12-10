@@ -7,7 +7,7 @@ import pandas as pd
 
 
 import raman_fitting.test_fixtures as fixtures
-from raman_fitting.indexing.indexer import MakeRamanFilesIndex
+from raman_fitting.imports.indexer import MakeRamanFilesIndex
 
 
 class TestIndexer(unittest.TestCase):
