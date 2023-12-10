@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 
-from raman_fitting.processing.cleaner import Despiker
+from raman_fitting.processing.despiker import Despiker
 
 
 class TestDespiker(unittest.TestCase):

@@ -6,17 +6,17 @@ from pathlib import Path
 # from raman_fitting.deconvolution_models import first_order_peaks
 
 import raman_fitting.test_fixtures as fixtures
-from raman_fitting.indexing.filename_parser import PathParser
-from raman_fitting.indexing.filename_parser import (
+from raman_fitting.imports.filename_parser import PathParser
+from raman_fitting.imports.filename_parser import (
     _extra_sID_name_mapper,
     _extra_overwrite_sID_from_mapper,
 )
-from raman_fitting.indexing.filename_parser import (
+from raman_fitting.imports.filename_parser import (
     _extra_sgrpID_name_mapper,
     _extra_overwrite_sgrpID_from_parts,
 )
 
-from raman_fitting.indexing.filename_parser_helpers import filestem_to_sid_and_pos
+from raman_fitting.imports.filename_parser_helpers import filestem_to_sid_and_pos
 
 # import pytest
 
