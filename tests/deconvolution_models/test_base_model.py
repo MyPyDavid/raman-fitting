@@ -9,9 +9,9 @@ from functools import partial
 
 from pydantic import ValidationError
 
-from raman_fitting.deconvolution_models.base_model import (
+from raman_fitting.models.deconvolution.base_model import (
     SUBSTRATE_PEAK,
-    BaseModel,
+    BaseLMFitModel,
 )
 
 SUBSTRATE_PREFIX = SUBSTRATE_PEAK.split("peak")[0]
@@ -23,17 +23,25 @@ def helper_get_list_components(bm):
     return _bm_prefix
 
 
-class TestBaseModel(unittest.TestCase):
+class TestBaseLMFitModel(unittest.TestCase):
     def test_empty_base_model(self):
-        self.assertRaises(ValidationError, BaseModel)
-        self.assertRaises(ValidationError, BaseModel, name="Test_empty")
-        self.assertRaises(ValidationError, BaseModel, peaks="A+B")
-        BaseModel(name="Test_empty", peaks="A+B")
+        self.assertRaises(ValidationError, BaseLMFitModel)
+        self.assertRaises(ValidationError, BaseLMFitModel, name="Test_empty")
+        self.assertRaises(
+            ValidationError,
+            BaseLMFitModel,
+            peaks="A+B",
+        )
+        self.assertRaises(
+            ValidationError,
+            BaseLMFitModel,
+            name="Test_empty",
+            peaks="A+B",
+            window_name="full",
+        )
 
     def test_base_model_2peaks(self):
-        bm = BaseModel(name="Test_2peaks", peaks="K2+D+G")
-        print(bm)
-
+        bm = BaseLMFitModel(name="Test_2peaks", peaks="K2+D+G", window_name="full")
         self.assertSetEqual(set(helper_get_list_components(bm)), set(["D_", "G_"]))
         bm.add_substrate()
         self.assertSetEqual(
@@ -43,7 +51,11 @@ class TestBaseModel(unittest.TestCase):
         self.assertSetEqual(set(helper_get_list_components(bm)), set(["D_", "G_"]))
 
     def test_base_model_wrong_chars_model_name(self):
-        bm = BaseModel(name="Test_wrong_chars", peaks="K2+---////+  +7 +K1111+1D+D2")
+        bm = BaseLMFitModel(
+            name="Test_wrong_chars",
+            peaks="K2+---////+  +7 +K1111+1D+D2",
+            window_name="full",
+        )
         self.assertSetEqual(set(helper_get_list_components(bm)), set(["D2_"]))
         bm.add_substrate()
         self.assertSetEqual(
