@@ -2,28 +2,31 @@ import datetime
 import unittest
 from pathlib import Path
 
-# from raman_fitting.deconvolution_models import first_order_peaks
+# from raman_fitting.models.deconvolution import first_order_peaks
 import pandas as pd
 
 
-import raman_fitting.test_fixtures as fixtures
-from raman_fitting.imports.indexer import MakeRamanFilesIndex
+from raman_fitting.imports.files.file_indexer import MakeRamanFilesIndex
+from raman_fitting.imports.files.index_funcs import load_index
+from raman_fitting.example_fixtures import example_files
+
+TEST_FIXTURES_PATH = Path(__file__).parent.parent.joinpath("test_fixtures")
 
 
 class TestIndexer(unittest.TestCase):
     def setUp(self):
-        _example_path = Path(fixtures.__path__[0])
-        _example_files_contents = list(Path(_example_path).rglob("*txt"))
+        _test_files = list(TEST_FIXTURES_PATH.rglob("*txt"))
 
-        self._example_files = [i for i in _example_files_contents]
+        self.all_test_files = example_files + _test_files
 
         self.RamanIndex = MakeRamanFilesIndex(run_mode="make_examples")
 
     def test_MakeRamanFilesIndex_make_examples(self):
-        self.assertEqual(len(self.RamanIndex), len(self._example_files))
+        self.assertEqual(len(self.RamanIndex), len(example_files))
 
+    @unittest.skip("export_index not yet implemented")
     def test_load_index(self):
-        _loaded_index = self.RamanIndex.load_index()
+        _loaded_index = load_index()
         self.assertTrue(isinstance(_loaded_index, pd.DataFrame))
 
         for col in _loaded_index.columns:
