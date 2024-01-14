@@ -1,64 +1,49 @@
+from dataclasses import dataclass
 import logging
+from typing import Protocol
 
-import numpy as np
+from raman_fitting.models.spectrum import SpectrumData
 
-from .baseline_subtraction import BaselineSubtractorNormalizer
-from .filter import savgol_filter
-from .despiker import Despiker
+from .baseline_subtraction import subtract_baseline_from_splitted_spectrum
+from .filter import filter_spectrum
+from .despike import SpectrumDespiker
+from ..models.splitter import SplittedSpectrum
+from .normalization import normalize_splitted_spectrum
 
 logger = logging.getLogger(__name__)
 
-POST_PROCESS_METHODS = [
-    ("filter_data", "raw", "filtered"),
-    ("despike", "filtered", "despiked"),
-    ("baseline_correction", "despiked", "clean_data"),
-]
+
+POST_PROCESS_KWARGS = {"filter_name": "savgol_"}
 
 
-class SpectrumMethodsMixin:
-    def split_data(self, on_lbl="filtered"):
-        _r, _int, _lbl = self.register.get(on_lbl)  # unpacking data from register
-        for windowname, limits in self.windows.items():
-            ind = (_r >= np.min(limits)) & (_r <= np.max(limits))
-            _intslice = _int[ind]
-            label = f"{_lbl}_window_{windowname}"
-            self.register_spectrum(_r, _intslice, label)
+class PostProcessor(Protocol):
+    def process_spectrum(self, spectrum: SpectrumData):
+        ...
 
-    def spectrum_methods_delegator(self):
-        for method, on_lbl, out_lbl in POST_PROCESS_METHODS:
-            try:
-                # breakpoint()
-                getattr(self, method)(on_lbl=on_lbl, out_lbl=out_lbl)
-            except Exception as exc:
-                logger.error(
-                    f"spectrum_methods_delegator, {self._qcnm} {method} failed for {self.file} with {exc}"
-                )
-                raise exc from exc
 
-        self.set_clean_data_df()
-        self.set_df_from_register()
+@dataclass
+class SpectrumProcessor:
+    spectrum: SpectrumData
+    processed: bool = False
 
-    def filter_data(self, on_lbl="raw", out_lbl="filtered"):
-        _r, _int, _lbl = self.register.get(on_lbl)
-        logger.debug(f"{self.file} try to filter len int({len(_int)}),({type(_int)})")
-        filtered_intensity = savgol_filter(intensity=_int)
-        self.filtered_intensity = filtered_intensity
-        self.register_spectrum(_r, filtered_intensity, out_lbl)
+    def __post_init__(self):
+        processed_spectrum = self.process_spectrum()
+        self.processed_spectrum = processed_spectrum
+        self.clean_spectrum = processed_spectrum
+        self.processed = True
 
-    def despike(self, on_lbl="filtered", out_lbl="despiked"):
-        _r, _int, _lbl = self.register.get(on_lbl)
-        _despike = Despiker(_int)  # IDEA check for nan in array
-        self._despike = _despike
-        self.register_spectrum(_r, _despike.despiked_intensity, out_lbl)
+    def process_spectrum(self) -> SplittedSpectrum:
+        pre_processed_spectrum = self.pre_process_intensity()
+        post_processed_spectra = self.post_process_spectrum(pre_processed_spectrum)
+        return post_processed_spectra
 
-    def baseline_correction(self, on_lbl="despiked", out_lbl="clean_data"):
-        _r, _int, _lbl = self.register.get(on_lbl)
-        _baseline_corrected = BaselineSubtractorNormalizer(_r, _int, label="despiked")
-        self._baseline_corrected = _baseline_corrected
-        full_keys = list(
-            filter(lambda x: x.endswith("full"), _baseline_corrected.norm_data)
-        )
-        if full_keys:
-            _fullspec = _baseline_corrected.norm_data[full_keys[0]]
-            self.register_spectrum(_fullspec.ramanshift, _fullspec.intensity, out_lbl)
-        self.clean_data = _baseline_corrected.norm_data
+    def pre_process_intensity(self) -> SpectrumData:
+        filtered_spectrum = filter_spectrum(self.spectrum)
+        despiker = SpectrumDespiker(**{"spectrum": filtered_spectrum})
+        return despiker.despiked_spectrum
+
+    def post_process_spectrum(self, spectrum: SpectrumData) -> SplittedSpectrum:
+        split_spectrum = SplittedSpectrum(spectrum=spectrum)
+        baseline_subtracted = subtract_baseline_from_splitted_spectrum(split_spectrum)
+        normalized_spectra = normalize_splitted_spectrum(baseline_subtracted)
+        return normalized_spectra

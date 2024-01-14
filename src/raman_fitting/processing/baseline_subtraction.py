@@ -1,107 +1,80 @@
 import logging
-from typing import Optional
 
 import numpy as np
 from scipy.stats import linregress
 
-from .splitter import get_default_spectrum_windows, split_spectrum_data_in_windows
-from .spectrum_template import SpectrumData
+from ..models.splitter import SplittedSpectrum
+from ..models.spectrum import SpectrumData
 
 logger = logging.getLogger(__name__)
 
 
-def subtract_baseline_per_window(spec, label, windows_data, window_limits):
+def subtract_baseline_per_window(
+    spec: SpectrumData, splitted_spectrum: SplittedSpectrum
+):
     ramanshift = spec.ramanshift
     intensity = spec.intensity
     window_name = spec.window_name
-    if not ramanshift.any():
-        return intensity, (0, 0)
-    # breakpoint()
-    lbl_1st_order = list(filter(lambda x: "1st_order" in x, windows_data.keys()))
-    if any(i in label for i in ("full", "norm")) and lbl_1st_order:
-        i_fltrd_dspkd_fit = windows_data.get(lbl_1st_order[0]).intensity
-    else:
-        i_fltrd_dspkd_fit = intensity
-    window_config = window_limits.get(window_name)
+    label = spec.label
+    windows_data = splitted_spectrum.spec_windows
+    window_limits = splitted_spectrum.window_limits
+    selected_intensity = intensity
+    window_config = window_limits[window_name]
+    window_name_first_order = list(
+        filter(lambda x: "first_order" in x, windows_data.keys())
+    )
+    if (
+        any((i in window_name or i in label) for i in ("full", "norm"))
+        and window_name_first_order
+    ):
+        selected_intensity = windows_data[window_name_first_order[0]].intensity
+        window_config = window_limits["first_order"]
 
     bl_linear = linregress(
         ramanshift[[0, -1]],
         [
-            np.mean(i_fltrd_dspkd_fit[0 : window_config.min]),
-            np.mean(i_fltrd_dspkd_fit[window_config.max : :]),
+            np.mean(selected_intensity[0 : window_config.extra_margin]),
+            np.mean(selected_intensity[-window_config.extra_margin : :]),
         ],
     )
     i_blcor = intensity - (bl_linear[0] * ramanshift + bl_linear[1])
+    # if np.isnan(i_blcor).any():
+    #     raise ValueError("There are nan values in subtract_baseline_per_window")
     return i_blcor, bl_linear
 
 
-def get_normalization_factor(data, norm_method="simple") -> float:
-    try:
-        if norm_method == "simple":
-            normalization_intensity = np.nanmax(data["normalization"].intensity)
-        elif norm_method == "fit":
-            raise NotImplementedError("NormalizeFit not yet implemented")
-            # IDEA not implemented
-            # normalization = NormalizeFit(
-            #     self.blcorr_data["1st_order"], plotprint=False
-            # )  # IDEA still implement this NormalizeFit
-            # normalization_intensity = normalization["IG"]
-        else:
-            logger.warning(f"unknown normalization method {norm_method}")
-            normalization_intensity = 1
-    except Exception as exc:
-        logger.error(f"normalization error {exc}")
-        normalization_intensity = 1
-
-    return normalization_intensity
-
-
-def normalize_data(windows_data, norm_factor, label: Optional[str] = None) -> dict:
-    ret = {}
-    for window_name, spec in windows_data.items():
-        norm_label = f"norm_blcorr_{window_name}"
-        if label:
-            norm_label = f"{label}_{norm_label}"
-        _data = SpectrumData(
-            spec.ramanshift, spec.intensity * norm_factor, norm_label, window_name
-        )
-        ret.update(**{window_name: _data})
-    return ret
-
-
-def subtract_loop(windows_data: dict, window_limits: dict, label=None):
-    _blcorr = {}
+def subtract_baseline_from_splitted_spectrum(
+    splitted_spectrum: SplittedSpectrum, label=None
+) -> SplittedSpectrum:
+    _bl_spec_windows = {}
     _info = {}
-    for window_name, spec in windows_data.items():
-        blcorr_int, blcorr_lin = subtract_baseline_per_window(
-            spec, window_name, windows_data, window_limits
+    label = "blcorr" if label is None else label
+    for window_name, spec in splitted_spectrum.spec_windows.items():
+        blcorr_int, blcorr_lin = subtract_baseline_per_window(spec, splitted_spectrum)
+        new_label = f"{label}_{spec.label}" if label not in spec.label else spec.label
+        spec = SpectrumData(
+            **{
+                "ramanshift": spec.ramanshift,
+                "intensity": blcorr_int,
+                "label": new_label,
+                "windown_name": window_name,
+            }
         )
-        if label:
-            label = f"blcorr_{label}"
-        _data = SpectrumData(spec.ramanshift, blcorr_int, label, window_name)
-        _blcorr.update(**{window_name: _data})
+        _bl_spec_windows.update(**{window_name: spec})
         _info.update(**{window_name: blcorr_lin})
-    return _blcorr, _info
+    bl_corrected_spectra = splitted_spectrum.model_copy(
+        update={"spec_windows": _bl_spec_windows, "info": _info}
+    )
+    return bl_corrected_spectra
 
 
-class BaselineSubtractorNormalizer:
-    """
-    For baseline subtraction as well as normalization of a spectrum
-    """
-
-    def __init__(self, ramanshift: np.array, intensity: np.array, label: str = None):
-        self._ramanshift = ramanshift
-        self._intensity = intensity
-        self._label = label
-        self.windows_data = split_spectrum_data_in_windows(
-            ramanshift=ramanshift, intensity=intensity, label=label
-        )
-        self.window_limits = get_default_spectrum_windows()
-        blcorr_data, blcorr_info = subtract_loop(
-            self.windows_data, self.window_limits, label=self._label
-        )
-        self.blcorr_data = blcorr_data
-        self.blcorr_info = blcorr_info
-        normalization_intensity = get_normalization_factor(self.blcorr_data)
-        self.norm_factor = 1 / normalization_intensity
-        self.norm_data = normalize_data(self.blcorr_data, self.norm_factor)
+def subtract_baseline(
+    ramanshift: np.array, intensity: np.array, label: str = None
+) -> SplittedSpectrum:
+    "Subtract the a baseline of background intensity of a spectrum."
+    spectrum = SpectrumData(ramanshift=ramanshift, intensity=intensity, label=label)
+    splitted_spectrum = SplittedSpectrum(spectrum=spectrum)
+    blcorrected_spectrum = subtract_baseline_from_splitted_spectrum(
+        splitted_spectrum, label=label
+    )
+    return blcorrected_spectrum

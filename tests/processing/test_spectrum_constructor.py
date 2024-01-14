@@ -10,52 +10,32 @@ Created on Fri May 14 09:01:57 2021
 import unittest
 from pathlib import Path
 
-
-import raman_fitting.test_fixtures as fixtures
-from raman_fitting.processing.spectrum_constructor import (
+from raman_fitting.example_fixtures import example_files
+from raman_fitting.imports.spectrum.spectrum_constructor import (
     SpectrumDataLoader,
 )
 
 
 class TestSpectrumDataLoader(unittest.TestCase):
     def setUp(self):
-        _example_path = Path(fixtures.__path__[0])
-        _example_files_contents = list(Path(_example_path).rglob("*txt"))
-
-        self.testfile = next(
-            filter(lambda x: "testDW38C_pos4" in x.name, _example_files_contents)
-        )
-        self.errorfile = next(
-            filter(lambda x: "wrong" in x.name, _example_files_contents)
-        )
+        self.files = list(example_files)
+        # breakpoint()
+        # self.testfile = next(
+        #     filter(lambda x: "testDW38C_pos4" in x.name, files)
+        # )
 
     def test_SpectrumDataLoader_empty(self):
         spd = SpectrumDataLoader("empty.txt")
-        self.assertEqual(spd.file.name, "empty.txt")
+        self.assertEqual(spd.file, "empty.txt")
+        self.assertEqual(spd.clean_spectrum, None)
 
     def test_SpectrumDataLoader_file(self):
-        spd = SpectrumDataLoader(
-            self.testfile, run_kwargs=dict(SampleID="testfile", SamplePos=1)
-        )
-        self.assertEqual(len(spd.register_df), 1600)
-        self.assertEqual(len(spd.register_df.columns), 5)
-
-        # self = spcoll
-
-
-# class SpectrumData():
-def _debugging():
-    self = TestSpectrumDataLoader()
-    pass
-    # spectrum_data = SpectrumDataLoader(
-    #     file=meannm[-1], run_kwargs=_spectrum_position_info_kwargs, ovv=meangrp
-    # )
-    # self = spectrum_data
-    # self._despike.Z_t
-    # self._despike.input_intensity
-    # self = self._despike
-    # rr = RL.export_collect[0]
-    # spec = rr.fitter.spectra_arg._spectra[0]
+        for file in self.files:
+            spd = SpectrumDataLoader(
+                file, run_kwargs=dict(SampleID=file.stem, SamplePos=1)
+            )
+            self.assertEqual(len(spd.clean_spectrum.spectrum), 1600)
+            assert len(spd.clean_spectrum.spec_windows) >= 5
 
 
 if __name__ == "__main__":
