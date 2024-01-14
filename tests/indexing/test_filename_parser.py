@@ -3,22 +3,19 @@ import unittest
 # import importlib
 from pathlib import Path
 
-# from raman_fitting.deconvolution_models import first_order_peaks
-
-import raman_fitting.test_fixtures as fixtures
-from raman_fitting.imports.filename_parser import PathParser
-from raman_fitting.imports.filename_parser import (
-    _extra_sID_name_mapper,
-    _extra_overwrite_sID_from_mapper,
-)
-from raman_fitting.imports.filename_parser import (
-    _extra_sgrpID_name_mapper,
-    _extra_overwrite_sgrpID_from_parts,
+from raman_fitting.imports.models import RamanFileInfo
+from raman_fitting.imports.samples.sample_id_helpers import (
+    overwrite_sID_from_mapper,
+    overwrite_sgrpID_from_parts,
 )
 
-from raman_fitting.imports.filename_parser_helpers import filestem_to_sid_and_pos
+
+from raman_fitting.imports.samples.sample_id_helpers import (
+    parse_string_to_sample_id_and_position,
+)
 
 # import pytest
+TEST_FIXTURES_PATH = Path(__file__).parent.parent.joinpath("test_fixtures")
 
 
 class TestFilenameParser(unittest.TestCase):
@@ -36,62 +33,49 @@ class TestFilenameParser(unittest.TestCase):
     }
 
     result_attr = "parse_result"
+    sID_name_mapper = {}
+    sGrp_name_mapper = {}
 
     def setUp(self):
-        _example_path = Path(fixtures.__path__[0])
+        _example_path = TEST_FIXTURES_PATH
         _example_files_contents = list(Path(_example_path).rglob("*txt"))
 
         self.datafiles = _example_files_contents
         # list(filter(lambda x: x.endswith('.txt'), _example_files_contents))
         _pathparsers = []
         for fn in self.datafiles:
-            _pathparsers.append(PathParser(_example_path.joinpath(fn)))
+            _pathparsers.append(RamanFileInfo(**{"file": _example_path.joinpath(fn)}))
         self.data_PPs = _pathparsers
-        self.empty_PP = PathParser()
+        # self.empty_PP = RamanFileInfo()
 
         # Make expected results
         # {i.name: (i.parse_result['SampleID'], i.parse_result['SamplePos']) for i in  self.data_PPs}
 
-    def test_PathParser(self):
-        self.assertTrue(all(isinstance(i, PathParser) for i in self.data_PPs))
-        # Check if instance has results attribute
-        self.assertTrue(all(hasattr(i, self.result_attr) for i in self.data_PPs))
-
-    def test_PathParser_empty(self):
-        self.assertTrue(hasattr(self.empty_PP, "_flavour"))
-        self.assertTrue(hasattr(self.empty_PP, self.result_attr))
+    def test_RamanFileInfo(self):
+        self.assertTrue(all(isinstance(i, RamanFileInfo) for i in self.data_PPs))
 
     def test_PP_extra_from_map(self):
-        for k, val in _extra_sID_name_mapper.items():
-            _mapval = _extra_overwrite_sID_from_mapper(k)
+        for k, val in self.sID_name_mapper.items():
+            _mapval = overwrite_sID_from_mapper(k, self.sID_name_mapper)
 
             self.assertEqual(_mapval, val)
 
     def test_PP_extra_from_parts(self):
-        self.assertEqual("TEST", _extra_overwrite_sgrpID_from_parts([], "TEST"))
-
-        for k, val in _extra_sgrpID_name_mapper.items():
-            emptymap_PP = PathParser(f"{k}/TEST.txt")
+        self.assertEqual(
+            "TEST", overwrite_sgrpID_from_parts([], "TEST", self.sGrp_name_mapper)
+        )
+        for k, val in self.sGrp_name_mapper.items():
+            emptymap_PP = RamanFileInfo(f"{k}/TEST.txt")
             self.assertEqual(
                 val,
-                _extra_overwrite_sgrpID_from_parts(emptymap_PP.parts, "TEST"),
+                overwrite_sgrpID_from_parts(
+                    emptymap_PP.parts, "TEST", self.sGrp_name_mapper
+                ),
             )
 
     def test_PP_parse_filepath_to_sid_and_pos(self):
         for file, _expected in self.example_parse_expected.items():
-            self.assertEqual(filestem_to_sid_and_pos(file), _expected)
-
-    # def test_PathParser(self):
-    #     _dfpath = Path(__file__).parent.parent.parent / 'src' / 'raman_fitting' / 'datafiles'
-    #     _fls = list(_dfpath.rglob('*.txt'))
-    #     _res = []
-    #     for fn in _fls:
-    #         _res.append(PathParser(fn))
-    #     sIDs = [i.parse_result['SampleID'] for i in _res]
-    #     self.assertEqual(sIDs, self.sIDs_expected)
-
-    # def test_empty(self):
-    #     PathParser('')
+            self.assertEqual(parse_string_to_sample_id_and_position(file), _expected)
 
 
 if __name__ == "__main__":
