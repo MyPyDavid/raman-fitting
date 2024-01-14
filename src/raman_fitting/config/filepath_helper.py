@@ -3,27 +3,24 @@
 from typing import Dict
 import logging
 
-from pathlib import Path
 
 import raman_fitting
+from pathlib import Path
 
-from .filepath_settings import Config
+from .filepath_settings import FilePathConfig
+
 
 logger = logging.getLogger(__name__)
 
 
-def load_default_peak_toml_files() -> dict:
-    from raman_fitting.deconvolution_models import default_peaks
-    from pathlib import Path
+def load_default_model_and_peak_definitions() -> dict:
     import tomllib
 
-    default_peaks_path = Path(default_peaks.__file__).parent
-    toml_files = [i for i in default_peaks_path.glob("*.toml")]
-
-    settings = {}
-    for i in toml_files:
-        settings.update(tomllib.loads(i.read_bytes().decode()))
-    return settings
+    DEFAULT_MODELS_DIR = Path(__file__).resolve().parent / "default_models"
+    default_peak_settings = {}
+    for i in DEFAULT_MODELS_DIR.glob("*.toml"):
+        default_peak_settings.update(tomllib.loads(i.read_bytes().decode()))
+    return default_peak_settings
 
 
 def get_directory_paths_for_run_mode(run_mode: str = "", **kwargs) -> Dict:
@@ -42,23 +39,21 @@ def get_directory_paths_for_run_mode(run_mode: str = "", **kwargs) -> Dict:
 
     """
     dataset_dir, results_dir = None, None
+    settings = FilePathConfig()
 
     run_mode_config = run_mode.lower()
     config_aliases = {"make_index": "normal"}
     if run_mode_config in config_aliases.keys():
         run_mode_config = config_aliases[run_mode_config]
 
-    config = Config().CONFIG
-
-    if run_mode_config in config.keys():
-        dataset_dir = config[run_mode_config]["DATASET_DIR"]
-        results_dir = config[run_mode_config]["RESULTS_DIR"]
+    # breakpoint()
+    if run_mode_config in settings.CONFIG:
+        dataset_dir = settings.CONFIG[run_mode_config]["DATASET_DIR"]
+        results_dir = settings.CONFIG[run_mode_config]["RESULTS_DIR"]
     else:
         logger.warning(f"Run mode {run_mode} not recognized. Exiting...")
 
-    index_file = (
-        config["defaults"]["USER_PACKAGE_HOME"] / config["defaults"]["INDEX_FILE_NAME"]
-    )
+    index_file = settings.CONFIG["defaults"]["INDEX_FILE"]
 
     dest_dirs = {
         "RESULTS_DIR": Path(results_dir),
@@ -103,7 +98,7 @@ def create_dataset_dir(DATASET_DIR):  # pragma: no cover
     if not DATASET_DIR.is_dir():
         logger.warning(
             f"The datafiles directory does not exist yet, the program will now try to create this folder.\n{DATASET_DIR}"
-            # therefore {config.__package_name__} can not find any files.
+            # therefore {settings.__package_name__} can not find any files.
             # The program will now try to create this folder.
         )
         try:

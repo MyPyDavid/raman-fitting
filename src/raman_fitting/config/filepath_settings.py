@@ -13,11 +13,12 @@ TEMP_DIR = tempfile.TemporaryDirectory()
 
 
 @dataclass
-class Config:
+class FilePathConfig:
     CONFIG_FILE: Path = Path(__file__).resolve()
     PACKAGE_ROOT: Path = CONFIG_FILE.parent.parent
+    DEFAULT_MODELS_DIR: Path = CONFIG_FILE.parent / "default_models"
     MODEL_DIR: Path = PACKAGE_ROOT / "deconvolution_models"
-    TEST_FIXTURES: Path = PACKAGE_ROOT / "test_fixtures"
+    EXAMPLE_FIXTURES: Path = PACKAGE_ROOT / "example_fixtures"
 
     # Home dir from pathlib.Path for storing the results
     USER_PACKAGE_HOME: Path = (
@@ -29,6 +30,7 @@ class Config:
 
     # Storage file of the index
     INDEX_FILE_NAME: str = f"{raman_fitting.__package_name__}_index.csv"
+    INDEX_FILE_PATH: Path = USER_PACKAGE_HOME / INDEX_FILE_NAME
 
     TEST_RESULTS_DIR: Path = Path(TEMP_DIR.name)
 
@@ -39,16 +41,17 @@ class Config:
             "MODEL_DIR": MODEL_DIR,
             "USER_PACKAGE_HOME": USER_PACKAGE_HOME,
             "INDEX_FILE_NAME": INDEX_FILE_NAME,
+            "INDEX_FILE": INDEX_FILE_PATH,
         },
         "testing": {
             "RESULTS_DIR": TEST_RESULTS_DIR,
-            "DATASET_DIR": TEST_FIXTURES,
-            "USER_CONFIG_FILE": TEST_FIXTURES / "raman_fitting.toml",
+            "DATASET_DIR": EXAMPLE_FIXTURES,
+            "USER_CONFIG_FILE": EXAMPLE_FIXTURES / "raman_fitting.toml",
         },
         "make_examples": {
             "RESULTS_DIR": USER_PACKAGE_HOME / "make_examples",
-            "DATASET_DIR": TEST_FIXTURES,
-            "USER_CONFIG_FILE": TEST_FIXTURES / "raman_fitting.toml",
+            "DATASET_DIR": EXAMPLE_FIXTURES,
+            "USER_CONFIG_FILE": EXAMPLE_FIXTURES / "raman_fitting.toml",
         },
         "normal": {
             "RESULTS_DIR": USER_PACKAGE_HOME / "results",
