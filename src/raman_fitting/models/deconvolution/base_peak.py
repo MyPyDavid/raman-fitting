@@ -12,8 +12,12 @@ from pydantic import (
 from lmfit import Parameters
 from lmfit.models import Model
 
-from .lmfit_parameter import LMFIT_MODEL_MAPPER, LMFitParameterHints, parmeter_to_dict
-from ..config.filepath_helper import load_default_peak_toml_files
+from raman_fitting.models.deconvolution.lmfit_parameter import (
+    LMFIT_MODEL_MAPPER,
+    LMFitParameterHints,
+    parmeter_to_dict,
+)
+from raman_fitting.config.filepath_helper import load_default_model_and_peak_definitions
 
 ParamHintDict = Dict[str, Dict[str, Optional[float | bool | str]]]
 
@@ -209,10 +213,12 @@ def make_string_from_param_hints(param_hints: Parameters) -> str:
     return text
 
 
-def get_peaks_from_settings(settings: Optional[Dict] = None) -> Dict[str, BasePeak]:
-    if settings is None:
-        settings = load_default_peak_toml_files()
-    peak_settings = {k: val.get("peaks") for k, val in settings.items()}
+def get_peaks_from_peak_definitions(
+    peak_definitions: Optional[Dict] = None,
+) -> Dict[str, BasePeak]:
+    if peak_definitions is None:
+        peak_definitions = load_default_model_and_peak_definitions()
+    peak_settings = {k: val.get("peaks") for k, val in peak_definitions.items()}
     peak_models = {}
     for peak_type, peak_type_defs in peak_settings.items():
         for peak_name, peak_def in peak_type_defs.items():
@@ -221,7 +227,7 @@ def get_peaks_from_settings(settings: Optional[Dict] = None) -> Dict[str, BasePe
 
 
 def _main():
-    settings = load_default_peak_toml_files()
+    settings = load_default_model_and_peak_definitions()
     print(settings["first_order"]["models"])
     # PARAMETER_ARGS = inspect.signature(Parameter).parameters.keys()
     peaks = {}

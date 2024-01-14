@@ -2,7 +2,7 @@ import logging
 import unittest
 
 
-from raman_fitting.deconvolution_models.base_peak import (
+from raman_fitting.models.deconvolution.base_peak import (
     BasePeak,
 )
 

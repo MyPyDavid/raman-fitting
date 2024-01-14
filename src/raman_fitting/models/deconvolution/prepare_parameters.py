@@ -43,7 +43,7 @@ def add_ratio_combined_params(
     if windowname is None:
         return {}
 
-    if windowname.startswith("1st") and windowname_2nd in extra_fit_results.keys():
+    if windowname.startswith("first") and windowname_2nd in extra_fit_results.keys():
         _D1D1 = extra_fit_results[windowname_2nd].FitParameters.loc[
             f"Model_{windowname_2nd}", "D1D1" + t
         ]

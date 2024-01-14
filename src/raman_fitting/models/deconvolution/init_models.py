@@ -1,9 +1,12 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import logging
+from typing import Dict
 
-from raman_fitting.config.filepath_helper import load_default_peak_toml_files
-from raman_fitting.deconvolution_models.base_model import get_models_from_settings
-
+from raman_fitting.config.filepath_helper import load_default_model_and_peak_definitions
+from raman_fitting.models.deconvolution.base_model import (
+    get_models_and_peaks_from_definitions,
+)
+from .base_model import BaseLMFitModel
 
 logger = logging.getLogger(__name__)
 
@@ -16,18 +19,18 @@ class InitializeModels:
     for the models as keys.
     """
 
-    settings: dict = None
-    peaks: dict = None
-    lmfit_models: dict = None
+    settings: dict = field(default_factory=dict)
+    peaks: dict = field(default_factory=dict)
+    lmfit_models: Dict[str, Dict[str, BaseLMFitModel]] = None
 
     def __post_init__(self):
         self.settings = self.settings or {}
         self.peaks = self.peaks or {}
         self.lmfit_models = self.lmfit_models or {}
         if not self.settings:
-            self.settings = load_default_peak_toml_files()
+            self.settings = load_default_model_and_peak_definitions()
         if not self.lmfit_models and self.settings:
-            self.lmfit_models = get_models_from_settings(self.settings)
+            self.lmfit_models = get_models_and_peaks_from_definitions(self.settings)
 
     def __repr__(self):
         _t = ", ".join(map(str, self.lmfit_models.keys()))
@@ -37,9 +40,11 @@ class InitializeModels:
 
 
 def main():
-    from raman_fitting.config.filepath_helper import load_default_peak_toml_files
+    from raman_fitting.config.filepath_helper import (
+        load_default_model_and_peak_definitions,
+    )
 
-    settings = load_default_peak_toml_files()
+    settings = load_default_model_and_peak_definitions()
     print("settings: ", settings)
     models = InitializeModels()
     print(models)

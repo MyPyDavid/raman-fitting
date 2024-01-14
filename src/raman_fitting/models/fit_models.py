@@ -1,13 +1,53 @@
 import datetime as dt
 import logging
 from collections import OrderedDict, namedtuple
+from typing import Dict
 
 import pandas as pd
+from pydantic import BaseModel, model_validator, Field, ConfigDict
+from lmfit import Model as LMFitModel
+from lmfit.model import ModelResult
 
-# from ..processing.spectrum_constructor import SpectrumDataCollection, SpectrumDataLoader
-from .init_models import InitializeModels
+from raman_fitting.models.deconvolution.base_model import BaseLMFitModel
+from raman_fitting.models.spectrum import SpectrumData
 
 logger = logging.getLogger(__name__)
+
+
+class SpectrumFitModel(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    spectrum: SpectrumData
+    model: BaseLMFitModel
+    fit_kwargs: Dict = Field(default_factory=dict)
+    fit_result: ModelResult = Field(None, init_var=False)
+
+    @model_validator(mode="after")
+    def match_window_names(self):
+        model_window = self.model.window_name
+        spec_window = self.spectrum.window_name
+        if model_window != spec_window:
+            raise ValueError(
+                f"Window names do not match {model_window} and {spec_window}"
+            )
+        return self
+
+    def run_fit(self) -> ModelResult:
+        if not self.fit_kwargs:
+            self.fit_kwargs.update(**{"method": "leastsq"})
+        lmfit_model = self.model.lmfit_model
+        fit_result = run_fit(lmfit_model, self.spectrum, **self.fit_kwargs)
+        self.fit_result = fit_result
+
+
+def run_fit(
+    model: LMFitModel, spectrum: SpectrumData, method="leastsq", **kws
+) -> ModelResult:
+    # ideas: improve fitting loop so that starting parameters from modelX and modelX+Si are shared, faster...
+    init_params = model.make_params()
+    x, y = spectrum.ramanshift, spectrum.intensity
+    out = model.fit(y, init_params, x=x, method=method)  # 'leastsq'
+    return out
 
 
 class Fitter:
@@ -17,7 +57,7 @@ class Fitter:
     IDEA: implement sensing of spectrum for Si samples
     """
 
-    fit_windows = ["1st_order", "2nd_order"]
+    fit_windows = ["first_order", "second_order"]
 
     def __init__(self, spectra_arg, models=None, start_fit=True):
         self._qcnm = self.__class__.__qualname__
@@ -274,12 +314,12 @@ class PrepareParams:
         self.FitComponents = FittingComps
 
 
-def NormalizeFit(norm_cleaner, plotprint=False):  # pragma: no cover
+def NormalizeFit(model: LMFitModel, norm_cleaner, plotprint=False):  # pragma: no cover
     # IDEA: optional add normalization seperately to Fitter
     x, y = norm_cleaner.spec.ramanshift, norm_cleaner.blcorr_desp_intensity
-    Model = InitializeModels("2peaks normalization Lorentzian")
-    params = Model.make_params()
-    pre_fit = Model.fit(y, params, x=x)  # 'leastsq'
+    # Model = InitializeModels("2peaks normalization Lorentzian")
+    params = model.make_params()
+    pre_fit = model.fit(y, params, x=x)  # 'leastsq'
     IG, ID = pre_fit.params["G_height"].value, pre_fit.params["D_height"].value
     output = {
         "factor": 1 / IG,
@@ -288,10 +328,41 @@ def NormalizeFit(norm_cleaner, plotprint=False):  # pragma: no cover
         "IG": IG,
         "G_center": pre_fit.params["G_center"].value,
         "D_center": pre_fit.params["D_center"].value,
-        "Model": Model,
+        "Model": model,
     }
     #    pre_fit = Model.fit(y,params ,x=x,method='differential-evolution') # 'leastsq'
     if plotprint:
         pre_fit.plot()
         print(pre_fit.fit_report())
     return output
+
+
+if __name__ == "__main__":
+    from raman_fitting.config import settings
+
+    test_fixtures = list(settings.TEST_FIXTURES.glob("*txt"))
+    file = [i for i in test_fixtures if "_pos4" in i.stem][0]
+    from raman_fitting.imports.spectrumdata_parser import SpectrumReader
+
+    specread = SpectrumReader(file)
+
+    from raman_fitting.processing.post_processing import SpectrumProcessor
+
+    spectrum_processor = SpectrumProcessor(specread.spectrum)
+    clean_spec_1st_order = spectrum_processor.clean_spectrum.spec_windows[
+        "savgol_filter_raw_window_first_order"
+    ]
+    clean_spec_1st_order.window_name = "first_order"
+
+    from raman_fitting.models.deconvolution.base_model import (
+        get_models_and_peaks_from_definitions,
+    )
+
+    models = get_models_and_peaks_from_definitions()
+    model_2peaks = models["first_order"]["2peaks"]
+    spec_fit = SpectrumFitModel(
+        **{"spectrum": clean_spec_1st_order, "model": model_2peaks}
+    )
+    spec_fit.run_fit()
+    print(spec_fit.fit_result.best_values)
+    spec_fit.fit_result.plot(show_init=True)
