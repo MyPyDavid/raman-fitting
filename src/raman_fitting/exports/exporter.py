@@ -18,7 +18,9 @@ class Exporter:
 
     """
 
-    def __init__(self, arg, raw_out=True, plot=True, model_names_prefix=["1st", "2nd"]):
+    def __init__(
+        self, arg, raw_out=True, plot=True, model_names_prefix=["first", "second"]
+    ):
         self.raw_out = raw_out
         self.plot = plot
         try:
@@ -87,17 +89,19 @@ class Exporter:
     def export_fitting_plotting_models(self):
         pars1, pars2 = [], []
 
-        _1st = {
-            k: val for k, val in self.fitter.FitResults.items() if k.startswith("1st")
+        _first = {
+            k: val for k, val in self.fitter.FitResults.items() if k.startswith("first")
         }
-        _2nd = {
-            k: val for k, val in self.fitter.FitResults.items() if k.startswith("2nd")
+        _second = {
+            k: val
+            for k, val in self.fitter.FitResults.items()
+            if k.startswith("second")
         }
 
-        for modname_2, fitres_2 in _2nd.items():
+        for modname_2, fitres_2 in _second.items():
             self.export_xls_from_spec(fitres_2)
             pars2.append(fitres_2.FitParameters)
-            for modname_1, fitres_1 in _1st.items():
+            for modname_1, fitres_1 in _first.items():
                 self.export_xls_from_spec(fitres_1)
                 try:
                     fit_spectrum_plot(
