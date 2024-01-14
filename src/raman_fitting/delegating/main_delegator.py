@@ -1,22 +1,21 @@
 # pylint: disable=W0614,W0401,W0611,W0622,C0103,E0401,E0402
 import logging
 import sys
-from pathlib import Path
 
-import pandas as pd
+from itertools import groupby
+
 
 from raman_fitting.config.filepath_helper import get_directory_paths_for_run_mode
-from raman_fitting.deconvolution_models.fit_models import Fitter
-from raman_fitting.deconvolution_models.init_models import InitializeModels
+
+from raman_fitting.models.deconvolution.init_models import InitializeModels
 from raman_fitting.exports.exporter import Exporter
-from raman_fitting.imports.indexer import MakeRamanFilesIndex
-from raman_fitting.processing.spectrum_constructor import (
-    SpectrumDataCollection,
-    SpectrumDataLoader,
-)
+from raman_fitting.imports.files.file_indexer import MakeRamanFilesIndex
+from raman_fitting.imports.spectrum.spectrum_constructor import SpectrumDataLoader
+from raman_fitting.imports.spectrum.spectra_collection import SpectraDataCollection
+
 from raman_fitting.utils.exceptions import MainDelegatorError
 
-from raman_fitting.processing.spectrum_template import SpectrumTemplate
+from raman_fitting.models.spectrum import NotSpectrumMetaData
 from raman_fitting.interfaces.cli import RUN_MODES
 
 if __name__ == "__main__":
@@ -50,7 +49,8 @@ class MainDelegator:
         self.DATASET_DIR = self.dest_dirs["DATASET_DIR"]
         self.INDEX_FILE = self.dest_dirs["INDEX_FILE"]
 
-        self.spectrum = SpectrumTemplate()
+        self.spectrum = NotSpectrumMetaData()
+        self.models = InitializeModels()
 
         self.run_delegator(**self.kwargs)
 
@@ -66,120 +66,116 @@ class MainDelegator:
         self._failed_samples = []
         self.export_collect = []
 
-        # assert type(self.index) == type(pd.DataFrame())
-        if self.run_mode in ("normal", "debug", "make_index", "make_examples"):
-            RF_indexer = self.index_delegator(
-                run_mode=self.run_mode, dataset_dirs=self.dest_dirs, **kwargs
-            )
-            self.index = RF_indexer.index_selection
-
-            if self.index.empty:
-                logger.warning(f"{self._cqnm} index selection empty")
-
-            if self.run_mode == "make_index":
-                logger.info(
-                    f"{self._cqnm} Debug run mode {self}. Index loaded {RF_indexer}"
-                )
-                sys.exit(0)
-
-            models = self.initialize_default_models()
-            self.kwargs.update({"models": models})
-            # IDEA built in a model selection keyword, here or at fitting level and for the cli
-            logger.info(
-                f"\n{self._cqnm} models initialized for run mode ({self.run_mode}):\n\n{repr(models)}"
-            )
-
-            if self.run_mode in ("normal", "make_examples"):
-                if not self.index.empty:
-                    logger.debug(f"{self._cqnm}. starting run generator.")
-
-                    self._run_gen(**self.kwargs)
-                else:
-                    pass
-                # info raman loop finished because index is empty
-            elif self.run_mode == "debug":
-                logger.debug(f"Debug run mode {self}. Models initialized {models}")
-
-                try:
-                    # self._run_gen() # IDEA add extra test runs in tests dir
-                    pass
-                except Exception as e:
-                    raise MainDelegatorError(
-                        "The debug run failed. " f" on {self} because {e}"
-                    )
-                # raise('Error in DEBUG run: ', e)
-            else:
-                logger.warning(f"Debug run mode {self.run_mode} not recognized")
-            # IDEA get testing from index and run
-        else:
+        if self.run_mode not in ("normal", "debug", "make_index", "make_examples"):
             logger.warning(f'Debug run mode "{self.run_mode}" not recognized not in ')
             # warning run mode not recognized
+            return
+        RF_indexer = self.index_delegator(
+            run_mode=self.run_mode, dataset_dirs=self.dest_dirs, **kwargs
+        )
+        self.index = RF_indexer.index_selection
+        if self.index is None:
+            logger.warning(f"{self._cqnm} index selection is None")
+        elif not self.index:
+            logger.warning(f"{self._cqnm} index selection empty")
 
-    def initialize_default_models(self):
-        try:
-            return InitializeModels()
-        except Exception as e:
-            raise MainDelegatorError(
-                "The initialization of models failed. " f" on {self} with excp: {e}"
+        if self.run_mode == "make_index":
+            logger.info(
+                f"{self._cqnm} Debug run mode {self}. Index loaded {RF_indexer}"
             )
-            return None
+            sys.exit(0)
 
-    def sample_group_gen(self):
+        models = self.models
+
+        self.kwargs.update({"models": models})
+        # IDEA built in a model selection keyword, here or at fitting level and for the cli
+        logger.info(
+            f"\n{self._cqnm} models initialized for run mode ({self.run_mode}):\n\n{repr(models)}"
+        )
+
+        if self.run_mode in ("normal", "make_examples"):
+            if self.index is None:
+                return
+            elif self.index:
+                logger.debug(f"{self._cqnm}. starting run generator.")
+
+                self._run_gen(**self.kwargs)
+
+            # info raman loop finished because index is empty
+        elif self.run_mode == "debug":
+            logger.debug(f"Debug run mode {self}. Models initialized {models}")
+
+            try:
+                # self._run_gen() # IDEA add extra test runs in tests dir
+                pass
+            except Exception as e:
+                raise MainDelegatorError(
+                    "The debug run failed. " f" on {self} because {e}"
+                )
+            # raise('Error in DEBUG run: ', e)
+        else:
+            logger.warning(f"Debug run mode {self.run_mode} not recognized")
+        # IDEA get testing from index and run
+
+    @staticmethod
+    def sample_group_gen(index):
         """Generator for Sample Groups, yields the name of group and group of the index SampleGroup"""
-        for grpnm, sGrp_grp in self.index.groupby(
-            self.spectrum.grp_names.sGrp_cols[0]
-        ):  # Loop over SampleGroups
-            yield grpnm, sGrp_grp
+        grouper = groupby(index, key=lambda x: x.sample.group)
+        return grouper
 
-    def _sID_gen(self, grpnm, sGrp_grp):
+    @staticmethod
+    def sample_id_gen(group_files):
         """Generator for SampleIDs, yields the name of group, name of SampleID and group of the index of the SampleID"""
-        for nm, sID_grp in sGrp_grp.groupby(
-            list(self.spectrum.grp_names.sGrp_cols[1:])
-        ):  # Loop over SampleIDs within SampleGroup
-            yield (grpnm, nm, sID_grp)
+        grouper = groupby(group_files, key=lambda x: x.sample.id)
+        return grouper
 
     def _run_gen(self, **kwargs):
         # #IDEA sort of coordinator coroutine, can implement still deque
-        sgrp_grpby = self.index.groupby(self.spectrum.grp_names.sGrp_cols[0])
         logger.info(f"{self._cqnm} _run_gen starting: {kwargs}")
-        _mygen = self._generator(sgrp_grpby, **kwargs)
+        _mygen = self._generator(**kwargs)
         Exporter(self.export_collect)  # clean up and
         logger.info(
             f"\n{self._cqnm} run finished.\n Results saved in {self.RESULTS_DIR}"
         )
 
-    def _generator(self, sgrp_grpby, **kwargs):
+    def _generator(self, **kwargs):
+        # breakpoint()
+        sample_group_groupby = self.sample_group_gen(self.index)
         export_collect = []
-        for sgrpnm, sgrp_grp in sgrp_grpby:
-            sID_grpby = sgrp_grp.groupby(list(self.spectrum.grp_names.sGrp_cols[1:]))
-            logger.info(f"{self._cqnm} _generator starting group: {sgrpnm}")
+        for sample_group_name, group_files in sample_group_groupby:
+            sample_id_grouper = self.sample_id_gen(group_files)
+
+            logger.info(f"{self._cqnm} _generator starting group: {sample_group_name}")
             exporter_sample = None
-            for sIDnm, sIDgrp in sID_grpby:
+            for sample_id, sample_group_files in sample_id_grouper:
                 try:
+                    sample_group_files = list(sample_group_files)
                     exporter_sample = self.simple_process_sample_wrapper(
-                        sgrpnm, sIDnm, sIDgrp, **kwargs
+                        sample_group_name, sample_id, sample_group_files, **kwargs
                     )
                 except GeneratorExit:
                     logger.warning(f"{self._cqnm} _generator closed.")
                     return ()
-                except Exception as e:
-                    logger.warning(f"{self._cqnm} _generator exception: {e}")
+                except Exception as exc:
+                    logger.warning(f"{self._cqnm} _generator exception: {exc}")
                 export_collect.append(exporter_sample)
         return export_collect
 
-    def coordinator(self):
-        pass
-
-    def simple_process_sample_wrapper(self, *sID_args, **kwargs):
+    def simple_process_sample_wrapper(
+        self, sample_group_name, sample_id, sample_group_files, **kwargs
+    ):
         logger.info(
-            f"{self._cqnm} starting simple process_sample_wrapper args:\n\t - {sID_args[0]}\n\t - {kwargs.keys()}"
+            f"{self._cqnm} starting simple process_sample_wrapper args:\n\t - {sample_group_name}\n\t - {kwargs.keys()}"
         )
         exporter_sample = None
+        # breakpoint()
         try:
             logger.debug(
-                f"{self._cqnm} simple process_sample_wrapper starting:\n\t - {sID_args[1]}"
+                f"{self._cqnm} simple process_sample_wrapper starting:\n\t - {sample_id}"
             )
-            exporter_sample = self.process_sample(*sID_args, **kwargs)
+            exporter_sample = self.process_sample(
+                sample_group_name, sample_id, sample_group_files, **kwargs
+            )
             if exporter_sample:
                 logger.debug(
                     f"{self._cqnm} simple process_sample_wrapper appending export:\n\t - {exporter_sample}"
@@ -189,76 +185,64 @@ class MainDelegator:
             logger.warning(
                 f"{self._cqnm} simple process_sample_wrapper exception on call process sample: {e}"
             )
-            self._failed_samples.append((e, sID_args, kwargs))
+            self._failed_samples.append(
+                (e, sample_group_name, sample_id, sample_group_files, kwargs)
+            )
         return exporter_sample
 
-    def test_positions(
-        self, sGrp_grp, sIDnm, grp_cols=["FileStem", "SamplePos", "FilePath"]
-    ):
-        if sGrp_grp.FileStem.nunique() != sGrp_grp.SamplePos.nunique():
-            logger.warning(
-                f"{sGrp_grp[grp_cols]} Unique files and positions not matching for {sIDnm}"
-            )
-        return sGrp_grp.groupby(grp_cols), grp_cols
+    @staticmethod
+    def test_positions(sample_group_files):
+        if not sample_group_files:
+            return
 
-    def process_sample(self, sgrpnm, sIDnm, sID_grp, **kwargs):
+        _files = [i.file for i in sample_group_files]
+        _positions = [i.sample.position for i in sample_group_files]
+        if len(set(_files)) != len(set(_positions)):
+            logger.warning(
+                f"{sample_group_files[0].sample} Unique files and positions not matching for {sample_group_files}"
+            )
+        return sample_group_files
+
+    def process_sample(
+        self, sample_group_name, sample_id, sample_group_files, **kwargs
+    ):
         """
         Loops over individual Sample positions (files) from a SampleID and performs the
         fitting, plotting and exporting.
         """
         logger.info(
-            f"{self._cqnm} process_sample called:\n\t - {sgrpnm}, {sIDnm}\n\t - {kwargs.keys()}"
+            f"{self._cqnm} process_sample called:\n\t - {sample_group_name}, {sample_id}\n\t - {kwargs.keys()}"
         )
-
-        models = kwargs.get("models", None)
-
-        sGr_out = dict(zip(self.spectrum.grp_names.sGrp_cols, (sgrpnm,) + sIDnm))
-        export_info_out = add_make_sample_group_destdirs(sID_grp)
-        sample_pos_grp, sPos_cols = self.test_positions(
-            sID_grp, sIDnm, list(self.spectrum.grp_names.sPos_cols)
-        )
+        # breakpoint()
+        # sGr_out = dict(zip(self.spectrum.sGrp_cols, (sample_group_name,) + sample_id))
+        # export_info_out = add_make_sample_group_destdirs(sample_group_files)
+        sample_group_files = self.test_positions(sample_group_files)
 
         sample_spectra = []
-        for meannm, meangrp in sample_pos_grp:
-            logger.info(f"{self._cqnm} process sample mean loop file: {meannm}.")
-            sPos_out = dict(zip(self.spectrum.grp_names.sPos_cols, meannm))
-            _spectrum_position_info_kwargs = {**sGr_out, **export_info_out, **sPos_out}
-            spectrum_data = SpectrumDataLoader(
-                file=meannm[-1], run_kwargs=_spectrum_position_info_kwargs, ovv=meangrp
-            )
-            sample_spectra.append(spectrum_data)
-        if sample_spectra:
-            spectra_collection = SpectrumDataCollection(sample_spectra)
-            ft = Fitter(spectra_collection, RamanModels=models)
-            rex = Exporter(ft)
-            return rex
-        else:
+        for raman_file in sample_group_files:
             logger.info(
-                f"{self._cqnm} process sample spectra empty {','.join(map(str,[sgrpnm, sIDnm]))}."
+                f"{self._cqnm} process sample mean loop file: {raman_file.file.stem}."
             )
-            return None
+            # sPos_out = dict(zip(self.spectrum.sPos_cols, sample_id))
+            # _spectrum_position_info_kwargs = {**sGr_out, **export_info_out, **sPos_out}
+            spectrum_data = SpectrumDataLoader(file=raman_file.file)
+            sample_spectra.append(spectrum_data)
+        if not sample_spectra:
+            logger.info(
+                f"{self._cqnm} process sample spectra empty {','.join(map(str,[sample_group_name, sample_id]))}."
+            )
+        breakpoint()
+        spectra_collection = SpectraDataCollection(**{"spectra": sample_spectra})
+        # ft = Fitter(spectra_collection, RamanModels=models)
+        rex = Exporter(spectra_collection)
+        return rex
 
     def __repr__(self):
         return f'Maindelegator: run_mode = {self.run_mode}, {", ".join([f"{k} = {str(val)}" for k,val in self.kwargs.items()])}'
 
 
-def add_make_sample_group_destdirs(sample_grp: pd.DataFrame):
-    dest_grp_dir = Path(
-        sample_grp.DestDir.unique()[0]
-    )  # takes one destination directory from Sample Groups
-    dest_fit_plots = dest_grp_dir.joinpath("Fitting_Plots")
-    dest_fit_comps = dest_grp_dir.joinpath("Fitting_Components")
-    dest_fit_comps.mkdir(parents=True, exist_ok=True)
-
-    dest_raw_data_dir = dest_grp_dir.joinpath("Raw_Data")
-    dest_raw_data_dir.mkdir(parents=True, exist_ok=True)
-
-    export_info = {
-        "DestGrpDir": dest_grp_dir,
-        "DestFittingPlots": dest_fit_plots,
-        "DestFittingComps": dest_fit_comps,
-        "DestRaw": dest_raw_data_dir,
-    }
+def add_make_sample_group_destdirs(sample_grp):
+    export_info = sample_grp
     return export_info
 
 

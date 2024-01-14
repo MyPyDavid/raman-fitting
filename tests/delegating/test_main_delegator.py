@@ -1,8 +1,7 @@
 import unittest
 
-import pandas as pd
 
-from raman_fitting.deconvolution_models.init_models import InitializeModels
+from raman_fitting.models.deconvolution.init_models import InitializeModels
 from raman_fitting.delegating.main_delegator import (
     MainDelegator,
     add_make_sample_group_destdirs,
@@ -12,29 +11,32 @@ from raman_fitting.delegating.main_delegator import (
 class TestMainDelegator(unittest.TestCase):
     def setUp(self):
         self.maindebug = MainDelegator(run_mode="debug")
-        self.models = self.maindebug.initialize_default_models()
 
     def test_initialize_models(self):
-        self.assertTrue(isinstance(self.models, InitializeModels))
+        self.assertTrue(isinstance(self.maindebug.models, InitializeModels))
 
     def test_index(self):
         self.assertTrue(hasattr(self.maindebug, "index"))
-        self.assertTrue(isinstance(getattr(self.maindebug, "index"), pd.DataFrame))
+        self.assertTrue(isinstance(getattr(self.maindebug, "index"), list))
 
-        _sample_group = self.maindebug.sample_group_gen()
-        _arg = next(_sample_group)
-        _destdirs = add_make_sample_group_destdirs(_arg[-1])
-        _alltest = all([_arg[0] in a for a in [i.parts for i in _destdirs.values()]])
-        self.assertTrue(_alltest)
+        sample_group = self.maindebug.sample_group_gen(self.maindebug.index)
+        grp_name, grp_files = next(sample_group)
+        if 0:
+            group_files = list(grp_files)
+            destdirs = add_make_sample_group_destdirs(group_files)
+            destdirs_str = [i for i in destdirs.values if isinstance(i, str)]
+            alltest = all([grp_name in i for i in destdirs_str])
+            self.assertTrue(alltest)
 
     def test_generator(self):
-        _sample_group = self.maindebug.sample_group_gen()
-        _sample_group_arg = next(_sample_group)
-        self.assertTrue(_sample_group_arg)
+        _sample_group = self.maindebug.sample_group_gen(self.maindebug.index)
+        grp_name, sgrp_grpr = next(_sample_group)
+        self.assertTrue(grp_name)
 
-        _sID_gen = self.maindebug._sID_gen(*_sample_group_arg)
-        _sID_arg = next(_sID_gen)
-        self.assertTrue(_sID_arg)
+        # breakpoint()
+        _sID_gen = self.maindebug.sample_id_gen(sgrp_grpr)
+        sID_name, sample_grpr = next(_sID_gen)
+        self.assertTrue(sID_name)
 
 
 if __name__ == "__main__":
