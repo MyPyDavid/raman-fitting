@@ -13,7 +13,7 @@ import unittest
 import pytest
 from lmfit import Model
 
-from raman_fitting.deconvolution_models.init_models import InitializeModels
+from raman_fitting.models.deconvolution.init_models import InitializeModels
 from raman_fitting.exports.plot_formatting import (
     get_cmap_list,
     assign_colors_to_peaks,
