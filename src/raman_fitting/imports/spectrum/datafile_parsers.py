@@ -1,6 +1,7 @@
 import logging
 
 from typing import List, Sequence
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -26,18 +27,29 @@ def filter_data_for_numeric(data: Dataset):
     return filtered_data
 
 
-def read_file_with_tablib(filepath, headers_keys: Sequence[str], **kwargs):
+def load_dataset_from_file(filepath, **kwargs) -> Dataset:
     with open(filepath, "r") as fh:
         imported_data = Dataset().load(fh)
+    return imported_data
 
-    if headers_keys and set(imported_data.headers) not in set(headers_keys):
-        with open(filepath, "r") as fh:
-            imported_data = Dataset().load(fh, headers=False)
-        imported_data.headers = headers_keys
 
-    numeric_data = filter_data_for_numeric(imported_data)
-    data_df = numeric_data.export("df")
-    return data_df
+def check_header_keys(dataset: Dataset, header_keys: Sequence[str]):
+    if set(header_keys) not in set(dataset.headers):
+        first_row = list(dataset.headers)
+        dataset.insert(0, first_row)
+        dataset.headers = header_keys
+    return dataset
+
+
+def read_file_with_tablib(
+    filepath: Path, header_keys: Sequence[str], sort_by=None
+) -> Dataset:
+    data = load_dataset_from_file(filepath)
+    data = check_header_keys(data, header_keys)
+    numeric_data = filter_data_for_numeric(data)
+    sort_by = header_keys[0] if sort_by is None else sort_by
+    sorted_data = numeric_data.sort(sort_by)
+    return sorted_data
 
 
 def read_text(filepath, max_bytes=10**6, encoding="utf-8", errors=None):
