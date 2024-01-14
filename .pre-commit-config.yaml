@@ -13,22 +13,15 @@ repos:
         exclude: '\.Rd'
       - id: trailing-whitespace
         name: Check for trailing whitespaces (auto-fixes)
-  # - repo: https://github.com/pycqa/isort # raises an error disabled for now
-  #   rev: 5.11.2
-  #   hooks:
-  #     - id: isort
-  #       name: isort (python)
-  - repo: https://github.com/psf/black
-    rev: 23.3.0 # Replace by any tag/version: https://github.com/psf/black/tags
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.1.13
     hooks:
-      - id: black
-        name: black - consistent Python code formatting (auto-fixes)
-        language_version: python # Should be a command that runs python3.6+
-  # - repo: https://github.com/pycqa/flake8
-  #   rev: 6.0.0
-  #   hooks:
-  #     - id: flake8
-  #       name: flake8 - Python linting
+      # Run the linter.
+      - id: ruff
+        args: [ --fix ]
+      # Run the formatter.
+      - id: ruff-format
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.16.1
     hooks:
