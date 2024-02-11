@@ -33,7 +33,8 @@ dependencies = [
 	"tablib~=3.5.0",
 	"pydantic>=2.5",
 	"pydantic-settings>=2.1",
-	"pydantic_numpy>=4.1"
+	"pydantic_numpy>=4.1",
+	"loguru>=0.7"
 ]
 
 [project.optional-dependencies]
@@ -90,6 +91,9 @@ addopts = [
 testpaths = [
     "tests",
 ]
+
+[tool.coverage.run]
+source = ["src"]
 
 [tool.bumpversion]
 current_version = "0.7.0"
