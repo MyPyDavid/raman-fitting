@@ -15,6 +15,18 @@ from raman_fitting.models.spectrum import SpectrumData
 logger = logging.getLogger(__name__)
 
 
+FIT_RESULT_ATTR_LIST = (
+    "chisqr",
+    "redchi",
+    "bic",
+    "aic",
+    "method",
+    "message",
+    "success",
+    "nfev",
+)
+
+
 class SpectrumFitModel(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -45,6 +57,17 @@ class SpectrumFitModel(BaseModel):
         self.elapsed_time = elapsed_seconds
         self.fit_result = fit_result
 
+    def process_fit_results(self):
+        #  TODO add parameter post processing steps
+        self.fit_result
+
+        fit_attrs = {
+            f"lmfit_{i}": getattr(self.fit_result, i) for i in FIT_RESULT_ATTR_LIST
+        }
+        self.add_ratio_params()
+
+        self.result.update(fit_attrs)
+
 
 def run_fit(
     model: LMFitModel, spectrum: SpectrumData, method="leastsq", **kws
@@ -56,147 +79,7 @@ def run_fit(
     return out
 
 
-class Fitter:
-    """
-    Fitter class for executing the fitting functions and optimizations
-
-    IDEA: implement sensing of spectrum for Si samples
-    """
-
-    fit_windows = ["first_order", "second_order"]
-
-    def __init__(self, spectra_arg, models=None, start_fit=True):
-        self._qcnm = self.__class__.__qualname__
-        logger.debug(f"{self._qcnm} is called with spectrum\n\t{spectra_arg}\n")
-        self.start_fit = start_fit
-        self.models = models
-
-        self.spectra_arg = spectra_arg
-        self.spectra = spectra_arg
-        self.fit_delegator()
-
-    @property
-    def spectra(self):
-        return self._spectra
-
-    @spectra.setter
-    def spectra(self, value):
-        """Checks if value is dict or else takes a dict from class instance value"""
-
-        _errtxt = f"This assignment {value} does not contain valid spectra"
-        if isinstance(value, dict):
-            _data = value
-        elif isinstance(value, "SpectrumDataCollection"):
-            _data = value.mean_data
-            _fit_lbl = "mean"
-        elif isinstance(value, "SpectrumDataLoader"):
-            _data = value.clean_df
-            _fit_lbl = "int"
-        else:
-            raise ValueError(_errtxt)
-
-        _specs = {
-            k: val
-            for k, val in _data.items()
-            if k in self.fit_windows and isinstance(val, pd.DataFrame)
-        }
-        # assert bool(_specs), _errtxt
-        if not _specs:
-            self.start_fit = False
-
-        self._spectra = _specs
-        self.FitResults = {}
-        info = {}
-        if hasattr(value, "info"):
-            info = {**info, **value.info}
-        self.info = info
-
-    def fit_delegator(self):
-        if self.start_fit:
-            logger.info(
-                f"\n{self._qcnm} is starting to fit the models on spectrum:\n\t{self.info.get('SampleID','no name')}"
-            )
-
-            self.fit_models(self.models.second_order)  # second order should go first
-            logger.info(
-                f"\t - second order finished, {len(self.models.second_order)} model"
-            )
-            # rum:\t{self.info.get('SampleID','no name')}\n")
-            self.fit_models(self.models.first_order)
-            logger.info(
-                f"\t - first order finished, {len(self.models.first_order)} models"
-            )
-
-    def fit_models(self, model_selection):
-        _fittings = {}
-        logger.debug(f"{self._qcnm} fit_models starting.")
-        for modname, model in model_selection.items():
-            modname, model
-            _windowname = [i for i in self.fit_windows if modname[0:3] in i][0]
-            _data = self.spectra.get(_windowname)
-            _int_lbl = self.get_int_label(_data)
-            try:
-                out = self.run_fit(
-                    model.lmfit_model,
-                    _data,
-                    _int_lbl=_int_lbl,
-                    _modelname=modname,
-                    _info=self.info,
-                )
-                prep = PrepareParams(out, extra_fit_results=self.FitResults)
-                _fittings.update({modname: prep.FitResult})
-            except Exception as e:
-                logger.warning(
-                    f"{self._qcnm} fit_model failed for {modname}: {model}, because:\n {e}"
-                )
-
-        self.FitResults.update(**_fittings)
-
-    def run_fit(self, model, _data, method="leastsq", **kws):
-        # ideas: improve fitting loop so that starting parameters from modelX and modelX+Si are shared, faster...
-        init_params = model.make_params()
-        x, y = _data.ramanshift, _data[kws.get("_int_lbl")]
-        out = model.fit(y, init_params, x=x, method=method)  # 'leastsq'
-        for k, val in kws.items():
-            if not hasattr(out, k):
-                _attrkey = k
-            elif not hasattr(out, f"_{k}"):
-                _attrkey = f"_{k}"
-            else:
-                _attrkey = None
-            if _attrkey:
-                setattr(out, _attrkey, val)
-        return out
-
-    def get_int_label(self, value: pd.DataFrame):
-        _lbl = ""
-        if not isinstance(value, pd.DataFrame):
-            return _lbl
-        cols = [i for i in value.columns if "ramanshift" not in i]
-        if not cols:
-            return _lbl
-
-        if len(cols) == 1:
-            _lbl = cols[0]
-        elif len(cols) > 1:
-            if any("mean" in i for i in cols):
-                _lbl = [i for i in cols if "mean" in i][0]
-            elif any("int" in i for i in cols):
-                _lbl = [i for i in cols if "int" in i][0]
-        return _lbl
-
-
 class PrepareParams:
-    fit_attr_export_lst = (
-        "chisqr",
-        "redchi",
-        "bic",
-        "aic",
-        "method",
-        "message",
-        "success",
-        "nfev",
-    )
     fit_result_template = namedtuple(
         "FitResult",
         [
@@ -212,43 +95,17 @@ class PrepareParams:
     _standard_2nd_order = "2nd_4peaks"
 
     def __init__(self, model_result, extra_fit_results={}):
-        self._qcnm = self.__class__.__qualname__
-        logger.debug(f"{self._qcnm} is called with model_result\n\t{model_result}\n")
         self.extra_fit_results = extra_fit_results
         self.model_result = model_result
 
-    @property
-    def model_result(self):
-        return self._model_result
-
-    @model_result.setter
-    def model_result(self, value):
         """
         Takes the ModelResult class instance from lmfit.
         Optional extra functionality with a list of instances.
         """
         self.result = {}
-
-        if "ModelResult" in type(value).__name__:
-            self.result.update(value.params.valuesdict())
-            self.comps = value.model.components
-        elif ("list" or "tuple") in type(value).__name__:
-            assert all("ModelResult" in type(i).__name__ for i in value)
-            [self.result.update(mod.params.valuesdict()) for mod in value]
-            self.comps = [i for mod in value for i in mod.model.components]
-
         self.peaks = set(
             [i.prefix for i in self.comps]
         )  # peaks is prefix from components
-
-        _mod_lbl = "Model"
-        if hasattr(value, "_modelname"):
-            _mod_lbl = f'Model_{getattr(value,"_modelname")}'
-        self.model_name_lbl = _mod_lbl
-
-        self.raw_data_lbl = value._int_lbl
-
-        self._model_result = value
 
         self.make_result()
 
@@ -280,13 +137,6 @@ class PrepareParams:
         }
 
     def prep_params(self):
-        fit_attrs = OrderedDict(
-            zip(
-                [f"lmfit_{i}" for i in self.fit_attr_export_lst],
-                [getattr(self.model_result, i) for i in self.fit_attr_export_lst],
-            )
-        )
-        self.result.update(fit_attrs)
         try:
             self.add_ratio_params()
         except Exception as e:

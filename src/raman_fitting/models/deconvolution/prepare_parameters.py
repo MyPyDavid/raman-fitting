@@ -1,3 +1,7 @@
+from raman_fitting.models.splitter import WindowNames
+
+
+#  TODO add params to run fit post processing
 def add_D_G_ratios(a: str, t: str, peaks, result):
     RatioParams = {}
     if {"G_", "D_"}.issubset(peaks):
@@ -60,3 +64,15 @@ def add_D1D1_GD1_ratio(
         RatioParams.update({f"{a}D1D1/{a}GD1": result["D1D1" + t] / result["GD1" + t]})
     if extra_fit_results:
         RatioParams.update(add_ratio_combined_params(window_name, a, t))
+
+
+def add_ratio_combined_params_second_order(
+    result, model_result, extra_fit_results, a, t
+):
+    _2nd = WindowNames.second_order
+    if model_result._modelname.startswith("first") and _2nd in extra_fit_results.keys():
+        _D1D1 = extra_fit_results[_2nd].FitParameters.loc[f"Model_{_2nd}", "D1D1" + t]
+        result.update({"D1D1" + t: _D1D1})
+        return {f"Leq_{a}": 8.8 * _D1D1 / result["D" + t]}
+    else:
+        return {}
