@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 
-from raman_fitting.imports.files.file_indexer import MakeRamanFilesIndex
+from raman_fitting.imports.files.file_indexer import RamanFileIndex
 from raman_fitting.imports.files.index_funcs import load_index
 from raman_fitting.example_fixtures import example_files
 
@@ -19,9 +19,9 @@ class TestIndexer(unittest.TestCase):
 
         self.all_test_files = example_files + _test_files
 
-        self.RamanIndex = MakeRamanFilesIndex(run_mode="make_examples")
+        self.RamanIndex = RamanFileIndex(run_mode="make_examples")
 
-    def test_MakeRamanFilesIndex_make_examples(self):
+    def test_RamanFileIndex_make_examples(self):
         self.assertEqual(len(self.RamanIndex), len(example_files))
 
     @unittest.skip("export_index not yet implemented")

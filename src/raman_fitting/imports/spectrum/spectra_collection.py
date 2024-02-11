@@ -92,7 +92,7 @@ def calculate_mean_spectrum_from_spectra(
     return mean_spec_windows
 
 
-class SpectrumDataCollection:
+class _SpectrumDataCollection:
     """
     This class takes in a collection of SpectrumDataLoader instances.
     It checks each member of the list and this enables the option
@@ -113,38 +113,38 @@ class SpectrumDataCollection:
         # )  # only raises warning when errors are found
         # self.spectra = Validators.check_spectra_lengths(self._spectra)
 
-        self.info = self.get_mean_spectra_info(self.spectra)
+        # self.info = self.get_mean_spectra_info(self.spectra)
         # self.info_df = pd.DataFrame(self.info, index=[0])
         self.prep_clean_data = self.get_mean_spectra_prep_data(self.spectra)
 
         self.calc_mean()
 
-    @staticmethod
-    def get_mean_spectra_info(spectra: List[SpectrumDataLoader]) -> Dict:
-        """retrieves the info dict from spec instances and merges dict in keys that have 1 common value"""
+    # @staticmethod
+    # def get_mean_spectra_info(spectra: List[SpectrumDataLoader]) -> Dict:
+    #     """retrieves the info dict from spec instances and merges dict in keys that have 1 common value"""
 
-        try:
-            _all_spec_info = [spec.info for spec in spectra if hasattr(spec, "info")]
+    #     try:
+    #         _all_spec_info = [spec.info for spec in spectra if hasattr(spec, "info")]
 
-            _all_spec_info_merged = {
-                k: val for i in _all_spec_info for k, val in i.items()
-            }
+    #         _all_spec_info_merged = {
+    #             k: val for i in _all_spec_info for k, val in i.items()
+    #         }
 
-            _all_spec_info_sets = [
-                (k, set([i.get(k, None) for i in _all_spec_info]))
-                for k in _all_spec_info_merged
-            ]
+    #         _all_spec_info_sets = [
+    #             (k, set([i.get(k, None) for i in _all_spec_info]))
+    #             for k in _all_spec_info_merged
+    #         ]
 
-            mean_spec_info = {
-                k: list(val)[0] for k, val in _all_spec_info_sets if len(val) == 1
-            }
-        except Exception:
-            logger.warning(f"get_mean_spectra_info failed for spectra {spectra}")
-            mean_spec_info = {}
+    #         mean_spec_info = {
+    #             k: list(val)[0] for k, val in _all_spec_info_sets if len(val) == 1
+    #         }
+    #     except Exception:
+    #         logger.warning(f"get_mean_spectra_info failed for spectra {spectra}")
+    #         mean_spec_info = {}
 
-        mean_spec_info.update({"mean_spectrum": True})
+    #     mean_spec_info.update({"mean_spectrum": True})
 
-        return mean_spec_info
+    #     return mean_spec_info
 
     def calc_mean(self, sample_id: str):
         """Core function of the merging of spectra of different sample positions"""

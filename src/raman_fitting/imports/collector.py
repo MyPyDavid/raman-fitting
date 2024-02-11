@@ -7,9 +7,7 @@ from .models import RamanFileInfo
 logger = logging.getLogger(__name__)
 
 
-def collect_raman_file_infos(
-    raman_files: Collection[Path], **kwargs
-) -> List[RamanFileInfo]:
+def collect_raman_file_infos(raman_files: Collection[Path]) -> List[RamanFileInfo]:
     pp_collection = []
     # _extra_assign_destdir_and_set_paths(index)
     for file in raman_files:

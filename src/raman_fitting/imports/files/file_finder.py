@@ -13,8 +13,10 @@ class FileFinder(BaseModel):
 
     @model_validator(mode="after")
     def parse_metadata_from_filepath(self) -> "FileFinder":
-        files = find_files(self.directory, self.suffixes)
-        self.files = files
+        if self.files is None:
+            files = find_files(self.directory, self.suffixes)
+            self.files = files
+
         return self
 
 

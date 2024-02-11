@@ -1,4 +1,7 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Dict
+from pathlib import Path
+
+from .models import SampleMetaData
 
 
 def parse_string_to_sample_id_and_position(
@@ -73,3 +76,25 @@ def overwrite_sgrpID_from_parts(parts: List[str], sgrpID: str, mapper: dict) -> 
         if k in parts:
             sgrpID = val
     return sgrpID
+
+
+def parse_sample_from_filepath(
+    filepath: Path, sample_name_mapper: Optional[Dict[str, Dict[str, str]]] = None
+) -> SampleMetaData:
+    """parse the sID, position and sgrpID from stem"""
+    stem = filepath.stem
+    parts = filepath.parts
+
+    sID, position = parse_string_to_sample_id_and_position(stem)
+
+    if sample_name_mapper is not None:
+        sample_id_mapper = sample_name_mapper.get("sample_id", {})
+        sID = overwrite_sID_from_mapper(sID, sample_id_mapper)
+    sgrpID = sID_to_sgrpID(sID)
+
+    if sample_name_mapper is not None:
+        sample_grp_mapper = sample_name_mapper.get("sample_group_id", {})
+        sgrpID = overwrite_sgrpID_from_parts(parts, sgrpID, sample_grp_mapper)
+
+    sample = SampleMetaData(**{"id": sID, "group": sgrpID, "position": position})
+    return sample

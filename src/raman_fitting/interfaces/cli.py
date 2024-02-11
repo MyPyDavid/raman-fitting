@@ -3,8 +3,10 @@
 
 import argparse
 
+from raman_fitting.config.settings import RunModes
 
-RUN_MODES = ["normal", "testing", "debug", "make_index", "make_examples"]
+_RUN_MODES = ["normal", "testing", "debug", "make_index", "make_examples"]
+
 
 try:
     import importlib.metadata
@@ -28,15 +30,15 @@ def main():
     parser.add_argument(
         "-M",
         "--run-mode",
-        type=str,
-        choices=RUN_MODES,
+        type=RunModes,
+        # choices=,
         help="running mode of package, for testing",
         default="normal",
     )
 
     parser.add_argument(
         "-sIDs",
-        "--sampleIDs",
+        "--sample_IDs",
         nargs="+",
         default=[],
         help="Selection of names of SampleIDs from index to run over.",
@@ -44,10 +46,17 @@ def main():
 
     parser.add_argument(
         "-sGrps",
-        "--samplegroups",
+        "--sample_groups",
         nargs="+",
         default=[],
         help="Selection of names of sample groups from index to run over.",
+    )
+
+    parser.add_argument(
+        "--fit_model_specific_names",
+        nargs="+",
+        default=[],
+        help="Selection of names of the composite LMfit models to use for fitting.",
     )
 
     parser.add_argument(
@@ -65,7 +74,7 @@ def main():
     # import the raman_fitting package
     import raman_fitting as rf
 
-    print(f"CLI args: {args}")
+    extra_kwargs = {}
     if args.run_mode == "normal":
         pass
         # _org_index = OrganizeRamanFiles()
@@ -75,7 +84,10 @@ def main():
         # IDEA Add a FAST TRACK for DEBUG
     elif args.run_mode == "testing":
         pass
-
-    _main_run = rf.MainDelegator(**vars(args))
-
-    # return parser
+    elif args.run_mode == RunModes.MAKE_EXAMPLES:
+        extra_kwargs.update(
+            {"fit_model_specific_names": ["2peaks", "3peaks", "4peaks"]}
+        )
+    print(f"CLI args: {args}")
+    kwargs = {**vars(args), **extra_kwargs}
+    _main_run = rf.MainDelegator(**kwargs)

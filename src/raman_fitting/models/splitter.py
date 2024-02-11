@@ -6,29 +6,9 @@ from pydantic import BaseModel, model_validator, Field
 from .spectrum import SpectrumData
 
 
-PLOT_WINDOW_AXES = {
-    "full": (0, 0),
-    "low": (0, 1),
-    "1st_order": (0, 2),
-    "mid": (1, 1),
-    "2nd_order": (1, 2),
-    "normalization": (1, 0),
-}
-
-SPECTRUM_WINDOWS_LIMITS = {
-    "full": {"min": 200, "max": 3600},
-    "full_1st_2nd": {"min": 800, "max": 3500},
-    "low": {"min": 150, "max": 850, "extra_margin": 10},
-    "first_order": {"min": 900, "max": 2000},
-    "mid": {"min": 1850, "max": 2150, "extra_margin": 10},
-    "second_order": {"min": 2150, "max": 3380},
-    "normalization": {"min": 1500, "max": 1675, "extra_margin": 10},
-}
-
-
-class WindowNameEnum(str, Enum):
+class WindowNames(str, Enum):
     full = "full"
-    full_1st_2nd = "full_1st_2nd"
+    full_first_and_second = "full_first_and_second"
     low = "low"
     first_order = "first_order"
     mid = "mid"
@@ -36,8 +16,19 @@ class WindowNameEnum(str, Enum):
     normalization = "normalization"
 
 
+SPECTRUM_WINDOWS_LIMITS = {
+    WindowNames.full: {"min": 200, "max": 3600},
+    WindowNames.full_first_and_second: {"min": 800, "max": 3500},
+    WindowNames.low: {"min": 150, "max": 850, "extra_margin": 10},
+    WindowNames.first_order: {"min": 900, "max": 2000},
+    WindowNames.mid: {"min": 1850, "max": 2150, "extra_margin": 10},
+    WindowNames.second_order: {"min": 2150, "max": 3380},
+    WindowNames.normalization: {"min": 1500, "max": 1675, "extra_margin": 10},
+}
+
+
 class SpectrumWindowLimits(BaseModel):
-    name: WindowNameEnum
+    name: WindowNames
     min: int
     max: int
     extra_margin: int = 20
@@ -69,7 +60,8 @@ class SplittedSpectrum(BaseModel):
 
 def get_default_spectrum_window_limits() -> Dict[str, SpectrumWindowLimits]:
     windows = {}
-    for window_name, window_config in SPECTRUM_WINDOWS_LIMITS.items():
+    for window_type, window_config in SPECTRUM_WINDOWS_LIMITS.items():
+        window_name = window_type.name
         windows[window_name] = SpectrumWindowLimits(name=window_name, **window_config)
     return windows
 

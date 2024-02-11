@@ -30,7 +30,7 @@ class SpectrumDataLoader:
 
     file: Path = field(default_factory=Path)
     info: Dict = field(default_factory=dict, repr=False)
-    ovv: pd.DataFrame = field(default_factory=pd.DataFrame, repr=False)
+    # ovv: pd.DataFrame = field(default_factory=pd.DataFrame, repr=False)
     run_kwargs: Dict = field(default_factory=dict, repr=False)
     spectrum_length: int = field(default=0, init=False)
     clean_spectrum: SplittedSpectrum = field(default=None, init=False)
