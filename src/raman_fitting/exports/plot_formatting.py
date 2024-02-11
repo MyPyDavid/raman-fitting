@@ -6,13 +6,14 @@ Created on Wed Apr 28 15:08:26 2021
 @author: zmg
 """
 
-import logging
 from collections import namedtuple
 from typing import Tuple
 
+from raman_fitting.models.splitter import WindowNames
+
 import matplotlib.pyplot as plt
 
-logger = logging.getLogger(__file__)
+from loguru import logger
 
 
 CMAP_OPTIONS_DEFAULT = ("Dark2", "tab20")
@@ -20,6 +21,16 @@ DEFAULT_COLOR = (0.4, 0.4, 0.4, 1.0)
 COLOR_BLACK = (0, 0, 0, 1)  # black as fallback default color
 
 ModelValidation = namedtuple("ModelValidation", "valid peak_group model_inst message")
+
+
+PLOT_WINDOW_AXES = {
+    WindowNames.full: (0, 0),
+    WindowNames.low: (0, 1),
+    WindowNames.first_order: (0, 2),
+    WindowNames.mid: (1, 1),
+    WindowNames.second_order: (1, 2),
+    WindowNames.normalization: (1, 0),
+}
 
 
 class PeakValidationWarning(UserWarning):

@@ -1,108 +1,20 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 29 14:49:50 2020
+# ruff: noqa
+from typing import Dict
 
-@author: DW
-"""
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib import gridspec
-from matplotlib.ticker import AutoMinorLocator
 
 matplotlib.rcParams.update({"font.size": 14})
 
-# %%
+from raman_fitting.models.splitter import WindowNames
+from raman_fitting.delegating.models import AggregatedSampleSpectrumFitResult
 
 
-# IDEA PLOTTING PER PEAK MODEL
-def plotting_info(windowname):  # pragma: no cover
-    axes = {
-        "full": (0, 0),
-        "low": (0, 1),
-        "1st_order": (0, 2),
-        "mid": (1, 1),
-        "2nd_order": (1, 2),
-        "normalization": (1, 0),
-    }
-    return axes.get(windowname)
-
-
-def raw_data_export(fitting_specs):  # pragma: no cover
-    current_sample = fitting_specs[0].windowname, fitting_specs[0].sIDmean_col
-    try:
-        raw_data_spectra_plot(fitting_specs)
-    except Exception as e:
-        print("no extra Raw Data plots for {1} \n {0}".format(e, current_sample))
-    try:
-        raw_data_spectra_export(fitting_specs)
-    except Exception as e:
-        print("no extra Raw Data plots for {1} \n {0}".format(e, current_sample))
-
-
-def raw_data_spectra_plot(fitting_specs):  # pragma: no cover
-    #    fitting_specs
-    try:
-        fig, ax = plt.subplots(2, 3, figsize=(18, 12))
-        ax_wn = []
-
-        for spec in fitting_specs:
-            ax_wn = ax[plotting_info(spec.windowname)]
-            _legend = True if "full" == spec.windowname else False
-            spec.mean_spec.plot(
-                x="ramanshift",
-                y=spec.sID_rawcols,
-                ax=ax_wn,
-                alpha=0.5,
-                legend=_legend,
-            )
-            spec.mean_spec.plot(
-                x="ramanshift",
-                y=spec.sIDmean_col,
-                ax=ax_wn,
-                c="k",
-                alpha=0.7,
-                lw=3,
-                legend=_legend,
-            )
-
-            ax_wn.set_title(spec.windowname)
-            if _legend:
-                ax_wn.legend(fontsize=10)
-
-        plt.suptitle(spec.sIDmean_col, fontsize=16)
-        plt.savefig(
-            spec.mean_info.DestRaw.unique()[0].joinpath(f"{spec.sIDmean_col}.png"),
-            dpi=300,
-            bbox_inches="tight",
-        )
-        plt.close()
-    except Exception as e:
-        print("no extra Raw Data plots: {0}".format(e))
-
-
-def raw_data_spectra_export(fitting_specs):
-    try:
-        for spec in fitting_specs:
-            wnxl_outpath_spectra = spec.mean_info.DestRaw.unique()[0].joinpath(
-                f"spectra_{spec.sIDmean_col}_{spec.windowname}.xlsx"
-            )
-            spec.mean_spec.to_excel(wnxl_outpath_spectra)
-
-        _0_spec = fitting_specs[0]
-        wnxl_outpath_info = _0_spec.mean_info.DestRaw.unique()[0].joinpath(
-            f"info_{_0_spec.sIDmean_col}.xlsx"
-        )
-        _0_spec.mean_info.to_excel(wnxl_outpath_info)
-    except Exception as e:
-        print("no extra Raw Data plots: {0}".format(e))
+#  TODO fix big spectrum plot
 
 
 def fit_spectrum_plot(
-    peak1,
-    peak2,
-    res1_peak_spec,
-    res2_peak_spec,
+    aggregated_spectra: Dict[WindowNames, AggregatedSampleSpectrumFitResult],
     plot_Annotation=True,
     plot_Residuals=True,
 ):  # pragma: no cover
