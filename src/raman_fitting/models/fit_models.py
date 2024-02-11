@@ -2,6 +2,7 @@ import datetime as dt
 import logging
 from collections import OrderedDict, namedtuple
 from typing import Dict
+import time
 
 import pandas as pd
 from pydantic import BaseModel, model_validator, Field, ConfigDict
@@ -21,6 +22,7 @@ class SpectrumFitModel(BaseModel):
     model: BaseLMFitModel
     fit_kwargs: Dict = Field(default_factory=dict)
     fit_result: ModelResult = Field(None, init_var=False)
+    elapsed_time: float = Field(0, init_var=False, repr=False)
 
     @model_validator(mode="after")
     def match_window_names(self):
@@ -36,7 +38,11 @@ class SpectrumFitModel(BaseModel):
         if not self.fit_kwargs:
             self.fit_kwargs.update(**{"method": "leastsq"})
         lmfit_model = self.model.lmfit_model
+        start_time = time.time()
         fit_result = run_fit(lmfit_model, self.spectrum, **self.fit_kwargs)
+        end_time = time.time()
+        elapsed_seconds = abs(start_time - end_time)
+        self.elapsed_time = elapsed_seconds
         self.fit_result = fit_result
 
 
@@ -86,9 +92,6 @@ class Fitter:
         elif isinstance(value, "SpectrumDataLoader"):
             _data = value.clean_df
             _fit_lbl = "int"
-        elif isinstance(value, pd.DataFrame):
-            raise AttributeError
-            # IDEA implement self.sense_windowname(value)
         else:
             raise ValueError(_errtxt)
 
@@ -338,9 +341,9 @@ def NormalizeFit(model: LMFitModel, norm_cleaner, plotprint=False):  # pragma: n
 
 
 if __name__ == "__main__":
-    from raman_fitting.config import settings
+    from raman_fitting.config.settings import settings
 
-    test_fixtures = list(settings.TEST_FIXTURES.glob("*txt"))
+    test_fixtures = list(settings.internal_paths.example_fixtures.glob("*txt"))
     file = [i for i in test_fixtures if "_pos4" in i.stem][0]
     from raman_fitting.imports.spectrumdata_parser import SpectrumReader
 
