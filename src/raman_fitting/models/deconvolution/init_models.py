@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 import logging
 from typing import Dict
 
-from raman_fitting.config.filepath_helper import load_default_model_and_peak_definitions
+from raman_fitting.config.default_models import load_default_model_and_peak_definitions
 from raman_fitting.models.deconvolution.base_model import (
     get_models_and_peaks_from_definitions,
 )
@@ -19,18 +19,20 @@ class InitializeModels:
     for the models as keys.
     """
 
-    settings: dict = field(default_factory=dict)
+    model_definitions: dict = field(default_factory=dict)
     peaks: dict = field(default_factory=dict)
     lmfit_models: Dict[str, Dict[str, BaseLMFitModel]] = None
 
     def __post_init__(self):
-        self.settings = self.settings or {}
+        self.model_definitions = self.model_definitions or {}
         self.peaks = self.peaks or {}
         self.lmfit_models = self.lmfit_models or {}
-        if not self.settings:
-            self.settings = load_default_model_and_peak_definitions()
-        if not self.lmfit_models and self.settings:
-            self.lmfit_models = get_models_and_peaks_from_definitions(self.settings)
+        if not self.model_definitions:
+            self.model_definitions = load_default_model_and_peak_definitions()
+        if not self.lmfit_models and self.model_definitions:
+            self.lmfit_models = get_models_and_peaks_from_definitions(
+                self.model_definitions
+            )
 
     def __repr__(self):
         _t = ", ".join(map(str, self.lmfit_models.keys()))
@@ -40,12 +42,12 @@ class InitializeModels:
 
 
 def main():
-    from raman_fitting.config.filepath_helper import (
+    from raman_fitting.config.default_models import (
         load_default_model_and_peak_definitions,
     )
 
-    settings = load_default_model_and_peak_definitions()
-    print("settings: ", settings)
+    model_definitions = load_default_model_and_peak_definitions()
+    print("model_definitions: ", model_definitions)
     models = InitializeModels()
     print(models)
     # breakpoint()
