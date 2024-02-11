@@ -17,7 +17,7 @@ from raman_fitting.models.deconvolution.lmfit_parameter import (
     LMFitParameterHints,
     parmeter_to_dict,
 )
-from raman_fitting.config.filepath_helper import load_default_model_and_peak_definitions
+from raman_fitting.config.default_models import load_default_model_and_peak_definitions
 
 ParamHintDict = Dict[str, Dict[str, Optional[float | bool | str]]]
 
@@ -227,22 +227,22 @@ def get_peaks_from_peak_definitions(
 
 
 def _main():
-    settings = load_default_model_and_peak_definitions()
-    print(settings["first_order"]["models"])
+    model_definitions = load_default_model_and_peak_definitions()
+    print(model_definitions["first_order"]["models"])
     # PARAMETER_ARGS = inspect.signature(Parameter).parameters.keys()
     peaks = {}
     peak_items = {
-        **settings["first_order"]["peaks"],
-        **settings["second_order"]["peaks"],
+        **model_definitions["first_order"]["peaks"],
+        **model_definitions["second_order"]["peaks"],
     }.items()
     for k, v in peak_items:
         peaks.update({k: BasePeak(**v)})
 
-    D_peak = BasePeak(**settings["first_order"]["peaks"]["D"])
+    D_peak = BasePeak(**model_definitions["first_order"]["peaks"]["D"])
     print(D_peak)
     model_items = {
-        **settings["first_order"]["models"],
-        **settings["second_order"]["models"],
+        **model_definitions["first_order"]["models"],
+        **model_definitions["second_order"]["models"],
     }.items()
     models = {}
     for model_name, model_comp in model_items:

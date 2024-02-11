@@ -18,8 +18,8 @@ from raman_fitting.models.deconvolution.base_peak import (
 from raman_fitting.models.deconvolution.lmfit_parameter import (
     construct_lmfit_model_from_components,
 )
-from raman_fitting.config.filepath_helper import load_default_model_and_peak_definitions
-from raman_fitting.models.splitter import WindowNameEnum
+from raman_fitting.config.default_models import load_default_model_and_peak_definitions
+from raman_fitting.models.splitter import WindowNames
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ class BaseLMFitModel(BaseModel):
         repr=False,
     )
     lmfit_model: LMFitModel = Field(None, init_var=False, repr=False)
-    window_name: WindowNameEnum
+    window_name: WindowNames
 
     @property
     def has_substrate(self):
