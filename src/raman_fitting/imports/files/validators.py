@@ -4,8 +4,8 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-def validate_filepath(filepath: Path, max_bytesize=10**6):
-    if not (isinstance(filepath, Path) or isinstance(filepath, str)):
+def validate_filepath(filepath: Path, max_bytesize=10**6) -> Path | None:
+    if not isinstance(filepath, (Path, str)):
         raise TypeError("Argument given is not Path nor str")
 
     filepath = Path(filepath)

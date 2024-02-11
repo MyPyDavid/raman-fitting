@@ -3,24 +3,12 @@
 from typing import Dict
 import logging
 
-
-import raman_fitting
 from pathlib import Path
 
-from .filepath_settings import FilePathConfig
-
+import raman_fitting
+from raman_fitting.config.settings import Settings
 
 logger = logging.getLogger(__name__)
-
-
-def load_default_model_and_peak_definitions() -> dict:
-    import tomllib
-
-    DEFAULT_MODELS_DIR = Path(__file__).resolve().parent / "default_models"
-    default_peak_settings = {}
-    for i in DEFAULT_MODELS_DIR.glob("*.toml"):
-        default_peak_settings.update(tomllib.loads(i.read_bytes().decode()))
-    return default_peak_settings
 
 
 def get_directory_paths_for_run_mode(run_mode: str = "", **kwargs) -> Dict:
@@ -38,29 +26,12 @@ def get_directory_paths_for_run_mode(run_mode: str = "", **kwargs) -> Dict:
         dict containing 3 keys [RESULTS_DIR, DATASET_DIR, INDEX_FILE]
 
     """
-    dataset_dir, results_dir = None, None
-    settings = FilePathConfig()
-
     run_mode_config = run_mode.lower()
     config_aliases = {"make_index": "normal"}
     if run_mode_config in config_aliases.keys():
         run_mode_config = config_aliases[run_mode_config]
 
-    # breakpoint()
-    if run_mode_config in settings.CONFIG:
-        dataset_dir = settings.CONFIG[run_mode_config]["DATASET_DIR"]
-        results_dir = settings.CONFIG[run_mode_config]["RESULTS_DIR"]
-    else:
-        logger.warning(f"Run mode {run_mode} not recognized. Exiting...")
-
-    index_file = settings.CONFIG["defaults"]["INDEX_FILE"]
-
-    dest_dirs = {
-        "RESULTS_DIR": Path(results_dir),
-        "DATASET_DIR": Path(dataset_dir),
-        "INDEX_FILE": Path(index_file),
-    }
-
+    dest_dirs = Settings.get_run_mode_paths(run_mode_config)
     if kwargs:
         dest_dirs = override_from_kwargs(dest_dirs, **kwargs)
 

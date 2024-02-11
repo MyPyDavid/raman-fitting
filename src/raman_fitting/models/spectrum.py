@@ -1,16 +1,23 @@
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Sequence, Tuple
 import numpy as np
 
-from pydantic import BaseModel, FilePath, AwareDatetime, model_validator
+from pydantic import (
+    BaseModel,
+    FilePath,
+    AwareDatetime,
+    model_validator,
+    Field,
+)
 import pydantic_numpy.typing as pnd
 
 
 class SpectrumData(BaseModel):
-    ramanshift: pnd.Np1DArrayFp32
-    intensity: pnd.Np1DArrayFp32
+    ramanshift: pnd.Np1DArrayFp32 = Field(repr=False)
+    intensity: pnd.Np1DArrayFp32 = Field(repr=False)
     label: str
     window_name: str = None
+    source: Sequence[str] | None = None
 
     @model_validator(mode="after")
     def validate_equal_length(self):

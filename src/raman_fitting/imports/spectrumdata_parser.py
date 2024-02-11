@@ -5,7 +5,7 @@ Created on Mon Jul  5 21:09:06 2021
 """
 from dataclasses import dataclass, field
 import hashlib
-import logging
+
 from pathlib import Path
 from functools import partial
 
@@ -19,7 +19,7 @@ from .spectrum import SPECTRUM_FILETYPE_PARSERS
 
 from raman_fitting.models.spectrum import SpectrumData
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 spectrum_data_keys = ("ramanshift", "intensity")
@@ -38,19 +38,7 @@ spectrum_keys_expected_values = {
 
 
 def get_file_parser(filepath: Path) -> Callable[Path, Dataset]:
-    """
-    Reads data from a file and converts into pd.DataFrame object
-
-    Parameters
-    --------
-    filepath : Path, str
-        file which contains the data of a spectrum
-
-    Returns
-    --------
-    pd.DataFrame
-        Contains the data of the spectrum in a DataFrame with the selected spectrum keys as columns
-    """
+    "Get callable file parser function."
     suffix = filepath.suffix
     parser = SPECTRUM_FILETYPE_PARSERS[suffix]["method"]
     kwargs = SPECTRUM_FILETYPE_PARSERS[suffix].get("kwargs", {})

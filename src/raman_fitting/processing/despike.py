@@ -9,7 +9,6 @@ import copy
 import logging
 
 import numpy as np
-import pandas as pd
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -97,7 +96,6 @@ class Despiker:
 
         # these get populated by the run_despike call in the setter
         self.result = {}
-        self.df = pd.DataFrame()
 
         # setter calls to run_despike
         self._int = intensity
@@ -161,11 +159,3 @@ def despike_filter(
             else:
                 i_despiked[i] = intensity[i]
     return i_despiked
-
-
-def plot_Z(df):
-    # fig,ax = plt.subplots(2)
-    df.plot(y=["Zt", "Z_t_filtered"], alpha=0.5)
-    df.plot(y=["input_intensity", "despiked_intensity"], alpha=0.8)
-    # plt.show()
-    # plt.close()

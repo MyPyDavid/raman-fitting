@@ -176,3 +176,16 @@ def index_selection(index, **kwargs):
         sys.exit()
 
     return index_selection
+
+
+def test_positions(sample_group_files):
+    if not sample_group_files:
+        return
+
+    _files = [i.file for i in sample_group_files]
+    _positions = [i.sample.position for i in sample_group_files]
+    if len(set(_files)) != len(set(_positions)):
+        logger.warning(
+            f"{sample_group_files[0].sample} Unique files and positions not matching for {sample_group_files}"
+        )
+    return sample_group_files

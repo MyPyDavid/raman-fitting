@@ -1,3 +1,3 @@
-from .filepath_settings import FilePathConfig
+from .settings import Settings
 
-settings = FilePathConfig()
+settings = Settings()
