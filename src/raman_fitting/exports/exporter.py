@@ -1,14 +1,42 @@
+from dataclasses import dataclass
+from typing import Dict, Any
+
+
+from raman_fitting.exports.plotting_fit_results import fit_spectrum_plot
+from raman_fitting.exports.plotting_raw_data import raw_data_spectra_plot
+from raman_fitting.exports.file_table import raw_data_spectra_export
+
+
 import pandas as pd
-
-from raman_fitting.exports.plotting import fit_spectrum_plot, raw_data_export
-
-import logging
-
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 class ExporterError(Exception):
     """Error occured during the exporting functions"""
+
+
+@dataclass
+class ExportManager:
+    results: Dict[str, Any] | None = None
+
+    def export_files(self):
+        self.results
+        breakpoint()
+        for group_name, group_results in self.results.items():
+            for sample_id, sample_results in group_results.items():
+                raw_data_spectra_plot(sample_results["fit_results"])
+
+
+def raw_data_export(fitting_specs):  # pragma: no cover
+    current_sample = fitting_specs[0].windowname, fitting_specs[0].sIDmean_col
+    try:
+        raw_data_spectra_plot(fitting_specs)
+    except Exception as e:
+        print("no extra Raw Data plots for {1} \n {0}".format(e, current_sample))
+    try:
+        raw_data_spectra_export(fitting_specs)
+    except Exception as e:
+        print("no extra Raw Data plots for {1} \n {0}".format(e, current_sample))
 
 
 class Exporter:
@@ -118,13 +146,3 @@ class Exporter:
                     )
                 pars1.append(fitres_1.FitParameters)
         return pd.concat(pars1, sort=False), pd.concat(pars2, sort=False)
-
-    def export_xls_from_spec(self, res_peak_spec):
-        try:
-            res_peak_spec.FitComponents.to_excel(
-                res_peak_spec.extrainfo["DestFittingModel"].with_suffix(".xlsx"),
-                index=False,
-            )
-
-        except Exception as e:
-            print("Error export_xls_from_spec", e)
