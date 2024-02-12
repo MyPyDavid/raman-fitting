@@ -1,5 +1,10 @@
 from dataclasses import dataclass
 from typing import Dict, Any
+from raman_fitting.config.settings import (
+    RunModes,
+    get_run_mode_paths,
+    ExportPathSettings,
+)
 
 
 from raman_fitting.exports.plotting_fit_results import fit_spectrum_plot
@@ -17,14 +22,39 @@ class ExporterError(Exception):
 
 @dataclass
 class ExportManager:
+    run_mode: RunModes
     results: Dict[str, Any] | None = None
 
+    def __post_init__(self):
+        self.paths = get_run_mode_paths(self.run_mode)
+
     def export_files(self):
-        self.results
-        breakpoint()
+        # breakpoint() self.results
+        exports = []
         for group_name, group_results in self.results.items():
             for sample_id, sample_results in group_results.items():
-                raw_data_spectra_plot(sample_results["fit_results"])
+                export_dir = self.paths.results_dir / group_name / sample_id
+                export_paths = ExportPathSettings(results_dir=export_dir)
+                try:
+                    raw_data_spectra_plot(
+                        sample_results["fit_results"], export_paths=export_paths
+                    )
+                except Exception as exc:
+                    logger.error(f"Plotting error, raw_data_spectra_plot: {exc}")
+                try:
+                    fit_spectrum_plot(
+                        sample_results["fit_results"], export_paths=export_paths
+                    )
+                except Exception as exc:
+                    logger.error(f"plotting error fit_spectrum_plot: {exc}")
+                    raise exc from exc
+                exports.append(
+                    {
+                        "sample": sample_results["fit_results"],
+                        "export_paths": export_paths,
+                    }
+                )
+        return exports
 
 
 def raw_data_export(fitting_specs):  # pragma: no cover
@@ -39,7 +69,7 @@ def raw_data_export(fitting_specs):  # pragma: no cover
         print("no extra Raw Data plots for {1} \n {0}".format(e, current_sample))
 
 
-class Exporter:
+class _Exporter:
     """
     The Exporter class handles all the exporting of spectra and models
     into figures and xlsx files.
