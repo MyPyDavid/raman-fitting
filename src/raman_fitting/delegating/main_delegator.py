@@ -27,10 +27,12 @@ from raman_fitting.imports.files.file_indexer import (
     IndexSelector,
 )
 
-from .models import (
+from raman_fitting.delegating.models import (
     AggregatedSampleSpectrumFitResult,
 )
-from .pre_processing import prepare_aggregated_spectrum_from_files
+from raman_fitting.delegating.pre_processing import (
+    prepare_aggregated_spectrum_from_files,
+)
 
 from loguru import logger
 
@@ -73,7 +75,8 @@ class MainDelegator:
         self.selected_models = self.select_models_from_provided_models()
         self.main_run()
         if self.export:
-            self.call_export_manager()
+            # breakpoint()
+            self.exports = self.call_export_manager()
 
     def select_samples_from_index(self) -> Sequence[RamanFileInfo]:
         index = self.index
@@ -92,8 +95,9 @@ class MainDelegator:
 
     def call_export_manager(self):
         # breakpoint()
-        export = ExportManager(self.results)
-        export.export_files()
+        export = ExportManager(self.run_mode, self.results)
+        exports = export.export_files()
+        return exports
 
     # window_names:List[WindowNames], model_names: List[str]
     def select_models_from_provided_models(self) -> LMFitModelCollection:
@@ -191,6 +195,7 @@ def run_sample_fit_with_model(
     name = model.name
     window = model.window_name.name
     spec_fit = SpectrumFitModel(spectrum=spectrum, model=model)
+    #  TODO include optional https://lmfit.github.io/lmfit-py/model.html#saving-and-loading-modelresults
     spec_fit.run_fit()
     logger.debug(
         f"Fit with model {name} on {window} success: {spec_fit.fit_result.success} in {spec_fit.elapsed_time:.2f}s."
@@ -202,7 +207,7 @@ def run_sample_fit_with_model(
 def make_examples():
     # breakpoint()
     _main_run = MainDelegator(
-        run_mode="make_examples", fit_model_specific_names=["2peaks", "4peaks"]
+        run_mode="pytest", fit_model_specific_names=["2peaks", "4peaks"]
     )
     _main_run.main_run()
     return _main_run
