@@ -8,7 +8,6 @@ from pydantic import (
     FilePath,
     NewPath,
     Field,
-    ValidationError,
     model_validator,
     ConfigDict,
 )
@@ -42,16 +41,16 @@ class RamanFileIndex(BaseModel):
                 self.dataset = load_dataset_from_file(self.source)
                 self.raman_files = parse_dataset_to_index(self.dataset)
                 return self
-            elif not self.source.exists() and self.force_reload:
-                raise ValidationError(
-                    "Index source file does not exists but was asked to reload from it."
-                )
-            elif not self.source.exists() and not self.force_reload:
-                pass
             elif self.source.exists() and self.force_reload:
                 logger.info(
                     f"Index source file {self.source} exists and will be overwritten."
                 )
+            elif not self.source.exists() and self.force_reload:
+                logger.info(
+                    "Index source file does not exists but was asked to reload from it."
+                )
+            elif not self.source.exists() and not self.force_reload:
+                pass
         else:
             logger.debug("Index source file not provided.")
 

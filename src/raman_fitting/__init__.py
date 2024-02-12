@@ -106,4 +106,4 @@ from raman_fitting.imports.spectrum.spectrum_constructor import SpectrumDataLoad
 from raman_fitting.models.deconvolution.init_models import InitializeModels
 
 # Exporting / Plotting
-from raman_fitting.exports.exporter import Exporter
+from raman_fitting.exports.exporter import ExportManager

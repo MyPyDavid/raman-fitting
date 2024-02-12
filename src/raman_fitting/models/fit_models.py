@@ -79,6 +79,7 @@ def run_fit(
     return out
 
 
+# TODO refactor this PrepareParams class
 class PrepareParams:
     fit_result_template = namedtuple(
         "FitResult",

@@ -12,8 +12,10 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 from raman_fitting.models.splitter import WindowNames
-from raman_fitting.config.settings import CLEAN_SPEC_WINDOW_NAME_PREFIX
-from raman_fitting.config import settings
+from raman_fitting.config.settings import (
+    CLEAN_SPEC_WINDOW_NAME_PREFIX,
+    ExportPathSettings,
+)
 from raman_fitting.exports.plot_formatting import PLOT_WINDOW_AXES
 from raman_fitting.delegating.models import AggregatedSampleSpectrumFitResult
 
@@ -24,6 +26,7 @@ matplotlib.rcParams.update({"font.size": 14})
 
 def raw_data_spectra_plot(
     aggregated_spectra: Dict[WindowNames, AggregatedSampleSpectrumFitResult],
+    export_paths: ExportPathSettings,
 ):  # pragma: no cover
     if not aggregated_spectra:
         return
@@ -31,9 +34,7 @@ def raw_data_spectra_plot(
     sources = list(aggregated_spectra.values())[0].aggregated_spectrum.sources
     sample = sources[0].file_info.sample
 
-    destfile = settings.destination_dir.joinpath(
-        sample.group, sample.id, f"{sample.id}_mean.png"
-    )
+    destfile = export_paths.plots.joinpath(f"{sample.id}_mean.png")
     destfile.parent.mkdir(exist_ok=True, parents=True)
 
     mean_fmt = dict(c="k", alpha=0.7, lw=3)
