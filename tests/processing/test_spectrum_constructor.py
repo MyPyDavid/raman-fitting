@@ -10,19 +10,21 @@ Created on Fri May 14 09:01:57 2021
 import unittest
 from pathlib import Path
 
-from raman_fitting.example_fixtures import example_files
+from raman_fitting.config.settings import (
+    InternalPathSettings,
+    get_run_mode_paths,
+    RunModes,
+)
 from raman_fitting.imports.spectrum.spectrum_constructor import (
     SpectrumDataLoader,
 )
 
+internal_paths = InternalPathSettings()
+
 
 class TestSpectrumDataLoader(unittest.TestCase):
     def setUp(self):
-        self.files = list(example_files)
-        # breakpoint()
-        # self.testfile = next(
-        #     filter(lambda x: "testDW38C_pos4" in x.name, files)
-        # )
+        self.example_files = list(internal_paths.example_fixtures.rglob("*txt"))
 
     def test_SpectrumDataLoader_empty(self):
         spd = SpectrumDataLoader("empty.txt")
@@ -30,7 +32,7 @@ class TestSpectrumDataLoader(unittest.TestCase):
         self.assertEqual(spd.clean_spectrum, None)
 
     def test_SpectrumDataLoader_file(self):
-        for file in self.files:
+        for file in self.example_files:
             spd = SpectrumDataLoader(
                 file, run_kwargs=dict(SampleID=file.stem, SamplePos=1)
             )
