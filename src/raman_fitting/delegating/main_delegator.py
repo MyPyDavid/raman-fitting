@@ -21,7 +21,7 @@ from raman_fitting.models.splitter import WindowNames
 from raman_fitting.exports.exporter import ExportManager
 from raman_fitting.imports.files.file_indexer import (
     RamanFileIndex,
-    initialize_index,
+    initialize_index_from_source_files,
     groupby_sample_group,
     groupby_sample_id,
     IndexSelector,
@@ -62,7 +62,7 @@ class MainDelegator:
     fit_model_specific_names: Sequence[str] | None = None
     sample_IDs: Sequence[str] = field(default_factory=list)
     sample_groups: Sequence[str] = field(default_factory=list)
-    index: RamanFileIndex = field(default_factory=initialize_index)
+    index: RamanFileIndex = field(default_factory=initialize_index_from_source_files)
 
     selection: Sequence[RamanFileInfo] = field(init=False)
     selected_models: Sequence[RamanFileInfo] = field(init=False)
@@ -125,7 +125,7 @@ class MainDelegator:
         try:
             return self.lmfit_models[window_name][model_name]
         except KeyError as exc:
-            raise ValueError(f"Model {window_name} {model_name} not found.") from exc
+            raise KeyError(f"Model {window_name} {model_name} not found.") from exc
 
     def main_run(self):
         selection = self.select_samples_from_index()
@@ -214,4 +214,4 @@ def make_examples():
 
 
 if __name__ == "__main__":
-    RamanIndex = make_examples()
+    example_run = make_examples()

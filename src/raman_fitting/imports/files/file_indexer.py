@@ -1,6 +1,8 @@
 """ Indexer for raman data files """
 from itertools import groupby, filterfalse
 from typing import List, Sequence
+from typing import TypeAlias
+
 from pathlib import Path
 
 from pydantic import (
@@ -16,58 +18,62 @@ from raman_fitting.config import settings
 from raman_fitting.imports.collector import collect_raman_file_infos
 from raman_fitting.imports.models import RamanFileInfo
 
-from .utils import load_dataset_from_file
+from raman_fitting.imports.files.utils import load_dataset_from_file
 
 
 from loguru import logger
 from tablib import Dataset
 
 
+RamanFileInfoSet: TypeAlias = Sequence[RamanFileInfo]
+
+
 class RamanFileIndex(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    source: NewPath | FilePath = Field(None, validate_default=False)
-    raman_files: Sequence[RamanFileInfo] = Field(None)
+    index_file: NewPath | FilePath = Field(None, validate_default=False)
+    raman_files: RamanFileInfoSet = Field(None)
     dataset: Dataset = Field(None)
     force_reload: bool = Field(True, validate_default=False)
 
     @model_validator(mode="after")
     def read_or_load_data(self) -> "RamanFileIndex":
-        if not any([self.source, self.raman_files, self.dataset]):
+        if not any([self.index_file, self.raman_files, self.dataset]):
             raise ValueError("Not all fields should be empty.")
 
-        if self.source is not None:
-            if self.source.exists() and not self.force_reload:
-                self.dataset = load_dataset_from_file(self.source)
+        if self.index_file is not None:
+            if self.index_file.exists() and not self.force_reload:
+                self.dataset = load_dataset_from_file(self.index_file)
                 self.raman_files = parse_dataset_to_index(self.dataset)
                 return self
-            elif self.source.exists() and self.force_reload:
-                logger.info(
-                    f"Index source file {self.source} exists and will be overwritten."
+            elif self.index_file.exists() and self.force_reload:
+                logger.warning(
+                    f"Index index_file file {self.index_file} exists and will be overwritten."
                 )
-            elif not self.source.exists() and self.force_reload:
+            elif not self.index_file.exists() and self.force_reload:
                 logger.info(
-                    "Index source file does not exists but was asked to reload from it."
+                    "Index index_file file does not exists but was asked to reload from it."
                 )
-            elif not self.source.exists() and not self.force_reload:
+            elif not self.index_file.exists() and not self.force_reload:
                 pass
         else:
-            logger.debug("Index source file not provided.")
+            logger.debug("Index file not provided, index will not be persisted.")
 
         if self.raman_files is not None:
-            if self.dataset is None:
-                self.dataset = cast_raman_files_to_dataset(self.raman_files)
-            else:
-                dataset_rf = cast_raman_files_to_dataset(self.raman_files)
+            dataset_rf = cast_raman_files_to_dataset(self.raman_files)
+            if self.dataset is not None:
                 assert (
                     dataset_rf == self.dataset
-                ), "Both dataset and raman_files provider but are different."
-        if self.dataset is not None:
-            self.raman_files = parse_dataset_to_index(self.dataset)
-        elif self.dataset is None and self.raman_files is None:
-            raise ValueError(
-                "Index error, both raman_files and dataset are not provided."
-            )
+                ), "Both dataset and raman_files provided and they are different."
+            self.dataset = dataset_rf
+        else:
+            if self.dataset is not None:
+                self.raman_files = parse_dataset_to_index(self.dataset)
+            else:
+                raise ValueError(
+                    "Index error, both raman_files and dataset are not provided."
+                )
+        return self
 
 
 def cast_raman_files_to_dataset(raman_files: List[RamanFileInfo]) -> Dataset:
@@ -157,7 +163,7 @@ def select_index(
 
 def collect_raman_file_index_info(
     raman_files: Sequence[Path] | None = None, **kwargs
-) -> List[RamanFileInfo]:
+) -> RamanFileInfoSet:
     """loops over the files and scrapes the index data from each file"""
     if not raman_files:
         raman_files = list(settings.internal_paths.example_fixtures.glob("*.txt"))
@@ -166,7 +172,9 @@ def collect_raman_file_index_info(
     return index
 
 
-def initialize_index(files: Sequence[Path] | None = None, force_reload: bool = False):
+def initialize_index_from_source_files(
+    files: Sequence[Path] | None = None, force_reload: bool = False
+) -> RamanFileIndex:
     index_file = settings.destination_dir.joinpath("index.csv")
     raman_files = collect_raman_file_index_info(raman_files=files)
     index_data = {
@@ -199,4 +207,4 @@ def main():
 
 
 if __name__ == "__main__":
-    RamanIndex = main()
+    main()

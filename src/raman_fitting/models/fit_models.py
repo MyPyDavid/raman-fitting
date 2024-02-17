@@ -1,10 +1,7 @@
-import datetime as dt
 import logging
-from collections import OrderedDict, namedtuple
 from typing import Dict
 import time
 
-import pandas as pd
 from pydantic import BaseModel, model_validator, Field, ConfigDict
 from lmfit import Model as LMFitModel
 from lmfit.model import ModelResult
@@ -47,8 +44,8 @@ class SpectrumFitModel(BaseModel):
         return self
 
     def run_fit(self) -> ModelResult:
-        if not self.fit_kwargs:
-            self.fit_kwargs.update(**{"method": "leastsq"})
+        if "method" not in self.fit_kwargs:
+            self.fit_kwargs["method"] = "leastsq"
         lmfit_model = self.model.lmfit_model
         start_time = time.time()
         fit_result = run_fit(lmfit_model, self.spectrum, **self.fit_kwargs)
@@ -77,118 +74,6 @@ def run_fit(
     x, y = spectrum.ramanshift, spectrum.intensity
     out = model.fit(y, init_params, x=x, method=method)  # 'leastsq'
     return out
-
-
-# TODO refactor this PrepareParams class
-class PrepareParams:
-    fit_result_template = namedtuple(
-        "FitResult",
-        [
-            "FitComponents",
-            "FitParameters",
-            "FitReport",
-            "extrainfo",
-            "model_name",
-            "raw_data_col",
-        ],
-    )
-    ratio_params = [("I", "_height"), ("A", "_amplitude")]
-    _standard_2nd_order = "2nd_4peaks"
-
-    def __init__(self, model_result, extra_fit_results={}):
-        self.extra_fit_results = extra_fit_results
-        self.model_result = model_result
-
-        """
-        Takes the ModelResult class instance from lmfit.
-        Optional extra functionality with a list of instances.
-        """
-        self.result = {}
-        self.peaks = set(
-            [i.prefix for i in self.comps]
-        )  # peaks is prefix from components
-
-        self.make_result()
-
-    def make_result(self):
-        self.prep_params()
-        self.prep_components()
-        self.FitReport = self.model_result.fit_report(show_correl=False)
-
-        self.extra_info = {}
-        self.prep_extra_info()
-        self.FitResult = self.fit_result_template(
-            self.FitComponents,
-            self.FitParameters,
-            self.FitReport,
-            self.extra_info,
-            self.model_name_lbl,
-            self.raw_data_lbl,
-        )
-
-    def prep_extra_info(self):
-        self.extra_info = {}
-        _destfitcomps = self.model_result._info["DestFittingComps"]
-        _model_destdir = _destfitcomps.joinpath(
-            f'{self.model_name_lbl}_{self.model_result._info["SampleID"]}'
-        )
-        self.extra_info = {
-            **self.model_result._info,
-            **{"DestFittingModel": _model_destdir},
-        }
-
-    def prep_params(self):
-        try:
-            self.add_ratio_params()
-        except Exception as e:
-            logger.error(f"{self._qcnm} extra prep params failed\n\t{e}\n")
-
-        self.result.update(
-            {"_run_date_YmdH": dt.datetime.now().strftime(format="%Y-%m-%d %H:00")}
-        )
-        self.FitParameters = pd.DataFrame(self.result, index=[self.model_name_lbl])
-
-    def prep_components(self):
-        # FittingParams = pd.DataFrame(fit_params_od,index=[peak_model])
-        _fit_comps_data = OrderedDict({"RamanShift": self.model_result.userkws["x"]})
-        _fit_comps_data.update(self.model_result.eval_components())
-
-        # IDEA take out
-        # print('===/n',self.model_result, '/n')
-        # print('===/n',self.model_result.__dict__.keys(), '/n')
-
-        _fit_comps_data.update(
-            {
-                self.model_name_lbl: self.model_result.best_fit,
-                "residuals": self.model_result.residual,
-                self.model_result._int_lbl: self.model_result.data,
-            }
-        )
-        FittingComps = pd.DataFrame(_fit_comps_data)
-        self.FitComponents = FittingComps
-
-
-def NormalizeFit(model: LMFitModel, norm_cleaner, plotprint=False):  # pragma: no cover
-    # IDEA: optional add normalization seperately to Fitter
-    x, y = norm_cleaner.spec.ramanshift, norm_cleaner.blcorr_desp_intensity
-    # Model = InitializeModels("2peaks normalization Lorentzian")
-    params = model.make_params()
-    pre_fit = model.fit(y, params, x=x)  # 'leastsq'
-    IG, ID = pre_fit.params["G_height"].value, pre_fit.params["D_height"].value
-    output = {
-        "factor": 1 / IG,
-        "ID/IG": ID / IG,
-        "ID": ID,
-        "IG": IG,
-        "G_center": pre_fit.params["G_center"].value,
-        "D_center": pre_fit.params["D_center"].value,
-        "Model": model,
-    }
-    #    pre_fit = Model.fit(y,params ,x=x,method='differential-evolution') # 'leastsq'
-    if plotprint:
-        pre_fit.plot()
-        print(pre_fit.fit_report())
-    return output
 
 
 if __name__ == "__main__":

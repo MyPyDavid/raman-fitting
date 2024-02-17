@@ -153,7 +153,6 @@ def get_models_and_peaks_from_definitions(
 
 def main():
     models = get_models_and_peaks_from_definitions()
-    # breakpoint()
     print("Models: ", len(models))
 
 

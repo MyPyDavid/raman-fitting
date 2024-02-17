@@ -4,6 +4,8 @@
 import argparse
 
 from raman_fitting.config.settings import RunModes
+from loguru import logger
+
 
 _RUN_MODES = ["normal", "testing", "debug", "make_index", "make_examples"]
 
@@ -88,6 +90,6 @@ def main():
         extra_kwargs.update(
             {"fit_model_specific_names": ["2peaks", "3peaks", "4peaks"]}
         )
-    print(f"CLI args: {args}")
+    logger.info(f"Starting raman_fitting with CLI args:\n{args}")
     kwargs = {**vars(args), **extra_kwargs}
     _main_run = rf.MainDelegator(**kwargs)

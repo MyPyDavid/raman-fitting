@@ -35,66 +35,72 @@ def parse_string_to_sample_id_and_position(
     _lensplit = len(split)
 
     if _lensplit == 0:
-        sID, position = split[0], 0
+        sample_id, position = split[0], 0
     elif len(split) == 1:
-        sID, position = split[0], 0
+        sample_id, position = split[0], 0
     elif len(split) == 2:
-        sID = split[0]
+        sample_id = split[0]
         _pos_strnum = "".join(i for i in split[1] if i.isnumeric())
         if _pos_strnum:
             position = int(_pos_strnum)
         else:
             position = split[1]
     elif len(split) >= 3:
-        sID = "_".join(split[0:-1])
+        sample_id = "_".join(split[0:-1])
         position = int("".join(filter(str.isdigit, split[-1])))
-    return (sID, position)
+    return (sample_id, position)
 
 
-def sID_to_sgrpID(sID: str, max_len=4) -> str:
+def extract_sample_group_from_sample_id(sample_id: str, max_len=4) -> str:
     """adding the extra sample Group key from sample ID"""
 
-    _len = len(sID)
+    _len = len(sample_id)
     _maxalphakey = min(
-        [n for n, i in enumerate(sID) if not str(i).isalpha()], default=_len
+        [n for n, i in enumerate(sample_id) if not str(i).isalpha()], default=_len
     )
     _maxkey = min((_len, _maxalphakey, max_len))
-    sgrpID = "".join([i for i in sID[0:_maxkey] if i.isalpha()])
-    return sgrpID
+    sample_group_id = "".join([i for i in sample_id[0:_maxkey] if i.isalpha()])
+    return sample_group_id
 
 
-def overwrite_sID_from_mapper(sID: str, mapper: dict) -> str:
-    """Takes an sID and potentially overwrites from a mapper dict"""
-    _sID_map = mapper.get(sID, None)
-    if _sID_map:
-        sID = _sID_map
-    return sID
+def overwrite_sample_id_from_mapper(sample_id: str, mapper: dict) -> str:
+    """Takes an sample_id and potentially overwrites from a mapper dict"""
+    sample_id_map = mapper.get(sample_id)
+    if sample_id_map is not None:
+        return sample_id_map
+    return sample_id
 
 
-def overwrite_sgrpID_from_parts(parts: List[str], sgrpID: str, mapper: dict) -> str:
+def overwrite_sample_group_id_from_parts(
+    parts: List[str], sample_group_id: str, mapper: dict
+) -> str:
     for k, val in mapper.items():
         if k in parts:
-            sgrpID = val
-    return sgrpID
+            sample_group_id = val
+    return sample_group_id
 
 
-def parse_sample_from_filepath(
+def extract_sample_metadata_from_filepath(
     filepath: Path, sample_name_mapper: Optional[Dict[str, Dict[str, str]]] = None
 ) -> SampleMetaData:
-    """parse the sID, position and sgrpID from stem"""
+    """parse the sample_id, position and sgrpID from stem"""
     stem = filepath.stem
     parts = filepath.parts
 
-    sID, position = parse_string_to_sample_id_and_position(stem)
+    sample_id, position = parse_string_to_sample_id_and_position(stem)
 
     if sample_name_mapper is not None:
         sample_id_mapper = sample_name_mapper.get("sample_id", {})
-        sID = overwrite_sID_from_mapper(sID, sample_id_mapper)
-    sgrpID = sID_to_sgrpID(sID)
+        sample_id = overwrite_sample_id_from_mapper(sample_id, sample_id_mapper)
+    sample_group_id = extract_sample_group_from_sample_id(sample_id)
 
     if sample_name_mapper is not None:
         sample_grp_mapper = sample_name_mapper.get("sample_group_id", {})
-        sgrpID = overwrite_sgrpID_from_parts(parts, sgrpID, sample_grp_mapper)
+        sample_group_id = overwrite_sample_group_id_from_parts(
+            parts, sample_group_id, sample_grp_mapper
+        )
 
-    sample = SampleMetaData(**{"id": sID, "group": sgrpID, "position": position})
+    sample = SampleMetaData(
+        **{"id": sample_id, "group": sample_group_id, "position": position}
+    )
     return sample
