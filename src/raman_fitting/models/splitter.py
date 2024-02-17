@@ -57,6 +57,16 @@ class SplittedSpectrum(BaseModel):
         self.spec_windows = spec_windows
         return self
 
+    def get_window(self, window_name: WindowNames):
+        window_name = WindowNames(window_name)
+        spec_window_keys = [
+            i for i in self.spec_windows.keys() if window_name.name in i
+        ]
+        if not len(spec_window_keys) == 1:
+            raise ValueError(f"Key {window_name} not in {spec_window_keys}")
+        spec_window_key = spec_window_keys[0]
+        return self.spec_windows[spec_window_key]
+
 
 def get_default_spectrum_window_limits() -> Dict[str, SpectrumWindowLimits]:
     windows = {}
