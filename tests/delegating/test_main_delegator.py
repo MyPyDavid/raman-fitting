@@ -12,7 +12,7 @@ class TestMainDelegator(unittest.TestCase):
         self.assertIn("first_order", self.delegator.lmfit_models)
         self.assertIn("first_order", self.delegator.selected_models)
         self.assertRaises(
-            self.delegator.select_fitting_model("no_name", "not"), ValueError
+            KeyError, self.delegator.select_fitting_model, "no_name", "not"
         )
 
     def test_index(self):
