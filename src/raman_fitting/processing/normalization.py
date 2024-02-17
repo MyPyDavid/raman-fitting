@@ -1,49 +1,36 @@
-import logging
 from typing import Optional
 
 import numpy as np
 
 from ..models.splitter import SplittedSpectrum
 from ..models.spectrum import SpectrumData
+from ..models.fit_models import SpectrumFitModel, LMFitModel
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 def get_simple_normalization_intensity(splitted_spectrum: SplittedSpectrum) -> float:
-    window_keys = splitted_spectrum.spec_windows.keys()
-    if not any("normalization" in i for i in window_keys):
-        raise ValueError("Missing normalization key")
-
-    norm_window_name = list(filter(lambda x: "normalization" in x, window_keys))[0]
-
-    norm_spec = splitted_spectrum.spec_windows[norm_window_name]
+    norm_spec = splitted_spectrum.get_window("normalization")
     normalization_intensity = np.nanmax(norm_spec.intensity)
     return normalization_intensity
 
 
 def get_normalization_factor(
-    splitted_spectrum: SplittedSpectrum, norm_method="simple"
+    splitted_spectrum: SplittedSpectrum,
+    norm_method="simple",
+    normalization_model: LMFitModel = None,
 ) -> float:
-    try:
-        if norm_method == "simple":
-            normalization_intensity = get_simple_normalization_intensity(
-                splitted_spectrum
-            )
-        elif norm_method == "fit":
-            raise NotImplementedError("NormalizeFit not yet implemented")
-            # IDEA not implemented
-            # normalization = NormalizeFit(
-            #     self.blcorr_data["first_order"], plotprint=False
-            # )  # IDEA still implement this NormalizeFit
-            # normalization_intensity = normalization["IG"]
-        else:
-            logger.warning(f"unknown normalization method {norm_method}")
-            normalization_intensity = 1
-    except Exception as exc:
-        logger.error(f"normalization error {exc}")
-        normalization_intensity = 1
-        raise exc from exc
+    simple_norm = get_simple_normalization_intensity(splitted_spectrum)
+    normalization_intensity = simple_norm
+
+    if "fit" in norm_method and normalization_model is not None:
+        fit_norm = normalizer_fit_model(
+            splitted_spectrum, normalization_model=normalization_model
+        )
+        if fit_norm is not None:
+            normalization_intensity = fit_norm
     norm_factor = 1 / normalization_intensity
+
     return norm_factor
 
 
@@ -82,3 +69,18 @@ def normalize_splitted_spectrum(
         splitted_spectrum, normalization_factor
     )
     return norm_data
+
+
+def normalizer_fit_model(
+    specrum: SpectrumData, normalization_model: LMFitModel
+) -> float | None:
+    spec_fit = SpectrumFitModel(spectrum=specrum, model=normalization_model)
+    spec_fit.run_fit()
+    if not spec_fit.fit_result:
+        return
+    try:
+        return spec_fit.fit_result.params["G_height"].value
+    except KeyError as e:
+        logger.error(e)
+    except Exception as e:
+        raise e from e
