@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class SpectrumDespiker(BaseModel):
     spectrum: SpectrumData = None
-    Z_threshold: int = 4
+    threshold_z_value: int = 4
     moving_window_size: int = 1
     ignore_lims: Tuple[int, int] = (20, 46)
     info: Dict = Field(default_factory=dict)
@@ -47,14 +47,19 @@ class SpectrumDespiker(BaseModel):
     def call_despike_spectrum(self, intensity: np.ndarray) -> Tuple[np.ndarray, Dict]:
         despiked_intensity, result_info = despike_spectrum(
             intensity,
-            self.Z_threshold,
+            self.threshold_z_value,
             self.moving_window_size,
             ignore_lims=self.ignore_lims,
         )
         return despiked_intensity, result_info
 
 
-class Despiker:
+def despike_spectrum(
+    intensity: np.ndarray,
+    threshold_z_value: int,
+    moving_window_size: int,
+    ignore_lims=(20, 46),
+) -> Tuple[np.ndarray, Dict[str, Any]]:
     """
     A Despiking algorithm from reference literature:
       https://doi.org/10.1016/j.chemolab.2018.06.009
@@ -81,79 +86,54 @@ class Despiker:
     D.A. Whitaker, K. Hayes. Chemometrics and Intelligent Laboratory Systems 179 (2018) 82–84
     """
 
-    keys = ["input_intensity", "Zt", "Z_t_filtered", "despiked_intensity"]
-
-    def __init__(
-        self, intensity: np.ndarray([]), Z_threshold=4, moving_window_size=1, info={}
-    ):
-        self.info = info
-        self.Z_threshold = Z_threshold
-        self.moving_window_size = moving_window_size
-
-        self.info.update(
-            {"Z_threshold": Z_threshold, "Z_filter_ma": moving_window_size}
-        )
-
-        # these get populated by the run_despike call in the setter
-        self.result = {}
-
-        # setter calls to run_despike
-        self._int = intensity
-
-        # _new_int = copy.deepcopy(intensity)
-        self.input_intensity = intensity
-
-
-def despike_spectrum(
-    intensity: np.ndarray,
-    Z_threshold: int,
-    moving_window_size: int,
-    ignore_lims=(20, 46),
-) -> Tuple[np.ndarray, Dict[str, Any]]:
-    Z_t = calc_Z(intensity)
-    Z_t_filtered = calc_Z_filtered(Z_t, Z_threshold)
+    z_intensity = calc_z_value_intensity(intensity)
+    filtered_z_intensity = filter_z_intensity_values(z_intensity, threshold_z_value)
     i_despiked = despike_filter(
-        intensity, Z_t_filtered, moving_window_size, ignore_lims=ignore_lims
+        intensity, filtered_z_intensity, moving_window_size, ignore_lims=ignore_lims
     )
-    result = {"Z_t": Z_t, "Z_t_filtered": Z_t_filtered}
+    result = {"z_intensity": z_intensity, "filtered_z_intensity": filtered_z_intensity}
     return i_despiked, result
 
 
-def calc_Z(intensity: np.ndarray) -> np.ndarray:
-    dYt = np.append(np.diff(intensity), 0)
+def calc_z_value_intensity(intensity: np.ndarray) -> np.ndarray:
+    diff_intensity = np.append(np.diff(intensity), 0)  # dYt
     #    dYt = intensity.diff()
-    dYt_Median = np.median(dYt)
+    median_diff_intensity = np.median(diff_intensity)  # dYt_Median
     #    M = dYt.median()
     #    dYt_M =  dYt-M
-    dYt_MAD = np.median(abs(dYt - dYt_Median))
-    #    MAD = np.mad(dYt)
-    Z_t = (0.6745 * (dYt - dYt_Median)) / dYt_MAD
-    #    intensity = blcor.assign(**{'abs_Z_t': Z_t.abs()})
-    return Z_t
+    median_abs_deviation = np.median(
+        abs(diff_intensity - median_diff_intensity)
+    )  # dYt_MAD
+    #    MAD = np.mad(diff_intensity)
+    intensity_values_z = (
+        0.6745 * (diff_intensity - median_diff_intensity)
+    ) / median_abs_deviation
+    #    intensity = blcor.assign(**{'abs_z_intensity': z_intensity.abs()})
+    return intensity_values_z
 
 
-def calc_Z_filtered(Z_t, Z_threshold):
-    Z_t_filtered = copy.deepcopy(Z_t)
-    Z_t_filtered[np.abs(Z_t) > Z_threshold] = np.nan
-    Z_t_filtered[0] = Z_t_filtered[-1] = 0
-    return Z_t_filtered
+def filter_z_intensity_values(z_intensity, z_intensityhreshold):
+    filtered_z_intensity = copy.deepcopy(z_intensity)
+    filtered_z_intensity[np.abs(z_intensity) > z_intensityhreshold] = np.nan
+    filtered_z_intensity[0] = filtered_z_intensity[-1] = 0
+    return filtered_z_intensity
 
 
 def despike_filter(
     intensity: np.ndarray,
-    Z_t_filtered: np.ndarray,
+    filtered_z_intensity: np.ndarray,
     moving_window_size: int,
     ignore_lims=(20, 46),
 ):
     n = len(intensity)
     i_despiked = copy.deepcopy(intensity)
-    spikes = np.where(np.isnan(Z_t_filtered))
+    spikes = np.nonzero(np.isnan(filtered_z_intensity))
     for i in list(spikes[0]):
         if i < ignore_lims[0] or i > ignore_lims[1]:
             w = np.arange(
                 max(0, i - moving_window_size), min(n, i + moving_window_size)
             )
-            w = w[~np.isnan(Z_t_filtered[w])]
+            w = w[~np.isnan(filtered_z_intensity[w])]
             if intensity[w].any():
                 i_despiked[i] = np.mean(intensity[w])
             else:
