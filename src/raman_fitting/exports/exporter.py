@@ -2,9 +2,10 @@ from dataclasses import dataclass
 from typing import Dict, Any
 from raman_fitting.config.settings import (
     RunModes,
-    get_run_mode_paths,
+    initialize_run_mode_paths,
     ExportPathSettings,
 )
+from raman_fitting.config import settings
 
 
 from raman_fitting.exports.plotting_fit_results import fit_spectrum_plot
@@ -26,7 +27,9 @@ class ExportManager:
     results: Dict[str, Any] | None = None
 
     def __post_init__(self):
-        self.paths = get_run_mode_paths(self.run_mode)
+        self.paths = initialize_run_mode_paths(
+            self.run_mode, user_package_home=settings.destination_dir
+        )
 
     def export_files(self):
         # breakpoint() self.results
