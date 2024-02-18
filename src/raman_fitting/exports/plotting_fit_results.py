@@ -18,7 +18,7 @@ from loguru import logger
 
 def fit_spectrum_plot(
     aggregated_spectra: Dict[WindowNames, AggregatedSampleSpectrumFitResult],
-    export_paths: ExportPathSettings,
+    export_paths: ExportPathSettings | None = None,
     plot_Annotation=True,
     plot_Residuals=True,
 ):  # pragma: no cover
@@ -221,14 +221,15 @@ def fit_spectrum_plot(
             ax2nd.set_xlabel("Raman shift (cm$^{-1}$)"),
             ax2nd.set_ylabel("normalized I / a.u."),
         )
-    savepath = export_paths.plots.joinpath(f"Model_{first_model_name}").with_suffix(
-        ".png"
-    )
-    plt.savefig(
-        savepath,
-        dpi=100,
-        bbox_extra_artists=_bbox_artists,
-        bbox_inches="tight",
-    )
-    logger.debug(f"plot saved to {savepath}")
+    if export_paths is not None:
+        savepath = export_paths.plots.joinpath(f"Model_{first_model_name}").with_suffix(
+            ".png"
+        )
+        plt.savefig(
+            savepath,
+            dpi=100,
+            bbox_extra_artists=_bbox_artists,
+            bbox_inches="tight",
+        )
+        logger.debug(f"Plot saved to {savepath}")
     plt.close()

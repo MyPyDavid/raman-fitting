@@ -1,9 +1,7 @@
 import logging
-from collections import namedtuple
 from operator import itemgetter
 from typing import Dict, List
 
-# import pandas as pd
 import numpy as np
 
 from pydantic import BaseModel, ValidationError, model_validator, ConfigDict
@@ -34,14 +32,10 @@ class SpectraDataCollection(BaseModel):
 
     @model_validator(mode="after")
     def check_spectra_lengths(self) -> "SpectraDataCollection":
-        # breakpoint()
-        lengths = [i.spectrum_length for i in self.spectra]
-        if len(lengths) == 1:
-            return self
-        set_lengths = set(lengths)
-        if len(set_lengths) > 1:
+        unique_lengths = set([i.spectrum_length for i in self.spectra])
+        if len(unique_lengths) > 1:
             raise ValidationError(
-                f"The spectra have different lenghts where they should be the same.\n\t{set_lengths}"
+                f"The spectra have different lenghts where they should be the same.\n\t{unique_lengths}"
             )
         return self
 
@@ -90,102 +84,6 @@ def calculate_mean_spectrum_from_spectra(
         mean_spec_windows = {}
 
     return mean_spec_windows
-
-
-class _SpectrumDataCollection:
-    """
-    This class takes in a collection of SpectrumDataLoader instances.
-    It checks each member of the list and this enables the option
-    to take the mean of several spectra from the same SampleID.
-    """
-
-    # TODO change to pydantic model
-
-    MeanSpecTemplate = namedtuple(
-        "MeanSpectras", "windowname sID_rawcols sIDmean_col mean_info mean_spec"
-    )
-
-    def __init__(self, spectra: List = [SpectrumDataLoader]):
-        self._qcnm = self.__class__.__qualname__
-        self._spectra = spectra
-        # Validators.check_members(
-        #     self._spectra
-        # )  # only raises warning when errors are found
-        # self.spectra = Validators.check_spectra_lengths(self._spectra)
-
-        # self.info = self.get_mean_spectra_info(self.spectra)
-        # self.info_df = pd.DataFrame(self.info, index=[0])
-        self.prep_clean_data = self.get_mean_spectra_prep_data(self.spectra)
-
-        self.calc_mean()
-
-    # @staticmethod
-    # def get_mean_spectra_info(spectra: List[SpectrumDataLoader]) -> Dict:
-    #     """retrieves the info dict from spec instances and merges dict in keys that have 1 common value"""
-
-    #     try:
-    #         _all_spec_info = [spec.info for spec in spectra if hasattr(spec, "info")]
-
-    #         _all_spec_info_merged = {
-    #             k: val for i in _all_spec_info for k, val in i.items()
-    #         }
-
-    #         _all_spec_info_sets = [
-    #             (k, set([i.get(k, None) for i in _all_spec_info]))
-    #             for k in _all_spec_info_merged
-    #         ]
-
-    #         mean_spec_info = {
-    #             k: list(val)[0] for k, val in _all_spec_info_sets if len(val) == 1
-    #         }
-    #     except Exception:
-    #         logger.warning(f"get_mean_spectra_info failed for spectra {spectra}")
-    #         mean_spec_info = {}
-
-    #     mean_spec_info.update({"mean_spectrum": True})
-
-    #     return mean_spec_info
-
-    def calc_mean(self, sample_id: str):
-        """Core function of the merging of spectra of different sample positions"""
-        import pandas as pd
-
-        _merged_window_specs = {}
-        _speclst = []
-        _posmean_lbl_base = f"int_{sample_id}_mean"
-        for wndwnm, data in self.prep_clean_data.items():
-            _merge_df = pd.DataFrame()
-            _pos_lbl_lst = []
-
-            for _pos, _sp in data:
-                _pos_lbl = f"int_{_pos}"
-
-                _dfspec = pd.DataFrame(
-                    {"ramanshift": _sp.ramanshift, _pos_lbl: _sp.intensity}
-                )
-
-                if _merge_df.empty:
-                    _merge_df = _dfspec
-                else:
-                    _merge_df = pd.merge_asof(_merge_df, _dfspec, on="ramanshift")
-                _pos_lbl_lst.append(_pos_lbl)
-
-            _posmean_lbl = f"{_posmean_lbl_base}_{len(_pos_lbl_lst)}"
-            _merge_df = _merge_df.assign(
-                **{_posmean_lbl: _merge_df[_pos_lbl_lst].mean(axis=1)}
-            )
-            _merged_window_specs.update({wndwnm: _merge_df})
-
-            # _old_spec = self.MeanSpecTemplate(
-            #     wndwnm, _pos_lbl_lst, _posmean_lbl, self.info_df, _merge_df
-            # )
-            _speclst.append(_merged_window_specs)  # TODO remove
-
-        self.fitting_spectra = _speclst
-        self.mean_data = _merged_window_specs
-
-    def __repr__(self):
-        return f"{self.info}"
 
 
 def get_best_guess_spectra_length(spectra: List[SpectrumDataLoader]) -> List:
