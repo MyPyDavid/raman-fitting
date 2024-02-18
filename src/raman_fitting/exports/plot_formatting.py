@@ -7,11 +7,12 @@ Created on Wed Apr 28 15:08:26 2021
 """
 
 from collections import namedtuple
-from typing import Tuple
+from typing import Sequence, Tuple
 
 from raman_fitting.models.splitter import WindowNames
 
 import matplotlib.pyplot as plt
+from lmfit import Model as LMFitModel
 
 from loguru import logger
 
@@ -83,7 +84,7 @@ def get_cmap_list(
     return cmap
 
 
-def assign_colors_to_peaks(selected_models: list) -> dict:
+def assign_colors_to_peaks(selected_models: Sequence[LMFitModel]) -> dict:
     cmap_get = get_cmap_list(len(selected_models))
     annotated_models = {}
     for n, peak in enumerate(selected_models):
