@@ -3,11 +3,11 @@ from typing import Dict
 import tempfile
 from enum import StrEnum, auto
 
+
 from pydantic import (
     BaseModel,
     DirectoryPath,
     FilePath,
-    NewPath,
     ConfigDict,
     Field,
     model_validator,
@@ -19,15 +19,17 @@ from raman_fitting.models.deconvolution.base_model import BaseLMFitModel
 from raman_fitting.models.deconvolution.base_model import (
     get_models_and_peaks_from_definitions,
 )
+from .filepath_helper import check_and_make_dirs, create_dir_or_ask_user_input
+
 
 PACKAGE_NAME = "raman_fitting"
 CURRENT_FILE: Path = Path(__file__).resolve()
 PACKAGE_ROOT: Path = CURRENT_FILE.parent.parent
 REPO_ROOT: Path = PACKAGE_ROOT.parent
-DEFAULT_MODELS_DIR: Path = CURRENT_FILE.parent / "default_models"
+INTERNAL_DEFAULT_MODELS: Path = CURRENT_FILE.parent / "default_models"
 # MODEL_DIR: Path = PACKAGE_ROOT / "deconvolution_models"
-EXAMPLE_FIXTURES: Path = PACKAGE_ROOT / "example_fixtures"
-PYTEST_FIXUTRES: Path = REPO_ROOT / "tests" / "test_fixtures"
+INTERNAL_EXAMPLE_FIXTURES: Path = PACKAGE_ROOT / "example_fixtures"
+INTERNAL_PYTEST_FIXTURES: Path = REPO_ROOT / "tests" / "test_fixtures"
 
 # Home dir from pathlib.Path for storing the results
 USER_HOME_PACKAGE: Path = Path.home() / PACKAGE_NAME
@@ -52,9 +54,9 @@ ERROR_MSG_TEMPLATE = "{sample_group} {sampleid}: {msg}"
 class InternalPathSettings(BaseModel):
     settings_file: FilePath = Field(CURRENT_FILE)
     package_root: DirectoryPath = Field(PACKAGE_ROOT)
-    default_models_dir: DirectoryPath = Field(DEFAULT_MODELS_DIR)
-    example_fixtures: DirectoryPath = Field(EXAMPLE_FIXTURES)
-    pytest_fixtures: DirectoryPath = Field(PYTEST_FIXUTRES)
+    default_models_dir: DirectoryPath = Field(INTERNAL_DEFAULT_MODELS)
+    example_fixtures: DirectoryPath = Field(INTERNAL_EXAMPLE_FIXTURES)
+    pytest_fixtures: DirectoryPath = Field(INTERNAL_PYTEST_FIXTURES)
     temp_dir: DirectoryPath = Field(TEMP_RESULTS_DIR)
 
 
@@ -73,26 +75,35 @@ class RunModes(StrEnum):
     MAKE_INDEX = auto()
 
 
-RUN_MODE_PATHS = {
-    "pytest": {
-        "RESULTS_DIR": TEMP_RESULTS_DIR,
-        "DATASET_DIR": EXAMPLE_FIXTURES,
-        "USER_CONFIG_FILE": EXAMPLE_FIXTURES / f"{PACKAGE_NAME}.toml",
-        "INDEX_FILE": TEMP_RESULTS_DIR / f"{PACKAGE_NAME}_index.csv",
-    },
-    "make_examples": {
-        "RESULTS_DIR": USER_HOME_PACKAGE / "make_examples",
-        "DATASET_DIR": EXAMPLE_FIXTURES,
-        "USER_CONFIG_FILE": EXAMPLE_FIXTURES / f"{PACKAGE_NAME}.toml",
-        "INDEX_FILE": USER_HOME_PACKAGE / "make_examples" / f"{PACKAGE_NAME}_index.csv",
-    },
-    "normal": {
-        "RESULTS_DIR": USER_HOME_PACKAGE / "results",
-        "DATASET_DIR": USER_HOME_PACKAGE / "datafiles",
-        "USER_CONFIG_FILE": USER_HOME_PACKAGE / "raman_fitting.toml",
-        "INDEX_FILE": USER_HOME_PACKAGE / f"{PACKAGE_NAME}_index.csv",
-    },
-}
+def get_run_mode_paths(run_mode: RunModes, user_package_home: Path = None):
+    if user_package_home is None:
+        user_package_home = USER_HOME_PACKAGE
+
+    RUN_MODE_PATHS = {
+        "pytest": {
+            "RESULTS_DIR": TEMP_RESULTS_DIR,
+            "DATASET_DIR": INTERNAL_EXAMPLE_FIXTURES,
+            "USER_CONFIG_FILE": INTERNAL_EXAMPLE_FIXTURES / f"{PACKAGE_NAME}.toml",
+            "INDEX_FILE": TEMP_RESULTS_DIR / f"{PACKAGE_NAME}_index.csv",
+        },
+        "make_examples": {
+            "RESULTS_DIR": user_package_home / "make_examples",
+            "DATASET_DIR": INTERNAL_EXAMPLE_FIXTURES,
+            "USER_CONFIG_FILE": INTERNAL_EXAMPLE_FIXTURES / f"{PACKAGE_NAME}.toml",
+            "INDEX_FILE": user_package_home
+            / "make_examples"
+            / f"{PACKAGE_NAME}_index.csv",
+        },
+        "normal": {
+            "RESULTS_DIR": user_package_home / "results",
+            "DATASET_DIR": user_package_home / "datafiles",
+            "USER_CONFIG_FILE": user_package_home / "raman_fitting.toml",
+            "INDEX_FILE": user_package_home / f"{PACKAGE_NAME}_index.csv",
+        },
+    }
+    if run_mode not in RUN_MODE_PATHS:
+        raise ValueError(f"Choice of run_mode {run_mode} not supported.")
+    return RUN_MODE_PATHS[run_mode]
 
 
 class ExportPathSettings(BaseModel):
@@ -129,17 +140,26 @@ class RunModePaths(BaseModel):
     run_mode: RunModes
     results_dir: DirectoryPath
     dataset_dir: DirectoryPath
-    user_config_file: FilePath | NewPath
-    index_file: FilePath | NewPath
+    user_config_file: Path
+    index_file: Path
 
 
-def get_run_mode_paths(run_mode: RunModes) -> RunModePaths:
-    if run_mode not in RUN_MODE_PATHS:
-        raise ValueError(f"Choice of run_mode {run_mode} not supported.")
-    dest_dirs = RUN_MODE_PATHS[run_mode]
-    dest_dirs["RUN_MODE"] = run_mode
+def initialize_run_mode_paths(
+    run_mode: RunModes, user_package_home: Path = None
+) -> RunModePaths:
+    run_mode_paths = get_run_mode_paths(run_mode, user_package_home=user_package_home)
+
+    # USER_HOME_PACKAGE = get_user_destination_dir(USER_HOME_PACKAGE)
+    for destname, destdir in run_mode_paths.items():
+        destdir = Path(destdir)
+        check_and_make_dirs(destdir)
+    # dest_dirs["RUN_MODE"] = run_mode
     # breakpoint()
-    return RunModePaths(**dest_dirs)
+    return RunModePaths(RUN_MODE=run_mode, **run_mode_paths)
+
+
+def create_default_package_dir_or_ask():
+    return create_dir_or_ask_user_input(USER_HOME_PACKAGE)
 
 
 class Settings(BaseSettings):
@@ -150,7 +170,9 @@ class Settings(BaseSettings):
         validate_default=False,
     )
 
-    destination_dir: DirectoryPath = Field(USER_HOME_PACKAGE)
+    destination_dir: DirectoryPath = Field(
+        default_factory=create_default_package_dir_or_ask
+    )
     # export_folder_names_mapping: ExportPathSettings = Field(
     #     default_factory=get_default_path_settings,
     #     init_var=False,
