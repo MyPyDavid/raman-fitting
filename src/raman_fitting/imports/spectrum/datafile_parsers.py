@@ -1,5 +1,3 @@
-import logging
-
 from typing import List, Sequence
 from pathlib import Path
 
@@ -7,7 +5,7 @@ import numpy as np
 import pandas as pd
 from tablib import Dataset
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 def filter_data_for_numeric(data: Dataset):
@@ -16,7 +14,7 @@ def filter_data_for_numeric(data: Dataset):
 
     for row in data:
         try:
-            digits_row = tuple(map(lambda x: float(x), row))
+            digits_row = tuple(map(float, row))
         except ValueError:
             continue
         except TypeError:
@@ -84,7 +82,7 @@ def use_np_loadtxt(filepath, usecols=(0, 1), **kwargs) -> np.array:
     except Exception as exc:
         _msg = f"Can not load data from txt file: {filepath}\n{exc}"
         logger.error(_msg)
-        raise ValueError(_msg)
+        raise ValueError(_msg) from exc
     return array
 
 
@@ -101,7 +99,7 @@ def cast_array_into_spectrum_frame(array, keys: List[str] = None) -> pd.DataFram
     except Exception as exc:
         _msg = f"Can not create DataFrame from array object: {array}\n{exc}"
         logger.error(_msg)
-        raise ValueError(_msg)
+        raise ValueError(_msg) from exc
 
 
 def load_spectrum_from_txt(filepath, **kwargs) -> pd.DataFrame:

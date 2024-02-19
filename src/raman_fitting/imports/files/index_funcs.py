@@ -1,11 +1,10 @@
-import logging
 import sys
 
 from pathlib import Path
 
 from raman_fitting.imports.spectrum.datafile_parsers import load_dataset_from_file
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 def get_dtypes_filepath(index_file):
@@ -35,40 +34,16 @@ def export_index(index, index_file):
     )
 
 
-def load_index(index_file, reload=False):
+def load_index(index_file):
     """loads the index from from defined Index file"""
-    if not index_file.exists() or reload:
+    if not index_file.exists():
         logger.error(
             f"Error in load_index: {index_file} does not exists, starting reload index ... "
         )
         return
-        # index = make_index()
-        # export_index(index, index_file)
-        # return index
-    # breakpoint()
 
     try:
-        _dtypes = load_dataset_from_file(
-            get_dtypes_filepath(index_file), index_col=[0]
-        ).to_dict()["dtypes"]
-
-        _dtypes_datetime = {
-            k: val
-            for k, val in _dtypes.items()
-            if "datetime" in val or k.endswith("Date")
-        }
-
-        _dtypes_no_datetime = {
-            k: val for k, val in _dtypes.items() if k not in _dtypes_datetime.keys()
-        }
-
-        index = load_dataset_from_file(
-            index_file,
-            index_col=[0],
-            dtype=_dtypes_no_datetime,
-            parse_dates=list(_dtypes_datetime.keys()),
-        )
-        # index = _extra_assign_destdir_and_set_paths(index)
+        index = load_dataset_from_file(index_file)
 
         logger.info(
             f"Succesfully imported Raman Index file from {index_file}, with len({len(index)})"
@@ -79,8 +54,6 @@ def load_index(index_file, reload=False):
                             \nlength of loaded index not same as number of raman files
                             \n starting reload index ... """
             )
-            # index = make_index()
-            # return index
 
     except Exception as e:
         logger.error(
@@ -120,7 +93,7 @@ def index_selection(index, **kwargs):
     default_selection = kwargs.get("default_selection", "all")
     if "normal" not in kwargs.get("run_mode", default_selection):
         default_selection = "all"
-    index_selection = None  # pd.DataFrame()
+    index_selection = None
     logger.info(
         f"starting index selection from index({len(index)}) with:\n default selection: {default_selection}\n and {kwargs}"
     )
@@ -138,14 +111,8 @@ def index_selection(index, **kwargs):
             index = list(
                 filter(lambda x: x.sample.group in kwargs["samplegroups"], index)
             )
-            # index_selection = index.loc[
-            #     index.SampleGroup.str.contains("|".join(kwargs["samplegroups"]))
-            # ]
     if "sampleIDs" in kwargs:
         index = list(filter(lambda x: x.sample.id in kwargs["sampleIDs"], index))
-        # index_selection = index.loc[
-        #     index.SampleID.str.contains("|".join(kwargs["sampleIDs"]))
-        # ]
 
     if "extra" in kwargs:
         runq = kwargs.get("run")
@@ -163,9 +130,6 @@ def index_selection(index, **kwargs):
                     ]
                 }
             )
-
-    # if "make_examples" in run_mode:
-    #     index_selection = index.loc[~index.SampleID.str.startswith("Si")]
 
     logger.debug(
         f"finished index selection from index({len(index)}) with:\n {default_selection}\n and {kwargs}\n selection len({len(index_selection )})"
