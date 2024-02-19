@@ -14,20 +14,24 @@ from pydantic import (
 )
 from raman_fitting.config import settings
 from raman_fitting.imports.collector import collect_raman_file_infos
-from raman_fitting.imports.files.utils import load_dataset_from_file
+from raman_fitting.imports.files.utils import (
+    load_dataset_from_file,
+    write_dataset_to_file,
+)
 from raman_fitting.imports.models import RamanFileInfo
 from tablib import Dataset
 
-RamanFileInfoSet: TypeAlias = Sequence[RamanFileInfo]
+RamanFileInfoSet: TypeAlias = List[RamanFileInfo]
 
 
 class RamanFileIndex(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     index_file: NewPath | FilePath = Field(None, validate_default=False)
-    raman_files: RamanFileInfoSet = Field(None)
-    dataset: Dataset = Field(None)
-    force_reload: bool = Field(True, validate_default=False)
+    raman_files: RamanFileInfoSet | None = Field(None)
+    dataset: Dataset | None = Field(None)
+    force_reindex: bool = Field(False, validate_default=False)
+    persist_to_file: bool = Field(True, validate_default=False)
 
     @model_validator(mode="after")
     def read_or_load_data(self) -> "RamanFileIndex":
@@ -35,7 +39,7 @@ class RamanFileIndex(BaseModel):
             raise ValueError("Not all fields should be empty.")
 
         reload_from_file = validate_reload_from_index_file(
-            self.index_file, self.force_reload
+            self.index_file, self.force_reindex
         )
         if reload_from_file:
             self.dataset = load_dataset_from_file(self.index_file)
@@ -57,20 +61,24 @@ class RamanFileIndex(BaseModel):
             raise ValueError(
                 "Index error, both raman_files and dataset are not provided."
             )
+
+        if self.persist_to_file and self.index_file is not None:
+            write_dataset_to_file(self.index_file, self.dataset)
+
         return self
 
 
 def validate_reload_from_index_file(
-    index_file: Path | None, force_reload: bool
+    index_file: Path | None, force_reindex: bool
 ) -> bool:
     if index_file is None:
         logger.debug(
             "Index file not provided, index will not be reloaded or persisted."
         )
         return False
-    if index_file.exists() and not force_reload:
+    if index_file.exists() and not force_reindex:
         return True
-    elif force_reload:
+    elif force_reindex:
         logger.warning(
             f"Index index_file file {index_file} exists and will be overwritten."
         )
@@ -90,11 +98,11 @@ def cast_raman_files_to_dataset(raman_files: List[RamanFileInfo]) -> Dataset:
 
 
 def parse_dataset_to_index(dataset: Dataset) -> List[RamanFileInfo]:
-    raman_file = []
+    raman_files = []
     for row in dataset:
         row_data = dict(zip(dataset.headers, row))
-        raman_file.append(RamanFileInfo(**row_data))
-    return raman_file
+        raman_files.append(RamanFileInfo(**row_data))
+    return raman_files
 
 
 class IndexSelector(BaseModel):
@@ -178,16 +186,13 @@ def collect_raman_file_index_info(
 
 
 def initialize_index_from_source_files(
-    files: Sequence[Path] | None = None, force_reload: bool = False
+    files: Sequence[Path] | None = None, force_reindex: bool = False
 ) -> RamanFileIndex:
     index_file = settings.destination_dir.joinpath("index.csv")
     raman_files = collect_raman_file_index_info(raman_files=files)
-    index_data = {
-        "file": index_file,
-        "raman_files": raman_files,
-        "force_reload": force_reload,
-    }
-    raman_index = RamanFileIndex(**index_data)
+    raman_index = RamanFileIndex(
+        index_file=index_file, raman_files=raman_files, force_reindex=force_reindex
+    )
     logger.info(
         f"index_delegator index prepared with len {len(raman_index.raman_files)}"
     )

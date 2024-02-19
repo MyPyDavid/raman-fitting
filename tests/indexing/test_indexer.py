@@ -9,7 +9,6 @@ from raman_fitting.imports.files.file_indexer import (
     RamanFileIndex,
     initialize_index_from_source_files,
 )
-from raman_fitting.imports.files.index_funcs import load_index
 from raman_fitting.imports.models import RamanFileInfo
 
 run_mode = RunModes.PYTEST
@@ -26,7 +25,7 @@ class TestIndexer(unittest.TestCase):
 
         self.all_test_files = self.example_files + self.pytest_fixtures_files
         index = initialize_index_from_source_files(
-            files=self.all_test_files, force_reload=True
+            files=self.all_test_files, force_reindex=True
         )
         self.index = index
 
@@ -37,10 +36,16 @@ class TestIndexer(unittest.TestCase):
 
         self.assertEqual(len(self.index.dataset), len(self.example_files))
 
-    @unittest.skip("export_index not yet implemented")
+    # @unittest.skip("export_index not yet implemented")
     def test_load_index(self):
-        _loaded_index = load_index()
-        self.assertTrue(isinstance(_loaded_index, RamanFileIndex))
+        self.index.index_file.exists()
+        try:
+            new_index = RamanFileIndex(
+                index_file=self.index.index_file, force_reindex=False
+            )
+        except Exception as e:
+            raise e from e
+        self.assertTrue(isinstance(new_index, RamanFileIndex))
 
 
 if __name__ == "__main__":
