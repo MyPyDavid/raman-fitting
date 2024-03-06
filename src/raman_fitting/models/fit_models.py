@@ -7,6 +7,8 @@ from lmfit import Model as LMFitModel
 from lmfit.model import ModelResult
 
 from raman_fitting.models.deconvolution.base_model import BaseLMFitModel
+from raman_fitting.models.deconvolution.spectrum_regions import WindowNames
+
 from raman_fitting.models.spectrum import SpectrumData
 
 logger = logging.getLogger(__name__)
@@ -29,6 +31,7 @@ class SpectrumFitModel(BaseModel):
 
     spectrum: SpectrumData
     model: BaseLMFitModel
+    window: WindowNames
     fit_kwargs: Dict = Field(default_factory=dict)
     fit_result: ModelResult = Field(None, init_var=False)
     elapsed_time: float = Field(0, init_var=False, repr=False)
@@ -43,7 +46,7 @@ class SpectrumFitModel(BaseModel):
             )
         return self
 
-    def run_fit(self) -> ModelResult:
+    def run_fit(self) -> None:
         if "method" not in self.fit_kwargs:
             self.fit_kwargs["method"] = "leastsq"
         lmfit_model = self.model.lmfit_model
@@ -53,6 +56,7 @@ class SpectrumFitModel(BaseModel):
         elapsed_seconds = abs(start_time - end_time)
         self.elapsed_time = elapsed_seconds
         self.fit_result = fit_result
+
 
     def process_fit_results(self):
         #  TODO add parameter post processing steps
@@ -77,7 +81,7 @@ def run_fit(
 
 
 if __name__ == "__main__":
-    from raman_fitting.config.settings import settings
+    from raman_fitting.config.base_settings import settings
 
     test_fixtures = list(settings.internal_paths.example_fixtures.glob("*txt"))
     file = [i for i in test_fixtures if "_pos4" in i.stem][0]
