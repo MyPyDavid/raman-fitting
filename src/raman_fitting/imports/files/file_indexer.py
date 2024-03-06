@@ -21,7 +21,7 @@ from raman_fitting.imports.files.utils import (
 from raman_fitting.imports.models import RamanFileInfo
 from tablib import Dataset
 
-RamanFileInfoSet: TypeAlias = List[RamanFileInfo]
+RamanFileInfoSet: TypeAlias = Sequence[RamanFileInfo]
 
 
 class RamanFileIndex(BaseModel):
@@ -89,7 +89,7 @@ def validate_reload_from_index_file(
     return False
 
 
-def cast_raman_files_to_dataset(raman_files: List[RamanFileInfo]) -> Dataset:
+def cast_raman_files_to_dataset(raman_files: RamanFileInfoSet) -> Dataset:
     headers = list(RamanFileInfo.model_fields.keys())
     data = Dataset(headers=headers)
     for file in raman_files:
@@ -97,7 +97,7 @@ def cast_raman_files_to_dataset(raman_files: List[RamanFileInfo]) -> Dataset:
     return data
 
 
-def parse_dataset_to_index(dataset: Dataset) -> List[RamanFileInfo]:
+def parse_dataset_to_index(dataset: Dataset) -> RamanFileInfoSet:
     raman_files = []
     for row in dataset:
         row_data = dict(zip(dataset.headers, row))
@@ -139,34 +139,34 @@ class IndexSelector(BaseModel):
             return self
 
 
-def groupby_sample_group(index: List[RamanFileInfo]):
+def groupby_sample_group(index: RamanFileInfoSet):
     """Generator for Sample Groups, yields the name of group and group of the index SampleGroup"""
     grouper = groupby(index, key=lambda x: x.sample.group)
     return grouper
 
 
-def groupby_sample_id(index: List[RamanFileInfo]):
+def groupby_sample_id(index: RamanFileInfoSet):
     """Generator for SampleIDs, yields the name of group, name of SampleID and group of the index of the SampleID"""
     grouper = groupby(index, key=lambda x: x.sample.id)
     return grouper
 
 
-def iterate_over_groups_and_sample_id(index: List[RamanFileInfo]):
+def iterate_over_groups_and_sample_id(index: RamanFileInfoSet):
     for grp_name, grp in groupby_sample_group(index):
         for sample_id, sgrp in groupby_sample_group(grp):
             yield grp_name, grp, sample_id, sgrp
 
 
-def select_index_by_sample_groups(index: List[RamanFileInfo], sample_groups: List[str]):
+def select_index_by_sample_groups(index: RamanFileInfoSet, sample_groups: List[str]):
     return filter(lambda x: x.sample.group in sample_groups, index)
 
 
-def select_index_by_sample_ids(index: List[RamanFileInfo], sample_ids: List[str]):
+def select_index_by_sample_ids(index: RamanFileInfoSet, sample_ids: List[str]):
     return filter(lambda x: x.sample.id in sample_ids, index)
 
 
 def select_index(
-    index: List[RamanFileInfo], sample_groups: List[str], sample_ids: List[str]
+    index: RamanFileInfoSet, sample_groups: List[str], sample_ids: List[str]
 ):
     group_selection = list(select_index_by_sample_groups(index, sample_groups))
     sample_selection = list(select_index_by_sample_ids(index, sample_ids))
@@ -207,10 +207,10 @@ def main():
         index_data = {"file": index_file, "raman_files": raman_files}
         raman_index = RamanFileIndex(**index_data)
         logger.debug(f"Raman Index len: {len(raman_index.dataset)}")
+        select_index(raman_index.raman_files, sample_groups=["DW"], sample_ids=["DW38"])
     except Exception as e:
         logger.error(f"Raman Index error: {e}")
-    # breakpoint()
-    select_index(raman_index.raman_files, sample_groups=["DW"], sample_ids=["DW38"])
+        raman_index = None
     # ds = cast_raman_files_to_dataset(raman_index.raman_files)
 
     return raman_index
