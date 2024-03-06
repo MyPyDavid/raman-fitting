@@ -1,37 +1,10 @@
-from enum import Enum
 from typing import Dict, Any
 import numpy as np
 
 from pydantic import BaseModel, model_validator, Field
 from .spectrum import SpectrumData
+from .deconvolution.spectrum_regions import SpectrumWindowLimits, WindowNames, get_default_regions_from_toml_files
 
-
-class WindowNames(str, Enum):
-    full = "full"
-    full_first_and_second = "full_first_and_second"
-    low = "low"
-    first_order = "first_order"
-    mid = "mid"
-    second_order = "second_order"
-    normalization = "normalization"
-
-
-SPECTRUM_WINDOWS_LIMITS = {
-    WindowNames.full: {"min": 200, "max": 3600},
-    WindowNames.full_first_and_second: {"min": 800, "max": 3500},
-    WindowNames.low: {"min": 150, "max": 850, "extra_margin": 10},
-    WindowNames.first_order: {"min": 900, "max": 2000},
-    WindowNames.mid: {"min": 1850, "max": 2150, "extra_margin": 10},
-    WindowNames.second_order: {"min": 2150, "max": 3380},
-    WindowNames.normalization: {"min": 1500, "max": 1675, "extra_margin": 10},
-}
-
-
-class SpectrumWindowLimits(BaseModel):
-    name: WindowNames
-    min: int
-    max: int
-    extra_margin: int = 20
 
 
 class SplittedSpectrum(BaseModel):
@@ -68,10 +41,11 @@ class SplittedSpectrum(BaseModel):
         return self.spec_windows[spec_window_key]
 
 
-def get_default_spectrum_window_limits() -> Dict[str, SpectrumWindowLimits]:
+def get_default_spectrum_window_limits(windows_mapping: Dict = None) -> Dict[str, SpectrumWindowLimits]:
+    if windows_mapping is None:
+        windows_mapping = get_default_regions_from_toml_files()
     windows = {}
-    for window_type, window_config in SPECTRUM_WINDOWS_LIMITS.items():
-        window_name = window_type.name
+    for window_name, window_config in windows_mapping.items():
         windows[window_name] = SpectrumWindowLimits(name=window_name, **window_config)
     return windows
 
