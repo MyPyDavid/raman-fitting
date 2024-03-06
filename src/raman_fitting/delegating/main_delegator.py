@@ -4,7 +4,7 @@ from typing import Dict, List, Sequence, Any
 from typing import TypeAlias
 
 
-from raman_fitting.config.settings import (
+from raman_fitting.config.path_settings import (
     RunModes,
     ERROR_MSG_TEMPLATE,
 )
@@ -194,7 +194,7 @@ def run_sample_fit_with_model(
 ) -> SpectrumFitModel:
     name = model.name
     window = model.window_name.name
-    spec_fit = SpectrumFitModel(spectrum=spectrum, model=model)
+    spec_fit = SpectrumFitModel(spectrum=spectrum, model=model, window=window)
     #  TODO include optional https://lmfit.github.io/lmfit-py/model.html#saving-and-loading-modelresults
     spec_fit.run_fit()
     logger.debug(

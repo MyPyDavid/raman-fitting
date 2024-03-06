@@ -3,7 +3,7 @@
 
 import argparse
 
-from raman_fitting.config.settings import RunModes
+from raman_fitting.config.base_settings import RunModes
 from loguru import logger
 
 
@@ -30,7 +30,7 @@ def main():
     )
 
     parser.add_argument(
-        "-M",
+        "-M", "-m",
         "--run-mode",
         type=RunModes,
         # choices=,

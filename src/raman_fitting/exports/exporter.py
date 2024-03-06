@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict, Any
-from raman_fitting.config.settings import (
+from raman_fitting.config.path_settings import (
     RunModes,
     initialize_run_mode_paths,
     ExportPathSettings,

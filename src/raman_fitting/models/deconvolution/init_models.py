@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 import logging
 from typing import Dict
 
-from raman_fitting.config.default_models import load_default_model_and_peak_definitions
+from raman_fitting.config.default_models import load_config_from_toml_files
 from raman_fitting.models.deconvolution.base_model import (
     get_models_and_peaks_from_definitions,
 )
@@ -28,7 +28,7 @@ class InitializeModels:
         self.peaks = self.peaks or {}
         self.lmfit_models = self.lmfit_models or {}
         if not self.model_definitions:
-            self.model_definitions = load_default_model_and_peak_definitions()
+            self.model_definitions = load_config_from_toml_files()
         if not self.lmfit_models and self.model_definitions:
             self.lmfit_models = get_models_and_peaks_from_definitions(
                 self.model_definitions
@@ -43,10 +43,10 @@ class InitializeModels:
 
 def main():
     from raman_fitting.config.default_models import (
-        load_default_model_and_peak_definitions,
+        load_config_from_toml_files,
     )
 
-    model_definitions = load_default_model_and_peak_definitions()
+    model_definitions = load_config_from_toml_files()
     print("model_definitions: ", model_definitions)
     models = InitializeModels()
     print(models)
