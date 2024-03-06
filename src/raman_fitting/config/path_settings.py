@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Dict
 import tempfile
 from enum import StrEnum, auto
 
@@ -13,12 +12,7 @@ from pydantic import (
     model_validator,
 )
 
-from pydantic_settings import BaseSettings
 
-from raman_fitting.models.deconvolution.base_model import BaseLMFitModel
-from raman_fitting.models.deconvolution.base_model import (
-    get_models_and_peaks_from_definitions,
-)
 from .filepath_helper import check_and_make_dirs, create_dir_or_ask_user_input
 
 
@@ -127,11 +121,7 @@ class ExportPathSettings(BaseModel):
             EXPORT_FOLDER_NAMES["raw_data"]
         )
         self.raw_data = raw_data
-
-
-# def get_default_path_settings(*args, **kwargs) -> ExportPathSettings:
-#     # breakpoint()
-#     return ExportPathSettings(results_dir=USER_HOME_PACKAGE)
+        return self
 
 
 class RunModePaths(BaseModel):
@@ -161,21 +151,3 @@ def initialize_run_mode_paths(
 def create_default_package_dir_or_ask():
     return create_dir_or_ask_user_input(USER_HOME_PACKAGE)
 
-
-class Settings(BaseSettings):
-    default_models: Dict[str, Dict[str, BaseLMFitModel]] = Field(
-        default_factory=get_models_and_peaks_from_definitions,
-        alias="my_default_models",
-        init_var=False,
-        validate_default=False,
-    )
-
-    destination_dir: DirectoryPath = Field(
-        default_factory=create_default_package_dir_or_ask
-    )
-    # export_folder_names_mapping: ExportPathSettings = Field(
-    #     default_factory=get_default_path_settings,
-    #     init_var=False,
-    #     validate_default=False,
-    # )
-    internal_paths: InternalPathSettings = Field(default_factory=InternalPathSettings)

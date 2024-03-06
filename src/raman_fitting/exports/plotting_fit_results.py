@@ -12,7 +12,7 @@ from raman_fitting.imports.samples.models import SampleMetaData
 from raman_fitting.models.fit_models import SpectrumFitModel
 
 
-from raman_fitting.config.settings import ExportPathSettings
+from raman_fitting.config.path_settings import ExportPathSettings
 from raman_fitting.models.splitter import WindowNames
 from raman_fitting.delegating.models import AggregatedSampleSpectrumFitResult
 

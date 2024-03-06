@@ -1,6 +1,6 @@
 import unittest
 
-from raman_fitting.config.settings import (
+from raman_fitting.config.path_settings import (
     InternalPathSettings,
     get_run_mode_paths,
     RunModes,

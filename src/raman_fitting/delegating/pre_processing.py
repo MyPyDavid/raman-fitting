@@ -1,6 +1,6 @@
 from typing import List
 
-from raman_fitting.config.settings import (
+from raman_fitting.config.path_settings import (
     CLEAN_SPEC_WINDOW_NAME_PREFIX,
 )
 from raman_fitting.models.spectrum import SpectrumData

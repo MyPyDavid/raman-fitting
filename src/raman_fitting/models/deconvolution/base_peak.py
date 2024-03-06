@@ -17,7 +17,7 @@ from raman_fitting.models.deconvolution.lmfit_parameter import (
     LMFitParameterHints,
     parmeter_to_dict,
 )
-from raman_fitting.config.default_models import load_default_model_and_peak_definitions
+from raman_fitting.config.default_models import load_config_from_toml_files
 
 ParamHintDict = Dict[str, Dict[str, Optional[float | bool | str]]]
 
@@ -217,17 +217,19 @@ def get_peaks_from_peak_definitions(
     peak_definitions: Optional[Dict] = None,
 ) -> Dict[str, BasePeak]:
     if peak_definitions is None:
-        peak_definitions = load_default_model_and_peak_definitions()
-    peak_settings = {k: val.get("peaks") for k, val in peak_definitions.items()}
+        peak_definitions = load_config_from_toml_files()
+    peak_settings = {k: val.get("peaks") for k, val in peak_definitions.items() if "peaks" in val}
     peak_models = {}
     for peak_type, peak_type_defs in peak_settings.items():
+        if peak_type_defs is None:
+            continue
         for peak_name, peak_def in peak_type_defs.items():
             peak_models[peak_name] = BasePeak(**peak_def)
     return peak_models
 
 
 def _main():
-    model_definitions = load_default_model_and_peak_definitions()
+    model_definitions = load_config_from_toml_files()
     print(model_definitions["first_order"]["models"])
     # PARAMETER_ARGS = inspect.signature(Parameter).parameters.keys()
     peaks = {}

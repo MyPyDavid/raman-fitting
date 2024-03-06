@@ -12,7 +12,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 from raman_fitting.models.splitter import WindowNames
-from raman_fitting.config.settings import (
+from raman_fitting.config.path_settings import (
     CLEAN_SPEC_WINDOW_NAME_PREFIX,
     ExportPathSettings,
 )

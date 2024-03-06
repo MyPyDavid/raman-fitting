@@ -10,8 +10,10 @@ Created on Fri May 14 09:01:57 2021
 import unittest
 from pathlib import Path
 
-from raman_fitting.config.settings import (
+from raman_fitting.config.base_settings import (
     InternalPathSettings,
+)
+from raman_fitting.config.path_settings import (
     get_run_mode_paths,
     RunModes,
 )

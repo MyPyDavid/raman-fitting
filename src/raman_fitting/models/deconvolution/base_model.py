@@ -11,6 +11,7 @@ from pydantic import (
     model_validator,
 )
 
+from raman_fitting.config.default_models import load_config_from_toml_files
 from raman_fitting.models.deconvolution.base_peak import (
     BasePeak,
     get_peaks_from_peak_definitions,
@@ -18,7 +19,6 @@ from raman_fitting.models.deconvolution.base_peak import (
 from raman_fitting.models.deconvolution.lmfit_parameter import (
     construct_lmfit_model_from_components,
 )
-from raman_fitting.config.default_models import load_default_model_and_peak_definitions
 from raman_fitting.models.splitter import WindowNames
 
 logger = logging.getLogger(__name__)
@@ -131,15 +131,18 @@ def get_models_and_peaks_from_definitions(
     models_and_peaks_definitions: Optional[Dict] = None,
 ) -> Dict[str, Dict[str, BaseLMFitModel]]:
     if models_and_peaks_definitions is None:
-        models_and_peaks_definitions = load_default_model_and_peak_definitions()
+        # breakpoint()
+        models_and_peaks_definitions = load_config_from_toml_files()
     peak_collection = get_peaks_from_peak_definitions(
         peak_definitions=models_and_peaks_definitions
     )
     models_settings = {
-        k: val.get("models") for k, val in models_and_peaks_definitions.items()
+        k: val.get("models") for k, val in models_and_peaks_definitions.items() if "models" in val
     }
     all_models = {}
     for window_name, window_model_settings in models_settings.items():
+        if window_model_settings is None:
+            continue
         all_models[window_name] = {}
         for model_name, model_peaks in window_model_settings.items():
             all_models[window_name][model_name] = BaseLMFitModel(
