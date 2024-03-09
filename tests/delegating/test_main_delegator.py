@@ -1,34 +1,30 @@
-import unittest
 
+import pytest
 
+from raman_fitting.config.path_settings import RunModes
 from raman_fitting.delegating.main_delegator import MainDelegator
 
 
-class TestMainDelegator(unittest.TestCase):
-    def setUp(self):
-        self.delegator = MainDelegator(run_mode="pytest")
+@pytest.fixture(scope='module')
+def delegator():
+    return MainDelegator(run_mode=RunModes.PYTEST)
 
-    def test_initialize_models(self):
-        self.assertIn("first_order", self.delegator.lmfit_models)
-        self.assertIn("first_order", self.delegator.selected_models)
-        self.assertRaises(
-            KeyError, self.delegator.select_fitting_model, "no_name", "not"
-        )
+def test_initialize_models(delegator):
+    
+    assert "first_order" in delegator.lmfit_models
+    assert "first_order" in delegator.selected_models
+    with pytest.raises(KeyError):
+        delegator.select_fitting_model("no_name","no model")
 
-    def test_index(self):
-        # breakpoint()
-        # index = self.delegator.select_samples_from_index()
-        self.assertTrue(hasattr(self.delegator, "index"))
-        self.assertEqual(len(self.delegator.index.raman_files), 5)
-        selection = self.delegator.select_samples_from_index()
-        self.assertEqual(len(self.delegator.index.raman_files), len(selection))
+def test_index(delegator):
+    # breakpoint()
+    # index = delegator.select_samples_from_index()
+    assert delegator.index
+    assert len(delegator.index.raman_files) == 5
+    selection = delegator.select_samples_from_index()
+    assert len(delegator.index.raman_files) == len(selection)
 
-    @unittest.skip("enable main_run before release.")
-    def test_main_run(self):
-        self.delegator.main_run()
-        self.assertTrue(self.delegator.results)
-
-
-if __name__ == "__main__":
-    unittest.main()
-    self = TestMainDelegator()
+@pytest.mark.skip(reason="enable main_run before release.")
+def test_main_run():
+    delegator.main_run()
+    assert delegator.results
