@@ -7,6 +7,7 @@ from typing import TypeAlias
 from raman_fitting.config.path_settings import (
     RunModes,
     ERROR_MSG_TEMPLATE,
+    initialize_run_mode_paths,
 )
 
 from raman_fitting.imports.models import RamanFileInfo
@@ -21,10 +22,10 @@ from raman_fitting.models.splitter import WindowNames
 from raman_fitting.exports.exporter import ExportManager
 from raman_fitting.imports.files.file_indexer import (
     RamanFileIndex,
-    initialize_index_from_source_files,
     groupby_sample_group,
     groupby_sample_id,
     IndexSelector,
+    initialize_index_from_source_files,
 )
 
 from raman_fitting.delegating.models import (
@@ -48,7 +49,6 @@ class MainDelegator:
     """
     Main delegator for the processing of files containing Raman spectra.
 
-    Input parameters is DataFrame of index
     Creates plots and files in the config RESULTS directory.
     """
 
@@ -62,7 +62,7 @@ class MainDelegator:
     fit_model_specific_names: Sequence[str] | None = None
     sample_IDs: Sequence[str] = field(default_factory=list)
     sample_groups: Sequence[str] = field(default_factory=list)
-    index: RamanFileIndex = field(default_factory=initialize_index_from_source_files)
+    index: RamanFileIndex = None
 
     selection: Sequence[RamanFileInfo] = field(init=False)
     selected_models: Sequence[RamanFileInfo] = field(init=False)
@@ -71,11 +71,18 @@ class MainDelegator:
     export: bool = True
 
     def __post_init__(self):
+        run_mode_paths = initialize_run_mode_paths(self.run_mode)
+        if self.index is None:
+            raman_files = run_mode_paths.dataset_dir.glob("*.txt")
+            index_file = run_mode_paths.index_file
+            self.index = initialize_index_from_source_files(
+                files=raman_files, index_file=index_file, force_reindex=True
+            )
+
         self.selection = self.select_samples_from_index()
         self.selected_models = self.select_models_from_provided_models()
         self.main_run()
         if self.export:
-            # breakpoint()
             self.exports = self.call_export_manager()
 
     def select_samples_from_index(self) -> Sequence[RamanFileInfo]:

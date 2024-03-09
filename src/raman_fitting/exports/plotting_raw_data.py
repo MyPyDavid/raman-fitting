@@ -5,6 +5,7 @@ Created on Wed Jan 29 14:49:50 2020
 
 @author: DW
 """
+
 from typing import Dict
 
 
@@ -58,8 +59,8 @@ def raw_data_spectra_plot(
 
             for spec_source in sources:
                 _legend = True if "full" == window_name else False
-                spec_windows = spec_source.processed.clean_spectrum.spec_windows
-                spec = spec_windows[selected_processed_data]
+                spec_regions = spec_source.processed.clean_spectrum.spec_regions
+                spec = spec_regions[selected_processed_data]
                 # plot each of the data sources
                 ax_window.plot(
                     spec.ramanshift,

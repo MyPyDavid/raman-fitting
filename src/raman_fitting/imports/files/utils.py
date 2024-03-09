@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import tablib.exceptions
 from tablib import Dataset
 
 from loguru import logger
@@ -17,6 +18,11 @@ def write_dataset_to_file(file: Path, dataset: Dataset) -> None:
 
 def load_dataset_from_file(file) -> Dataset:
     with open(file, "r", encoding="utf-8") as fh:
-        imported_data = Dataset().load(fh)
+        try:
+            imported_data = Dataset().load(fh)
+        except tablib.exceptions.UnsupportedFormat as e:
+            logger.warning(f"Read dataset {e} from {file}")
+            imported_data = Dataset()
+
     logger.debug(f"Read dataset {len(imported_data)} from {file}")
     return imported_data
