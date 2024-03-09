@@ -177,6 +177,8 @@ def fit_plot_second(
     else:
         second_components = []
         second_result = None
+        second_model_name = None
+        second_eval_comps = None
     if second_model:
         ax2nd.grid(True)
         ax2nd_res.grid(True)
@@ -185,6 +187,7 @@ def fit_plot_second(
         ax2nd.tick_params(which="both", direction="in")
         ax2nd.set_facecolor("oldlace")
         ax2nd_res.set_facecolor("oldlace")
+    if second_result is not None:
         ax2nd.plot(
             second_model.spectrum.ramanshift,
             second_result.best_fit,
@@ -211,6 +214,9 @@ def fit_plot_second(
             )
 
     for _component in second_components:  # automatic color cycle 'cyan' ...
+        if second_eval_comps is None:
+            continue
+
         peak_name = _component.prefix.rstrip("_")
         ax2nd.plot(
             second_model.spectrum.ramanshift,
