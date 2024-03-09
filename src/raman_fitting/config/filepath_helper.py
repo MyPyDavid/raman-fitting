@@ -30,6 +30,8 @@ def create_dir_or_ask_user_input(destdir: Path, ask_user=True):
             answer = input(
                 f"Directory to store files raman_fitting:\n{destdir}\nCan this be folder be created? (y/n)"
             )
+            if "y" in answer.lower():
+                destdir.mkdir(exist_ok=True, parents=True)
 
         if "y" not in answer.lower():
             new_path_user = input(
@@ -42,6 +44,5 @@ def create_dir_or_ask_user_input(destdir: Path, ask_user=True):
                 counter += 1
             destdir = new_path
 
-        destdir.mkdir(exist_ok=True, parents=True)
         logger.info(f"Directory created: {destdir}")
     return destdir
