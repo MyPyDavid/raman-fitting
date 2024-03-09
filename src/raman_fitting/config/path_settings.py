@@ -13,7 +13,7 @@ from pydantic import (
 )
 
 
-from .filepath_helper import check_and_make_dirs, create_dir_or_ask_user_input
+from .filepath_helper import check_and_make_dirs
 
 
 PACKAGE_NAME = "raman_fitting"
@@ -36,8 +36,8 @@ INDEX_FILE_NAME = f"{PACKAGE_NAME}_index.csv"
 # Storage file of the index
 USER_INDEX_FILE_PATH: Path = USER_HOME_PACKAGE / INDEX_FILE_NAME
 
-TEMP_DIR = tempfile.TemporaryDirectory()
-TEMP_RESULTS_DIR: Path = Path(TEMP_DIR.name)
+TEMP_DIR = Path(tempfile.mkdtemp(prefix='raman-fitting-'))
+TEMP_RESULTS_DIR: Path = TEMP_DIR / 'results'
 
 # TODO fix label on clean processed spectrum to simple window name
 CLEAN_SPEC_WINDOW_NAME_PREFIX = "savgol_filter_raw_window_"
@@ -52,6 +52,7 @@ class InternalPathSettings(BaseModel):
     example_fixtures: DirectoryPath = Field(INTERNAL_EXAMPLE_FIXTURES)
     pytest_fixtures: DirectoryPath = Field(INTERNAL_PYTEST_FIXTURES)
     temp_dir: DirectoryPath = Field(TEMP_RESULTS_DIR)
+    temp_index_file: FilePath = Field(TEMP_DIR / INDEX_FILE_NAME )
 
 
 EXPORT_FOLDER_NAMES = {
@@ -64,9 +65,8 @@ EXPORT_FOLDER_NAMES = {
 class RunModes(StrEnum):
     NORMAL = auto()
     PYTEST = auto()
-    MAKE_EXAMPLES = auto()
+    EXAMPLES = auto()
     DEBUG = auto()
-    MAKE_INDEX = auto()
 
 
 def get_run_mode_paths(run_mode: RunModes, user_package_home: Path = None):
@@ -74,30 +74,30 @@ def get_run_mode_paths(run_mode: RunModes, user_package_home: Path = None):
         user_package_home = USER_HOME_PACKAGE
 
     RUN_MODE_PATHS = {
-        "pytest": {
+        RunModes.PYTEST.name: {
             "RESULTS_DIR": TEMP_RESULTS_DIR,
             "DATASET_DIR": INTERNAL_EXAMPLE_FIXTURES,
             "USER_CONFIG_FILE": INTERNAL_EXAMPLE_FIXTURES / f"{PACKAGE_NAME}.toml",
             "INDEX_FILE": TEMP_RESULTS_DIR / f"{PACKAGE_NAME}_index.csv",
         },
-        "make_examples": {
-            "RESULTS_DIR": user_package_home / "make_examples",
+        RunModes.EXAMPLES.name: {
+            "RESULTS_DIR": user_package_home / "examples",
             "DATASET_DIR": INTERNAL_EXAMPLE_FIXTURES,
             "USER_CONFIG_FILE": INTERNAL_EXAMPLE_FIXTURES / f"{PACKAGE_NAME}.toml",
             "INDEX_FILE": user_package_home
-            / "make_examples"
+            / "examples"
             / f"{PACKAGE_NAME}_index.csv",
         },
-        "normal": {
+        RunModes.NORMAL.name: {
             "RESULTS_DIR": user_package_home / "results",
             "DATASET_DIR": user_package_home / "datafiles",
             "USER_CONFIG_FILE": user_package_home / "raman_fitting.toml",
             "INDEX_FILE": user_package_home / f"{PACKAGE_NAME}_index.csv",
         },
     }
-    if run_mode not in RUN_MODE_PATHS:
-        raise ValueError(f"Choice of run_mode {run_mode} not supported.")
-    return RUN_MODE_PATHS[run_mode]
+    if run_mode.name not in RUN_MODE_PATHS:
+        raise ValueError(f"Choice of run_mode {run_mode.name} not supported.")
+    return RUN_MODE_PATHS[run_mode.name]
 
 
 class ExportPathSettings(BaseModel):
@@ -149,5 +149,4 @@ def initialize_run_mode_paths(
 
 
 def create_default_package_dir_or_ask():
-    return create_dir_or_ask_user_input(USER_HOME_PACKAGE)
-
+    return USER_HOME_PACKAGE
