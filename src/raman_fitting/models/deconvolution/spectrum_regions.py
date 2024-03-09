@@ -6,11 +6,15 @@ from raman_fitting.config.default_models import load_config_from_toml_files
 
 
 def get_default_regions_from_toml_files() -> Dict[str, Dict[str, float]]:
-    default_windows = load_config_from_toml_files().get("spectrum", {}).get("windows", {})
-    return default_windows
+    default_regions = (
+        load_config_from_toml_files().get("spectrum", {}).get("regions", {})
+    )
+    return default_regions
 
 
-WindowNames = StrEnum('WindowNames', " ".join(get_default_regions_from_toml_files()), module=__name__)
+WindowNames = StrEnum(
+    "WindowNames", " ".join(get_default_regions_from_toml_files()), module=__name__
+)
 
 
 class SpectrumWindowLimits(BaseModel):

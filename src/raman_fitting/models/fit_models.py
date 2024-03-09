@@ -57,7 +57,6 @@ class SpectrumFitModel(BaseModel):
         self.elapsed_time = elapsed_seconds
         self.fit_result = fit_result
 
-
     def process_fit_results(self):
         #  TODO add parameter post processing steps
         self.fit_result
@@ -81,9 +80,10 @@ def run_fit(
 
 
 if __name__ == "__main__":
-    from raman_fitting.config.base_settings import settings
+    from raman_fitting.config.path_settings import InternalPathSettings
 
-    test_fixtures = list(settings.internal_paths.example_fixtures.glob("*txt"))
+    internal_paths = InternalPathSettings()
+    test_fixtures = list(internal_paths.exaple_fixtures.glob("*txt"))
     file = [i for i in test_fixtures if "_pos4" in i.stem][0]
     from raman_fitting.imports.spectrumdata_parser import SpectrumReader
 
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     from raman_fitting.processing.post_processing import SpectrumProcessor
 
     spectrum_processor = SpectrumProcessor(specread.spectrum)
-    clean_spec_1st_order = spectrum_processor.clean_spectrum.spec_windows[
+    clean_spec_1st_order = spectrum_processor.clean_spectrum.spec_regions[
         "savgol_filter_raw_window_first_order"
     ]
     clean_spec_1st_order.window_name = "first_order"

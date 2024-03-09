@@ -30,7 +30,7 @@ def prepare_aggregated_spectrum_from_files(
             file_info=i, read=read, processed=processed
         )
         data_sources.append(prepared_spec)
-        selected_clean_data = processed.clean_spectrum.spec_windows[
+        selected_clean_data = processed.clean_spectrum.spec_regions[
             selected_processed_data
         ]
         clean_data_for_window[i.file] = selected_clean_data

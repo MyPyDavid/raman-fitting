@@ -25,7 +25,6 @@ class SpectraDataCollection(BaseModel):
     @model_validator(mode="after")
     def check_spectra_have_clean_spectrum(self) -> "SpectraDataCollection":
         """checks member of lists"""
-        # breakpoint()
         if not all(hasattr(spec, "clean_spectrum") for spec in self.spectra):
             raise ValidationError("missing clean_data attribute")
         return self
@@ -63,27 +62,27 @@ def calculate_mean_spectrum_from_spectra(
     """retrieves the clean data from spec instances and makes lists of tuples"""
 
     try:
-        spectra_windows = [i.clean_spectrum.spec_windows for i in spectra]
-        mean_spec_windows = {}
-        for window_name in spectra_windows[0].keys():
-            windows_specs = [i[window_name] for i in spectra_windows]
-            ramanshift_mean = np.mean([i.ramanshift for i in windows_specs], axis=0)
-            intensity_mean = np.mean([i.intensity for i in windows_specs], axis=0)
+        spectra_regions = [i.clean_spectrum.spec_regions for i in spectra]
+        mean_spec_regions = {}
+        for window_name in spectra_regions[0].keys():
+            regions_specs = [i[window_name] for i in spectra_regions]
+            ramanshift_mean = np.mean([i.ramanshift for i in regions_specs], axis=0)
+            intensity_mean = np.mean([i.intensity for i in regions_specs], axis=0)
 
             _data = {
                 "ramanshift": ramanshift_mean,
                 "intensity": intensity_mean,
-                "label": windows_specs[0].label + "_mean",
+                "label": regions_specs[0].label + "_mean",
                 "window_name": window_name + "_mean",
             }
             mean_spec = SpectrumData(**_data)
-            mean_spec_windows[window_name] = mean_spec
+            mean_spec_regions[window_name] = mean_spec
 
     except Exception:
         logger.warning(f"get_mean_spectra_prep_data failed for spectra {spectra}")
-        mean_spec_windows = {}
+        mean_spec_regions = {}
 
-    return mean_spec_windows
+    return mean_spec_regions
 
 
 def get_best_guess_spectra_length(spectra: List[SpectrumDataLoader]) -> List:

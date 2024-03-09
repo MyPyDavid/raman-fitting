@@ -1,4 +1,5 @@
-""" Indexer for raman data files """
+"""Indexer for raman data files"""
+
 from itertools import filterfalse, groupby
 from pathlib import Path
 from typing import List, Sequence, TypeAlias
@@ -27,7 +28,7 @@ RamanFileInfoSet: TypeAlias = Sequence[RamanFileInfo]
 class RamanFileIndex(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    index_file: NewPath | FilePath = Field(None, validate_default=False)
+    index_file: NewPath | FilePath | None = Field(None, validate_default=False)
     raman_files: RamanFileInfoSet | None = Field(None)
     dataset: Dataset | None = Field(None)
     force_reindex: bool = Field(False, validate_default=False)
@@ -43,8 +44,9 @@ class RamanFileIndex(BaseModel):
         )
         if reload_from_file:
             self.dataset = load_dataset_from_file(self.index_file)
-            self.raman_files = parse_dataset_to_index(self.dataset)
-            return self
+            if not self.raman_files and self.dataset:
+                self.raman_files = parse_dataset_to_index(self.dataset)
+                return self
 
         if self.raman_files is not None:
             dataset_rf = cast_raman_files_to_dataset(self.raman_files)
@@ -178,17 +180,19 @@ def collect_raman_file_index_info(
     raman_files: Sequence[Path] | None = None, **kwargs
 ) -> RamanFileInfoSet:
     """loops over the files and scrapes the index data from each file"""
-    if not raman_files:
-        raman_files = list(settings.internal_paths.example_fixtures.glob("*.txt"))
-    index = collect_raman_file_infos(raman_files, **kwargs)
-    logger.info(f"successfully made index {len(index)} from {len(raman_files)} files")
+    # if not raman_files:
+    #     raman_files = list(settings.internal_paths.example_fixtures.glob("*.txt"))
+
+    index, files = collect_raman_file_infos(raman_files, **kwargs)
+    logger.info(f"successfully made index {len(index)} from {len(files)} files")
     return index
 
 
 def initialize_index_from_source_files(
-    files: Sequence[Path] | None = None, force_reindex: bool = False
+    files: Sequence[Path] | None = None,
+    index_file: Path | None = None,
+    force_reindex: bool = False,
 ) -> RamanFileIndex:
-    index_file = settings.destination_dir.joinpath("index.csv")
     raman_files = collect_raman_file_index_info(raman_files=files)
     raman_index = RamanFileIndex(
         index_file=index_file, raman_files=raman_files, force_reindex=force_reindex

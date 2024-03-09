@@ -16,18 +16,18 @@ def subtract_baseline_per_window(
     intensity = spec.intensity
     window_name = spec.window_name
     label = spec.label
-    windows_data = splitted_spectrum.spec_windows
+    regions_data = splitted_spectrum.spec_regions
     window_limits = splitted_spectrum.window_limits
     selected_intensity = intensity
     window_config = window_limits[window_name]
     window_name_first_order = list(
-        filter(lambda x: "first_order" in x, windows_data.keys())
+        filter(lambda x: "first_order" in x, regions_data.keys())
     )
     if (
         any((i in window_name or i in label) for i in ("full", "norm"))
         and window_name_first_order
     ):
-        selected_intensity = windows_data[window_name_first_order[0]].intensity
+        selected_intensity = regions_data[window_name_first_order[0]].intensity
         window_config = window_limits["first_order"]
 
     bl_linear = linregress(
@@ -46,10 +46,10 @@ def subtract_baseline_per_window(
 def subtract_baseline_from_splitted_spectrum(
     splitted_spectrum: SplittedSpectrum, label=None
 ) -> SplittedSpectrum:
-    _bl_spec_windows = {}
+    _bl_spec_regions = {}
     _info = {}
     label = "blcorr" if label is None else label
-    for window_name, spec in splitted_spectrum.spec_windows.items():
+    for window_name, spec in splitted_spectrum.spec_regions.items():
         blcorr_int, blcorr_lin = subtract_baseline_per_window(spec, splitted_spectrum)
         new_label = f"{label}_{spec.label}" if label not in spec.label else spec.label
         spec = SpectrumData(
@@ -60,10 +60,10 @@ def subtract_baseline_from_splitted_spectrum(
                 "windown_name": window_name,
             }
         )
-        _bl_spec_windows.update(**{window_name: spec})
+        _bl_spec_regions.update(**{window_name: spec})
         _info.update(**{window_name: blcorr_lin})
     bl_corrected_spectra = splitted_spectrum.model_copy(
-        update={"spec_windows": _bl_spec_windows, "info": _info}
+        update={"spec_regions": _bl_spec_regions, "info": _info}
     )
     return bl_corrected_spectra
 

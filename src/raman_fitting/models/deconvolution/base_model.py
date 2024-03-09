@@ -1,4 +1,5 @@
-""" The members of the validated collection of BasePeaks are assembled here into fitting Models"""
+"""The members of the validated collection of BasePeaks are assembled here into fitting Models"""
+
 import logging
 from typing import Optional, Dict
 from warnings import warn
@@ -131,13 +132,14 @@ def get_models_and_peaks_from_definitions(
     models_and_peaks_definitions: Optional[Dict] = None,
 ) -> Dict[str, Dict[str, BaseLMFitModel]]:
     if models_and_peaks_definitions is None:
-        # breakpoint()
         models_and_peaks_definitions = load_config_from_toml_files()
     peak_collection = get_peaks_from_peak_definitions(
         peak_definitions=models_and_peaks_definitions
     )
     models_settings = {
-        k: val.get("models") for k, val in models_and_peaks_definitions.items() if "models" in val
+        k: val.get("models")
+        for k, val in models_and_peaks_definitions.items()
+        if "models" in val
     }
     all_models = {}
     for window_name, window_model_settings in models_settings.items():

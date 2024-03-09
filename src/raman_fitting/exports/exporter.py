@@ -7,7 +7,6 @@ from raman_fitting.config.path_settings import (
 )
 from raman_fitting.config import settings
 
-
 from raman_fitting.exports.plotting_fit_results import fit_spectrum_plot
 from raman_fitting.exports.plotting_raw_data import raw_data_spectra_plot
 

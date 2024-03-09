@@ -34,13 +34,13 @@ def get_normalization_factor(
     return norm_factor
 
 
-def normalize_windows_in_splitted_spectrum(
+def normalize_regions_in_splitted_spectrum(
     splitted_spectrum: SplittedSpectrum, norm_factor: float, label: Optional[str] = None
 ) -> SplittedSpectrum:
-    norm_spec_windows = {}
+    norm_spec_regions = {}
     norm_infos = {}
     label = splitted_spectrum.spectrum.label if label is None else label
-    for window_name, spec in splitted_spectrum.spec_windows.items():
+    for window_name, spec in splitted_spectrum.spec_regions.items():
         norm_label = f"{window_name}_{label}" if window_name not in label else label
         norm_label = f"norm_{norm_label}" if "norm" not in norm_label else norm_label
         # label looks like "norm_windowname_label"
@@ -52,10 +52,10 @@ def normalize_windows_in_splitted_spectrum(
                 "window_name": window_name,
             }
         )
-        norm_spec_windows.update(**{window_name: _data})
+        norm_spec_regions.update(**{window_name: _data})
         norm_infos.update(**{window_name: {"normalization_factor": norm_factor}})
     norm_spectra = splitted_spectrum.model_copy(
-        update={"spec_windows": norm_spec_windows, "info": norm_infos}
+        update={"spec_regions": norm_spec_regions, "info": norm_infos}
     )
     return norm_spectra
 
@@ -65,7 +65,7 @@ def normalize_splitted_spectrum(
 ) -> SplittedSpectrum:
     "Normalize the spectrum intensity according to normalization method."
     normalization_factor = get_normalization_factor(splitted_spectrum)
-    norm_data = normalize_windows_in_splitted_spectrum(
+    norm_data = normalize_regions_in_splitted_spectrum(
         splitted_spectrum, normalization_factor
     )
     return norm_data
