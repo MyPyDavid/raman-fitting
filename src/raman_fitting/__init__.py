@@ -27,42 +27,10 @@ except ImportError:
 except Exception as e:
     __version__ = "catch_exception_version"
 
-
-import logging
 import sys
 import warnings
 
-# Configure logger for use in package
-logger = logging.getLogger(__package_name__)
-
-log_format = (
-    "[%(asctime)s] — %(name)s — %(levelname)s —"
-    "%(funcName)s:%(lineno)d—12s %(message)s"
-)
-# '[%(asctime)s] %(levelname)-8s %(name)-12s %(message)s')
-
-# Define basic configuration
-logging.basicConfig(
-    # Define logging level
-    level=logging.DEBUG,
-    # Define the format of log messages
-    format=log_format,
-    # Provide the filename to store the log messages
-    filename=("debug.log"),
-)
-
-formatter = logging.Formatter(log_format)
-from raman_fitting.config import logging_config
-
-logger.addHandler(logging_config.get_console_handler())
-
-# create console handler
-ch = logging.StreamHandler(stream=sys.stdout)
-ch.setLevel(logging.INFO)
-ch.setFormatter(formatter)
-
-# add the handlers to the logger
-logger.addHandler(ch)
+from loguru import logger
 
 # This code is written for Python 3.11 and higher
 if sys.version_info.major < 3 and sys.version_info.minor < 11:
