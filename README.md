@@ -57,7 +57,7 @@ python -m pip install -e raman-fitting/
 
 In order to test the package after installation, please try the following command in a terminal CLI.
 ``` bash
-raman_fitting -M make_examples
+raman_fitting run examples
 ```
 or these commands in the Python interpreter or in a Jupyter Notebook.
 ``` python
@@ -86,7 +86,7 @@ raman_fitting
 
 # If you add a lot of files, try to check if the index is properly constructed
 # before fitting them.
-raman_fitting -M make_index
+raman_fitting make index
 
 # Location of index
 home/.raman_fitting/datafiles/results/raman_fitting_index.csv

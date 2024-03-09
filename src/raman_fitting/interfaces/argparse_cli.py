@@ -3,21 +3,9 @@
 
 import argparse
 
-from raman_fitting.config.base_settings import RunModes
+from raman_fitting.config.path_settings import RunModes
 from loguru import logger
-
-
-_RUN_MODES = ["normal", "testing", "debug", "make_index", "make_examples"]
-
-
-try:
-    import importlib.metadata
-
-    _version = importlib.metadata.version("raman_fitting")
-except ImportError:
-    _version = "version.not.found"
-
-_version_text = f"\n=== CLI raman_fitting version: {_version} ===\n"
+from .utils import get_package_version
 
 
 def main():
@@ -30,7 +18,8 @@ def main():
     )
 
     parser.add_argument(
-        "-M", "-m",
+        "-M",
+        "-m",
         "--run-mode",
         type=RunModes,
         # choices=,
@@ -65,7 +54,7 @@ def main():
         "--version",
         # action=print(_version_text),
         action="version",
-        version="%(prog)s {}".format(_version),
+        version="%(prog)s {}".format(get_package_version()),
         # const=_version_text,
         help="Prints out the current version of the raman_fitting distribution, via importlib.metadata.version",
     )
@@ -86,7 +75,7 @@ def main():
         # IDEA Add a FAST TRACK for DEBUG
     elif args.run_mode == "testing":
         pass
-    elif args.run_mode == RunModes.MAKE_EXAMPLES:
+    elif args.run_mode == RunModes.EXAMPLES:
         extra_kwargs.update(
             {"fit_model_specific_names": ["2peaks", "3peaks", "4peaks"]}
         )
