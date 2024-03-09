@@ -1,6 +1,3 @@
-
-# import importlib
-
 import pytest
 
 from raman_fitting.imports.models import RamanFileInfo
@@ -39,25 +36,28 @@ def path_parsers(example_files):
     path_parsers_ = []
     for fn in example_files:
         path_parsers_.append(RamanFileInfo(**{"file": fn}))
-    return path_parsers_ 
+    return path_parsers_
 
 
-def test_RamanFileInfo(path_parsers):
+def test_ramanfileinfo(path_parsers):
     assert all(isinstance(i, RamanFileInfo) for i in path_parsers)
 
-def test_PP_extra_from_map():
+
+def test_sample_id_name_mapper():
     for k, val in sample_id_name_mapper.items():
         _mapval = overwrite_sample_id_from_mapper(k, sample_id_name_mapper)
         assert _mapval == val
 
-def test_PP_extra_from_parts():
+
+def test_overwrite_sample_id_from_mapper():
     assert "TEST" == overwrite_sample_group_id_from_parts([], "TEST", sGrp_name_mapper)
     for k, val in sGrp_name_mapper.items():
-        emptymap_PP = RamanFileInfo(file=f"{k}/TEST.txt")
+        empty_path_parts = RamanFileInfo(file=f"{k}/TEST.txt")
         assert val == overwrite_sample_group_id_from_parts(
-                emptymap_PP.parts, "TEST", sGrp_name_mapper
-            )
+            empty_path_parts.parts, "TEST", sGrp_name_mapper
+        )
 
-def test_PP_parse_filepath_to_sid_and_pos():
+
+def test_parse_string_to_sample_id_and_position():
     for file, _expected in example_parse_fixture.items():
         assert parse_string_to_sample_id_and_position(file) == _expected

@@ -50,8 +50,6 @@ def get_mean_spectra_info(spectra: List[SpectrumDataLoader]) -> Dict:
     mean_spec_info = {
         k: list(val)[0] for k, val in _all_spec_info_sets if len(val) == 1
     }
-    # logger.warning(f"get_mean_spectra_info failed for spectra {spectra}")
-    # mean_spec_info = {}
     mean_spec_info.update({"mean_spectrum": True})
     return mean_spec_info
 
@@ -64,8 +62,8 @@ def calculate_mean_spectrum_from_spectra(
     try:
         spectra_regions = [i.clean_spectrum.spec_regions for i in spectra]
         mean_spec_regions = {}
-        for window_name in spectra_regions[0].keys():
-            regions_specs = [i[window_name] for i in spectra_regions]
+        for region_name in spectra_regions[0].keys():
+            regions_specs = [i[region_name] for i in spectra_regions]
             ramanshift_mean = np.mean([i.ramanshift for i in regions_specs], axis=0)
             intensity_mean = np.mean([i.intensity for i in regions_specs], axis=0)
 
@@ -73,10 +71,10 @@ def calculate_mean_spectrum_from_spectra(
                 "ramanshift": ramanshift_mean,
                 "intensity": intensity_mean,
                 "label": regions_specs[0].label + "_mean",
-                "window_name": window_name + "_mean",
+                "region_name": region_name + "_mean",
             }
             mean_spec = SpectrumData(**_data)
-            mean_spec_regions[window_name] = mean_spec
+            mean_spec_regions[region_name] = mean_spec
 
     except Exception:
         logger.warning(f"get_mean_spectra_prep_data failed for spectra {spectra}")
@@ -95,6 +93,5 @@ def get_best_guess_spectra_length(spectra: List[SpectrumDataLoader]) -> List:
     length_counts = [(i, lengths.count(i)) for i in set_lengths]
     best_guess_length = max(length_counts, key=itemgetter(1))[0]
     print(f"Spectra not same length {length_counts} took {best_guess_length}")
-    # self._raw_spectra = self._spectra
     spectra = [spec for spec in spectra if spec.spectrum_length == best_guess_length]
     return spectra

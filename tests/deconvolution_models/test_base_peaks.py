@@ -40,23 +40,26 @@ def test_basepeak_initialization():
     test_peak = BasePeak(peak_name="test", peak_type="Voigt")
     assert test_peak.peak_name == "test"
 
+
 @pytest.mark.skip(reason="TODO: add field validations")
 def test_empty_base_class_with_kwargs_raises():
     eb = BasePeak(peak_type="Voigt", peak_name="test")
 
     assert eb.peak_type == "Voigt"
 
-    # TODO built in field validation str_length
+    # add in field validation str_length
     with pytest.raises(ValueError) as excinfo:
         eb.peak_name = 10 * "emptytest"
     assert _error_message_contains(excinfo, "value for peak_name is too long 90")
 
-    # TODO built in field validation for peak_type
+    # add built in field validation for peak_type
     with pytest.raises(ValueError) as excinfo:
         eb.peak_type = "VoigtLorentzian"
-    assert _error_message_contains(excinfo,
-            ''''Multiple options ['Lorentzian', 'Voigt'] for misspelled value "VoigtLorentzian"''',
-        )
+    assert _error_message_contains(
+        excinfo,
+        ''''Multiple options ['Lorentzian', 'Voigt'] for misspelled value "VoigtLorentzian"''',
+    )
+
 
 def test_base_class_good_with_init_extra_tests():
     td1_kwargs = dict(
@@ -80,6 +83,7 @@ def test_base_class_good_with_init_extra_tests():
     # td1.peak_name = "R2D2"
     # assert td1.lmfit_model.prefix == "R2D2_"
 
+
 def test_base_class_good_with_init():
     d1_kwargs = dict(
         peak_name="D1D1",
@@ -94,6 +98,7 @@ def test_base_class_good_with_init():
     td1 = BasePeak(**d1_kwargs)
     assert td1.peak_name == d1_kwargs["peak_name"]
 
+
 def test_base_class_good_with_init_added_method():
     tkwargs = dict(
         peak_type="Lorentzian",
@@ -107,6 +112,7 @@ def test_base_class_good_with_init_added_method():
 
     td1m = BasePeak(**tkwargs)
     assert td1m.peak_type == tkwargs["peak_type"]
+
 
 def test_base_class_good_with_attributes_and_init():
     tkwargs = dict(
@@ -123,6 +129,7 @@ def test_base_class_good_with_attributes_and_init():
     _center_value = nca.lmfit_model.param_hints["center"]["value"]
     assert _center_value == 2435
 
+
 def test_base_class_good_with_attributes_no_init():
     tkwargs = dict(
         param_hints={
@@ -137,6 +144,7 @@ def test_base_class_good_with_attributes_no_init():
     ncni = BasePeak(**tkwargs)
     assert ncni.param_hints["center"].value == 2435
     assert ncni.lmfit_model.param_hints["center"]["value"] == 2435
+
 
 def test_base_class_good_with_attributes_init_collision_values():
     tkwargs = dict(

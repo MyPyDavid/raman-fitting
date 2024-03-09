@@ -7,7 +7,7 @@ from raman_fitting.imports.models import RamanFileInfo
 
 from raman_fitting.models.spectrum import SpectrumData
 from raman_fitting.models.fit_models import SpectrumFitModel
-from raman_fitting.models.splitter import WindowNames
+from raman_fitting.models.splitter import RegionNames
 from raman_fitting.imports.spectrumdata_parser import SpectrumReader
 from raman_fitting.processing.post_processing import SpectrumProcessor
 
@@ -24,6 +24,6 @@ class AggregatedSampleSpectrum(BaseModel):
 
 
 class AggregatedSampleSpectrumFitResult(BaseModel):
-    window_name: WindowNames
+    region_name: RegionNames
     aggregated_spectrum: AggregatedSampleSpectrum
     fit_model_results: Dict[str, SpectrumFitModel]

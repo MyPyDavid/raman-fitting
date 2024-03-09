@@ -3,6 +3,7 @@ Created on Mon Jul  5 21:09:06 2021
 
 @author: DW
 """
+
 from dataclasses import dataclass, field
 import hashlib
 
@@ -60,7 +61,7 @@ class SpectrumReader:
 
     spectrum: SpectrumData = field(default=None)
     label: str = "raw"
-    window_name: str = "full"
+    region_name: str = "full"
     spectrum_hash: str = field(default=None, repr=False)
     spectrum_length: int = field(default=0, init=False)
 
@@ -85,7 +86,7 @@ class SpectrumReader:
                 logger.warning(
                     f"The values of {spectrum_key} of this spectrum are invalid. {validator}"
                 )
-        spec_init = {"label": self.label, "window_name": self.window_name}
+        spec_init = {"label": self.label, "region_name": self.region_name}
         _parsed_spec_dict = {
             k: parsed_spectrum[k] for k in spectrum_keys_expected_values.keys()
         }

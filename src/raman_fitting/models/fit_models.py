@@ -7,7 +7,7 @@ from lmfit import Model as LMFitModel
 from lmfit.model import ModelResult
 
 from raman_fitting.models.deconvolution.base_model import BaseLMFitModel
-from raman_fitting.models.deconvolution.spectrum_regions import WindowNames
+from raman_fitting.models.deconvolution.spectrum_regions import RegionNames
 
 from raman_fitting.models.spectrum import SpectrumData
 
@@ -31,18 +31,18 @@ class SpectrumFitModel(BaseModel):
 
     spectrum: SpectrumData
     model: BaseLMFitModel
-    window: WindowNames
+    region: RegionNames
     fit_kwargs: Dict = Field(default_factory=dict)
     fit_result: ModelResult = Field(None, init_var=False)
     elapsed_time: float = Field(0, init_var=False, repr=False)
 
     @model_validator(mode="after")
-    def match_window_names(self):
-        model_window = self.model.window_name
-        spec_window = self.spectrum.window_name
-        if model_window != spec_window:
+    def match_region_names(self):
+        model_region = self.model.region_name
+        spec_region = self.spectrum.region_name
+        if model_region != spec_region:
             raise ValueError(
-                f"Window names do not match {model_window} and {spec_window}"
+                f"Region names do not match {model_region} and {spec_region}"
             )
         return self
 
@@ -58,7 +58,6 @@ class SpectrumFitModel(BaseModel):
         self.fit_result = fit_result
 
     def process_fit_results(self):
-        #  TODO add parameter post processing steps
         self.fit_result
 
         fit_attrs = {
@@ -70,12 +69,12 @@ class SpectrumFitModel(BaseModel):
 
 
 def run_fit(
-    model: LMFitModel, spectrum: SpectrumData, method="leastsq", **kws
+    model: LMFitModel, spectrum: SpectrumData, method="leastsq", **kwargs
 ) -> ModelResult:
     # ideas: improve fitting loop so that starting parameters from modelX and modelX+Si are shared, faster...
     init_params = model.make_params()
     x, y = spectrum.ramanshift, spectrum.intensity
-    out = model.fit(y, init_params, x=x, method=method)  # 'leastsq'
+    out = model.fit(y, init_params, x=x, method=method, **kwargs)  # 'leastsq'
     return out
 
 
@@ -93,9 +92,9 @@ if __name__ == "__main__":
 
     spectrum_processor = SpectrumProcessor(specread.spectrum)
     clean_spec_1st_order = spectrum_processor.clean_spectrum.spec_regions[
-        "savgol_filter_raw_window_first_order"
+        "savgol_filter_raw_region_first_order"
     ]
-    clean_spec_1st_order.window_name = "first_order"
+    clean_spec_1st_order.region_name = "first_order"
 
     from raman_fitting.models.deconvolution.base_model import (
         get_models_and_peaks_from_definitions,

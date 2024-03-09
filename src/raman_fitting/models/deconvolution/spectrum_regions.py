@@ -12,13 +12,13 @@ def get_default_regions_from_toml_files() -> Dict[str, Dict[str, float]]:
     return default_regions
 
 
-WindowNames = StrEnum(
-    "WindowNames", " ".join(get_default_regions_from_toml_files()), module=__name__
+RegionNames = StrEnum(
+    "RegionNames", " ".join(get_default_regions_from_toml_files()), module=__name__
 )
 
 
-class SpectrumWindowLimits(BaseModel):
-    name: WindowNames
+class SpectrumRegionLimits(BaseModel):
+    name: RegionNames
     min: int
     max: int
     extra_margin: int = 20

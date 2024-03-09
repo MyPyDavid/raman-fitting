@@ -31,24 +31,25 @@ def test_empty_base_model():
 
     with pytest.raises(ValidationError):
         BaseLMFitModel(peaks="A+B")
-    
+
     with pytest.raises(ValidationError):
-        BaseLMFitModel(name="Test_empty", peaks="A+B",window_name="full")
+        BaseLMFitModel(name="Test_empty", peaks="A+B", region_name="full")
 
 
 def test_base_model_2peaks():
-    bm = BaseLMFitModel(name="Test_2peaks", peaks="K2+D+G", window_name="full")
+    bm = BaseLMFitModel(name="Test_2peaks", peaks="K2+D+G", region_name="full")
     assert set(helper_get_list_components(bm)) == set(["D_", "G_"])
     bm.add_substrate()
     assert set(helper_get_list_components(bm)) == set(["D_", "G_", SUBSTRATE_PREFIX])
     bm.remove_substrate()
     assert set(helper_get_list_components(bm)) == set(["D_", "G_"])
 
+
 def test_base_model_wrong_chars_model_name():
     bm = BaseLMFitModel(
         name="Test_wrong_chars",
         peaks="K2+---////+  +7 +K1111+1D+D2",
-        window_name="full",
+        region_name="full",
     )
     assert set(helper_get_list_components(bm)) == set(["D2_"])
     bm.add_substrate()

@@ -21,7 +21,7 @@ class InitializeModels:
 
     model_definitions: dict = field(default_factory=dict)
     peaks: dict = field(default_factory=dict)
-    lmfit_models: Dict[str, Dict[str, BaseLMFitModel]] = None
+    lmfit_models: Dict[str, Dict[str, BaseLMFitModel]] | None = None
 
     def __post_init__(self):
         self.model_definitions = self.model_definitions or {}

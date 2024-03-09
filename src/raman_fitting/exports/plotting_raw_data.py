@@ -12,12 +12,12 @@ from typing import Dict
 import matplotlib
 import matplotlib.pyplot as plt
 
-from raman_fitting.models.splitter import WindowNames
+from raman_fitting.models.splitter import RegionNames
 from raman_fitting.config.path_settings import (
-    CLEAN_SPEC_WINDOW_NAME_PREFIX,
+    CLEAN_SPEC_REGION_NAME_PREFIX,
     ExportPathSettings,
 )
-from raman_fitting.exports.plot_formatting import PLOT_WINDOW_AXES
+from raman_fitting.exports.plot_formatting import PLOT_region_AXES
 from raman_fitting.delegating.models import AggregatedSampleSpectrumFitResult
 
 from loguru import logger
@@ -26,7 +26,7 @@ matplotlib.rcParams.update({"font.size": 14})
 
 
 def raw_data_spectra_plot(
-    aggregated_spectra: Dict[WindowNames, AggregatedSampleSpectrumFitResult],
+    aggregated_spectra: Dict[RegionNames, AggregatedSampleSpectrumFitResult],
     export_paths: ExportPathSettings,
 ):  # pragma: no cover
     if not aggregated_spectra:
@@ -42,15 +42,15 @@ def raw_data_spectra_plot(
     sources_fmt = dict(alpha=0.4, lw=2)
 
     try:
-        fig, ax = plt.subplots(2, 3, figsize=(18, 12))
+        _, ax = plt.subplots(2, 3, figsize=(18, 12))  # noqa
 
-        for _window_name, window_agg in aggregated_spectra.items():
-            mean_spec = window_agg.aggregated_spectrum.spectrum
-            window_name = mean_spec.window_name
-            ax_window = ax[PLOT_WINDOW_AXES[window_name]]
-            selected_processed_data = f"{CLEAN_SPEC_WINDOW_NAME_PREFIX}{window_name}"
+        for _region_name, region_agg in aggregated_spectra.items():
+            mean_spec = region_agg.aggregated_spectrum.spectrum
+            region_name = mean_spec.region_name
+            ax_region = ax[PLOT_region_AXES[region_name]]
+            selected_processed_data = f"{CLEAN_SPEC_REGION_NAME_PREFIX}{region_name}"
             # plot the mean aggregated spectrum
-            ax_window.plot(
+            ax_region.plot(
                 mean_spec.ramanshift,
                 mean_spec.intensity,
                 label=mean_spec.label,
@@ -58,20 +58,20 @@ def raw_data_spectra_plot(
             )
 
             for spec_source in sources:
-                _legend = True if "full" == window_name else False
+                _legend = True if "full" == region_name else False
                 spec_regions = spec_source.processed.clean_spectrum.spec_regions
                 spec = spec_regions[selected_processed_data]
                 # plot each of the data sources
-                ax_window.plot(
+                ax_region.plot(
                     spec.ramanshift,
                     spec.intensity,
                     label=spec_source.file_info.file.stem,
                     **sources_fmt,
                 )
 
-                ax_window.set_title(window_name)
+                ax_region.set_title(region_name)
                 if _legend:
-                    ax_window.legend(fontsize=10)
+                    ax_region.legend(fontsize=10)
 
         plt.suptitle(f"Mean {sample.id}", fontsize=16)
         plt.savefig(
@@ -86,8 +86,8 @@ def raw_data_spectra_plot(
         raise exc from exc
 
 
-def plot_despike_Z(x):
-    fig, ax = plt.subplots(2)
+def plot_despike_z(x):
+    _, ax = plt.subplots(2)  # noqa
     ax.plot(x=x, y=["Zt", "Z_t_filtered"], alpha=0.5)
     ax.plot(x=x, y=["input_intensity", "despiked_intensity"], alpha=0.8)
     plt.show()

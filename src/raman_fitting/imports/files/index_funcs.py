@@ -48,7 +48,7 @@ def load_index(index_file):
         logger.info(
             f"Succesfully imported Raman Index file from {index_file}, with len({len(index)})"
         )
-        if not len(index) == len(index):
+        if len(index) != len(index):
             logger.error(
                 f"""'Error in load_index from {index_file},
                             \nlength of loaded index not same as number of raman files
@@ -102,17 +102,17 @@ def index_selection(index, **kwargs):
         logger.warning("index selection index arg empty")
         return
 
-    if default_selection:
-        if default_selection == "all":
-            index_selection = index.copy()
+    if default_selection == "all":
+        index_selection = index.copy()
 
     if "samplegroups" in kwargs:
-        if kwargs["samplegroups"]:
-            index = list(
-                filter(lambda x: x.sample.group in kwargs["samplegroups"], index)
-            )
+        index = list(
+            filter(lambda x: x.sample.group in kwargs.get("samplegroups", []), index)
+        )
     if "sampleIDs" in kwargs:
-        index = list(filter(lambda x: x.sample.id in kwargs["sampleIDs"], index))
+        index = list(
+            filter(lambda x: x.sample.id in kwargs.get("sampleIDs", []), index)
+        )
 
     if "extra" in kwargs:
         runq = kwargs.get("run")

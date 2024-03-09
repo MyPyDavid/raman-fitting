@@ -1,11 +1,16 @@
 # set base image (host OS)
 FROM python:3.11
 
+RUN addgroup -S nonroot \
+    && adduser -S nonroot -G nonroot
+
+USER nonroot
+
 # set the working directory in the container
 WORKDIR /code
 
 # copy the dependencies file to the working directory
-COPY . .
+COPY ./raman-fitting ./raman-fitting
 
 # copy setup.cfg to work dir
 # COPY setup.cfg .
@@ -25,5 +30,5 @@ RUN pip install -e  ./
 #COPY src/ .
 
 # command to run on container start
-CMD [ "raman_fitting -M make_examples" ]
+CMD [ "raman_fitting run examples" ]
 # CMD [ "python", "./raman_fitting/docker/run_make_examples.py" ]
