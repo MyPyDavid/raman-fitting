@@ -34,7 +34,8 @@ dependencies = [
 	"pydantic>=2.5",
 	"pydantic-settings>=2.1",
 	"pydantic_numpy>=4.1",
-	"loguru>=0.7"
+	"loguru>=0.7",
+	"typer[all]",
 ]
 
 [project.optional-dependencies]
@@ -62,7 +63,7 @@ repository = "https://github.com/MyPyDavid/raman-fitting.git"
 # documentation = "https://raman-fitting.readthedocs.io/en/latest/"
 
 [project.scripts]
-raman_fitting = "raman_fitting.interfaces.cli:main"
+raman_fitting = "raman_fitting.interfaces.typer_cli:app"
 
 
 [tool.hatch.version]
