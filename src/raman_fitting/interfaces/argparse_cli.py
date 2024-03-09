@@ -29,7 +29,7 @@ def main():
 
     parser.add_argument(
         "-sIDs",
-        "--sample_IDs",
+        "--sample_ids",
         nargs="+",
         default=[],
         help="Selection of names of SampleIDs from index to run over.",
@@ -52,10 +52,8 @@ def main():
 
     parser.add_argument(
         "--version",
-        # action=print(_version_text),
         action="version",
         version="%(prog)s {}".format(get_package_version()),
-        # const=_version_text,
         help="Prints out the current version of the raman_fitting distribution, via importlib.metadata.version",
     )
 
@@ -66,16 +64,7 @@ def main():
     import raman_fitting as rf
 
     extra_kwargs = {}
-    if args.run_mode == "normal":
-        pass
-        # _org_index = OrganizeRamanFiles()
-        # RL = RamanLoop(_org_index, run_mode ='normal')
-    elif args.run_mode.lower() == "debug":
-        pass
-        # IDEA Add a FAST TRACK for DEBUG
-    elif args.run_mode == "testing":
-        pass
-    elif args.run_mode == RunModes.EXAMPLES:
+    if args.run_mode == RunModes.EXAMPLES:
         extra_kwargs.update(
             {"fit_model_specific_names": ["2peaks", "3peaks", "4peaks"]}
         )
