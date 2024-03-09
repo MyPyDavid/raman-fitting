@@ -8,7 +8,7 @@ Created on Fri May 14 09:29:16 2021
 """
 # flake8: noqa
 
-import unittest
+import pytest
 
 from raman_fitting.models.deconvolution.init_models import InitializeModels
 from raman_fitting.exports.plot_formatting import (
@@ -19,32 +19,25 @@ from raman_fitting.exports.plot_formatting import (
 )
 
 
-class PeakModelAnnotation(unittest.TestCase):
-    def setUp(self):
-        self.models = InitializeModels()
+# class PeakModelAnnotation(unittest.TestCase):
+@pytest.fixture()
+def initialized_models():
+    return InitializeModels()
 
-    def test_get_cmap_list(self):
-        self.assertEqual(get_cmap_list(0), None)
-        _cmap = get_cmap_list(50)
-        self.assertEqual(_cmap, [DEFAULT_COLOR] * 50)
-        _cmap = get_cmap_list(5)
-        self.assertGreaterEqual(len(_cmap), 5)
+def test_get_cmap_list():
+    assert get_cmap_list(0) == None
+    _cmap = get_cmap_list(50)
+    assert _cmap == [DEFAULT_COLOR] * 50
+    _cmap = get_cmap_list(5)
+    assert  len(_cmap) >= 5
+    _cmap = get_cmap_list(5, default_color=COLOR_BLACK)
+    # assert _cmap, [COLOR_BLACK] * 5
 
-        _cmap = get_cmap_list(5, default_color=COLOR_BLACK)
-        # self.assertEqual(_cmap, [COLOR_BLACK] * 5)
+def test_assign_colors_to_peaks(initialized_models):
+    for order_type, model_collection in initialized_models.lmfit_models.items():
+        for model_name, model in model_collection.items():
+            annotated_models = assign_colors_to_peaks(model.lmfit_model.components)
+            prefixes = set([i.prefix for i in model.lmfit_model.components])
+            assert  prefixes == set(annotated_models.keys())
+            # print(annotated_models)
 
-    def test_assign_colors_to_peaks(self):
-        # print(self.models)
-        # breakpoint()
-        for order_type, model_collection in self.models.lmfit_models.items():
-            for model_name, model in model_collection.items():
-                annotated_models = assign_colors_to_peaks(model.lmfit_model.components)
-                # breakpoint()
-                prefixes = set([i.prefix for i in model.lmfit_model.components])
-                self.assertSetEqual(prefixes, set(annotated_models.keys()))
-                # print(annotated_models)
-                # breakpoint()
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -1,7 +1,7 @@
-import unittest
 
 # import importlib
-from pathlib import Path
+
+import pytest
 
 from raman_fitting.imports.models import RamanFileInfo
 from raman_fitting.imports.samples.sample_id_helpers import (
@@ -13,9 +13,6 @@ from raman_fitting.imports.samples.sample_id_helpers import (
 from raman_fitting.imports.samples.sample_id_helpers import (
     parse_string_to_sample_id_and_position,
 )
-
-# import pytest
-TEST_FIXTURES_PATH = Path(__file__).parent.parent.joinpath("test_fixtures")
 
 example_parse_fixture = {
     "errEMP2_1.txt": ("errEMP2", 1),
@@ -31,55 +28,36 @@ example_parse_fixture = {
 }
 
 
-class TestFilenameParser(unittest.TestCase):
-    result_attr = "parse_result"
-    sample_id_name_mapper = {}
-    sGrp_name_mapper = {}
+# class TestFilenameParser(unittest.TestCase):
+result_attr = "parse_result"
+sample_id_name_mapper = {}
+sGrp_name_mapper = {}
 
-    def setUp(self):
-        _example_path = TEST_FIXTURES_PATH
-        _example_files_contents = list(Path(_example_path).rglob("*txt"))
 
-        self.datafiles = _example_files_contents
-        # list(filter(lambda x: x.endswith('.txt'), _example_files_contents))
-        _pathparsers = []
-        for fn in self.datafiles:
-            _pathparsers.append(RamanFileInfo(**{"file": _example_path.joinpath(fn)}))
-        self.data_PPs = _pathparsers
-        # self.empty_PP = RamanFileInfo()
+@pytest.fixture()
+def path_parsers(example_files):
+    path_parsers_ = []
+    for fn in example_files:
+        path_parsers_.append(RamanFileInfo(**{"file": fn}))
+    return path_parsers_ 
 
-        # Make expected results
-        # {i.name: (i.parse_result['SampleID'], i.parse_result['SamplePos']) for i in  self.data_PPs}
 
-    def test_RamanFileInfo(self):
-        self.assertTrue(all(isinstance(i, RamanFileInfo) for i in self.data_PPs))
+def test_RamanFileInfo(path_parsers):
+    assert all(isinstance(i, RamanFileInfo) for i in path_parsers)
 
-    def test_PP_extra_from_map(self):
-        for k, val in self.sample_id_name_mapper.items():
-            _mapval = overwrite_sample_id_from_mapper(k, self.sample_id_name_mapper)
+def test_PP_extra_from_map():
+    for k, val in sample_id_name_mapper.items():
+        _mapval = overwrite_sample_id_from_mapper(k, sample_id_name_mapper)
+        assert _mapval == val
 
-            self.assertEqual(_mapval, val)
-
-    def test_PP_extra_from_parts(self):
-        self.assertEqual(
-            "TEST",
-            overwrite_sample_group_id_from_parts([], "TEST", self.sGrp_name_mapper),
-        )
-        for k, val in self.sGrp_name_mapper.items():
-            emptymap_PP = RamanFileInfo(file=f"{k}/TEST.txt")
-            self.assertEqual(
-                val,
-                overwrite_sample_group_id_from_parts(
-                    emptymap_PP.parts, "TEST", self.sGrp_name_mapper
-                ),
+def test_PP_extra_from_parts():
+    assert "TEST" == overwrite_sample_group_id_from_parts([], "TEST", sGrp_name_mapper)
+    for k, val in sGrp_name_mapper.items():
+        emptymap_PP = RamanFileInfo(file=f"{k}/TEST.txt")
+        assert val == overwrite_sample_group_id_from_parts(
+                emptymap_PP.parts, "TEST", sGrp_name_mapper
             )
 
-    def test_PP_parse_filepath_to_sid_and_pos(self):
-        for file, _expected in example_parse_fixture.items():
-            self.assertEqual(parse_string_to_sample_id_and_position(file), _expected)
-
-
-if __name__ == "__main__":
-    unittest.main()
-    self = TestFilenameParser()
-    self.setUp()
+def test_PP_parse_filepath_to_sid_and_pos():
+    for file, _expected in example_parse_fixture.items():
+        assert parse_string_to_sample_id_and_position(file) == _expected
