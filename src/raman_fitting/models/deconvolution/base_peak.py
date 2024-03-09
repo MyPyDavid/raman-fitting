@@ -218,7 +218,9 @@ def get_peaks_from_peak_definitions(
 ) -> Dict[str, BasePeak]:
     if peak_definitions is None:
         peak_definitions = load_config_from_toml_files()
-    peak_settings = {k: val.get("peaks") for k, val in peak_definitions.items() if "peaks" in val}
+    peak_settings = {
+        k: val.get("peaks") for k, val in peak_definitions.items() if "peaks" in val
+    }
     peak_models = {}
     for peak_type, peak_type_defs in peak_settings.items():
         if peak_type_defs is None:
@@ -231,7 +233,6 @@ def get_peaks_from_peak_definitions(
 def _main():
     model_definitions = load_config_from_toml_files()
     print(model_definitions["first_order"]["models"])
-    # PARAMETER_ARGS = inspect.signature(Parameter).parameters.keys()
     peaks = {}
     peak_items = {
         **model_definitions["first_order"]["peaks"],
@@ -240,8 +241,8 @@ def _main():
     for k, v in peak_items:
         peaks.update({k: BasePeak(**v)})
 
-    D_peak = BasePeak(**model_definitions["first_order"]["peaks"]["D"])
-    print(D_peak)
+    peak_d = BasePeak(**model_definitions["first_order"]["peaks"]["D"])
+    print(peak_d)
     model_items = {
         **model_definitions["first_order"]["models"],
         **model_definitions["second_order"]["models"],

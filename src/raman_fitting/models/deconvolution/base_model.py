@@ -20,7 +20,7 @@ from raman_fitting.models.deconvolution.base_peak import (
 from raman_fitting.models.deconvolution.lmfit_parameter import (
     construct_lmfit_model_from_components,
 )
-from raman_fitting.models.splitter import WindowNames
+from raman_fitting.models.splitter import RegionNames
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ class BaseLMFitModel(BaseModel):
         repr=False,
     )
     lmfit_model: LMFitModel = Field(None, init_var=False, repr=False)
-    window_name: WindowNames
+    region_name: RegionNames
 
     @property
     def has_substrate(self):
@@ -142,16 +142,16 @@ def get_models_and_peaks_from_definitions(
         if "models" in val
     }
     all_models = {}
-    for window_name, window_model_settings in models_settings.items():
-        if window_model_settings is None:
+    for region_name, region_model_settings in models_settings.items():
+        if region_model_settings is None:
             continue
-        all_models[window_name] = {}
-        for model_name, model_peaks in window_model_settings.items():
-            all_models[window_name][model_name] = BaseLMFitModel(
+        all_models[region_name] = {}
+        for model_name, model_peaks in region_model_settings.items():
+            all_models[region_name][model_name] = BaseLMFitModel(
                 name=model_name,
                 peaks=model_peaks,
                 peak_collection=peak_collection,
-                window_name=window_name,
+                region_name=region_name,
             )
     return all_models
 

@@ -13,34 +13,29 @@ from raman_fitting.models.fit_models import SpectrumFitModel
 
 
 from raman_fitting.config.path_settings import ExportPathSettings
-from raman_fitting.models.splitter import WindowNames
+from raman_fitting.models.splitter import RegionNames
 from raman_fitting.delegating.models import AggregatedSampleSpectrumFitResult
 
 from loguru import logger
 
 
 matplotlib.rcParams.update({"font.size": 14})
-# TODO fix big spectrum plot, reduce complexity if-statements
 
 
 def fit_spectrum_plot(
-    aggregated_spectra: Dict[WindowNames, AggregatedSampleSpectrumFitResult],
+    aggregated_spectra: Dict[RegionNames, AggregatedSampleSpectrumFitResult],
     export_paths: ExportPathSettings | None = None,
     plot_annotation=True,
     plot_residuals=True,
 ):  # pragma: no cover
-    first_order = aggregated_spectra[WindowNames.first_order]
-    second_order = aggregated_spectra[WindowNames.second_order]
+    first_order = aggregated_spectra[RegionNames.first_order]
+    second_order = aggregated_spectra[RegionNames.second_order]
 
     sources = first_order.aggregated_spectrum.sources
     sample = sources[0].file_info.sample
-    # first_model_name = "4peaks"
     second_model_name = "2nd_4peaks"
-    # first_model = [first_model_name]
     second_model = second_order.fit_model_results.get(second_model_name)
-    # breakpoint()
     for first_model_name, first_model in first_order.fit_model_results.items():
-        # for second_model_name, second_model in second_order.fit_model_results.items():
         prepare_combined_spectrum_fit_result_plot(
             first_model,
             second_model,
@@ -64,7 +59,6 @@ def prepare_combined_spectrum_fit_result_plot(
     ax = plt.subplot(gs[0])
     ax_res = plt.subplot(gs[1])
     ax.set_title(f"{sample.id}")
-    # breakpoint()
 
     first_model_name = first_model.model.name
 
@@ -92,7 +86,7 @@ def prepare_combined_spectrum_fit_result_plot(
     # set axes labels and legend
     set_axes_labels_and_legend(ax)
 
-    plot_special_si_components(ax, first_model, first_model_name)
+    plot_special_si_components(ax, first_model)
 
     if export_paths is not None:
         savepath = export_paths.plots.joinpath(f"Model_{first_model_name}").with_suffix(
@@ -256,7 +250,7 @@ def prepare_annotate_fit_report_second(ax2nd, second_result) -> Text:
 
 def prepare_annotate_fit_report_first(ax, first_result):
     fit_report = first_result.fit_report()
-    if len(fit_report) > -1:  #  TODO remove
+    if len(fit_report) > -1:
         fit_report = fit_report.replace("prefix='D3_'", "prefix='D3_' \n")
     props = dict(boxstyle="round", facecolor="wheat", alpha=0.5)
 
@@ -272,13 +266,12 @@ def prepare_annotate_fit_report_first(ax, first_result):
     return annotate_report_first
 
 
-def plot_special_si_components(ax, first_model, model_name: str):
+def plot_special_si_components(ax, first_model):
     first_result = first_model.fit_result
     si_components = filter(lambda x: x.prefix.startswith("Si"), first_result.components)
     first_eval_comps = first_model.fit_result.eval_components()
     for si_comp in si_components:
         si_result = si_comp
-        #  TODO should be si_fit_results
         ax.plot(
             first_model.spectrum.ramanshift,
             first_eval_comps[si_comp.prefix],

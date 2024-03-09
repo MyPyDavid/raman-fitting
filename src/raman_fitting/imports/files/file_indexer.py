@@ -109,14 +109,14 @@ def parse_dataset_to_index(dataset: Dataset) -> RamanFileInfoSet:
 
 class IndexSelector(BaseModel):
     raman_files: Sequence[RamanFileInfo]
-    sample_IDs: List[str] = Field(default_factory=list)
+    sample_ids: List[str] = Field(default_factory=list)
     sample_groups: List[str] = Field(default_factory=list)
     selection: Sequence[RamanFileInfo] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def make_and_set_selection(self) -> "IndexSelector":
         rf_index = self.raman_files
-        if not any([self.sample_groups, self.sample_IDs]):
+        if not any([self.sample_groups, self.sample_ids]):
             self.selection = rf_index
             logger.debug(
                 f"{self.__class__.__qualname__} selected {len(self.selection)} of {len(rf_index)}. "
@@ -127,11 +127,11 @@ class IndexSelector(BaseModel):
                 filter(lambda x: x.sample.group in self.sample_groups, rf_index)
             )
             _pre_selected_samples = {i.sample.id for i in rf_index_groups}
-            selected_sampleIDs = filterfalse(
-                lambda x: x in _pre_selected_samples, self.sample_IDs
+            selected_sample_ids = filterfalse(
+                lambda x: x in _pre_selected_samples, self.sample_ids
             )
             rf_index_samples = list(
-                filter(lambda x: x.sample.id in selected_sampleIDs, rf_index)
+                filter(lambda x: x.sample.id in selected_sample_ids, rf_index)
             )
             rf_selection_index = rf_index_groups + rf_index_samples
             self.selection = rf_selection_index
@@ -180,9 +180,6 @@ def collect_raman_file_index_info(
     raman_files: Sequence[Path] | None = None, **kwargs
 ) -> RamanFileInfoSet:
     """loops over the files and scrapes the index data from each file"""
-    # if not raman_files:
-    #     raman_files = list(settings.internal_paths.example_fixtures.glob("*.txt"))
-
     index, files = collect_raman_file_infos(raman_files, **kwargs)
     logger.info(f"successfully made index {len(index)} from {len(files)} files")
     return index
@@ -215,7 +212,6 @@ def main():
     except Exception as e:
         logger.error(f"Raman Index error: {e}")
         raman_index = None
-    # ds = cast_raman_files_to_dataset(raman_index.raman_files)
 
     return raman_index
 

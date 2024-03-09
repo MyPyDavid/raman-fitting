@@ -27,7 +27,7 @@ def filter_data_for_numeric(data: Dataset):
 
 def load_dataset_from_file(filepath, **kwargs) -> Dataset:
     with open(filepath, "r") as fh:
-        imported_data = Dataset().load(fh)
+        imported_data = Dataset(**kwargs).load(fh)
     return imported_data
 
 
@@ -88,7 +88,7 @@ def use_np_loadtxt(filepath, usecols=(0, 1), **kwargs) -> np.array:
 
 def cast_array_into_spectrum_frame(array, keys: List[str] = None) -> pd.DataFrame:
     """cast array into spectrum frame"""
-    if not array.ndim == len(keys):
+    if array.ndim != len(keys):
         raise ValueError(
             f"Array dimension {array.ndim} does not match the number of keys {len(keys)}"
         )

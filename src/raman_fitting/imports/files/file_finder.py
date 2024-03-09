@@ -35,9 +35,6 @@ def find_files(directory: Path, suffixes: List[str]) -> List[Path]:
         logger.warning(
             f"find_files warning: the chose data file dir was empty.\n{directory}\mPlease choose another directory which contains your data files."
         )
-    # TODO filter files somewhere else
-    # raman_files_raw = [i for i in raman_files if not any(k in i for k in excluded)
-    #                    "fail" not in i.stem and "Labjournal" not in str(i)
     logger.info(
         f"find_files {len(raman_files)} files were found in the chosen data dir:\n\t{directory}"
     )

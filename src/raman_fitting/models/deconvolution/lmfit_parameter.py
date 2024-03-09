@@ -92,23 +92,23 @@ class LMFitParameterHints(BaseModel):
 
     @model_validator(mode="after")
     def check_min_max(self) -> "LMFitParameterHints":
-        min, max = self.min, self.max
-        if min is not None and max is not None and min > max:
+        min_, max_ = self.min, self.max
+        if min_ is not None and max_ is not None and min_ > max_:
             raise ValueError("Min must be less than max")
         return self
 
     @model_validator(mode="after")
     def check_value_min_max(self) -> "LMFitParameterHints":
-        value, min, max = self.value, self.min, self.max
+        value, min_, max_ = self.value, self.min, self.max
         if value is None:
             raise ValueError("Value must not be None")
-        if min is not None:
-            assert value >= min
-        if max is not None:
-            assert value <= max
-        if max and min:
-            assert min <= value <= max
-            assert min < max
+        if min_ is not None:
+            assert value >= min_
+        if max_ is not None:
+            assert value <= max_
+        if max_ and min_:
+            assert min_ <= value <= max_
+            assert min_ < max_
         return self
 
     @model_validator(mode="after")

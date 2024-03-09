@@ -12,14 +12,14 @@ from raman_fitting.processing.post_processing import SpectrumProcessor
 
 @pytest.fixture
 def clean_spec(example_files) -> None:
-    file = [i for i in example_files if "_pos4" in i.stem][0]   
+    file = [i for i in example_files if "_pos4" in i.stem][0]
     specread = SpectrumReader(file)
 
     spectrum_processor = SpectrumProcessor(specread.spectrum)
     clean_spec_1st_order = spectrum_processor.clean_spectrum.spec_regions[
-        "savgol_filter_raw_window_first_order"
+        "savgol_filter_raw_region_first_order"
     ]
-    clean_spec_1st_order.window_name = "first_order"
+    clean_spec_1st_order.region_name = "first_order"
     return clean_spec_1st_order
 
 
@@ -31,7 +31,7 @@ def test_fit_first_order(clean_spec):
     for model_name, test_model in models["first_order"].items():
         # with subTest(model_name=model_name, test_model=test_model):
         spec_fit = SpectrumFitModel(
-            **{"spectrum": spectrum, "model": test_model, "window": "first_order"}
+            **{"spectrum": spectrum, "model": test_model, "region": "first_order"}
         )
         spec_fit.run_fit()
         for component in test_model.lmfit_model.components:

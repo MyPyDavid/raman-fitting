@@ -4,11 +4,11 @@ from typing import Protocol
 
 from raman_fitting.models.spectrum import SpectrumData
 
-from .baseline_subtraction import subtract_baseline_from_splitted_spectrum
+from .baseline_subtraction import subtract_baseline_from_split_spectrum
 from .filter import filter_spectrum
 from .despike import SpectrumDespiker
-from ..models.splitter import SplittedSpectrum
-from .normalization import normalize_splitted_spectrum
+from ..models.splitter import SplitSpectrum
+from .normalization import normalize_split_spectrum
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +17,7 @@ POST_PROCESS_KWARGS = {"filter_name": "savgol_"}
 
 
 class PostProcessor(Protocol):
-    def process_spectrum(self, spectrum: SpectrumData):
-        ...
+    def process_spectrum(self, spectrum: SpectrumData): ...
 
 
 @dataclass
@@ -32,7 +31,7 @@ class SpectrumProcessor:
         self.clean_spectrum = processed_spectrum
         self.processed = True
 
-    def process_spectrum(self) -> SplittedSpectrum:
+    def process_spectrum(self) -> SplitSpectrum:
         pre_processed_spectrum = self.pre_process_intensity()
         post_processed_spectra = self.post_process_spectrum(pre_processed_spectrum)
         return post_processed_spectra
@@ -42,8 +41,8 @@ class SpectrumProcessor:
         despiker = SpectrumDespiker(**{"spectrum": filtered_spectrum})
         return despiker.despiked_spectrum
 
-    def post_process_spectrum(self, spectrum: SpectrumData) -> SplittedSpectrum:
-        split_spectrum = SplittedSpectrum(spectrum=spectrum)
-        baseline_subtracted = subtract_baseline_from_splitted_spectrum(split_spectrum)
-        normalized_spectra = normalize_splitted_spectrum(baseline_subtracted)
+    def post_process_spectrum(self, spectrum: SpectrumData) -> SplitSpectrum:
+        split_spectrum = SplitSpectrum(spectrum=spectrum)
+        baseline_subtracted = subtract_baseline_from_split_spectrum(split_spectrum)
+        normalized_spectra = normalize_split_spectrum(baseline_subtracted)
         return normalized_spectra

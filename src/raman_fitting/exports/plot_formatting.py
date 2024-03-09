@@ -9,7 +9,7 @@ Created on Wed Apr 28 15:08:26 2021
 from collections import namedtuple
 from typing import Sequence, Tuple
 
-from raman_fitting.models.splitter import WindowNames
+from raman_fitting.models.splitter import RegionNames
 
 import matplotlib.pyplot as plt
 from lmfit import Model as LMFitModel
@@ -24,13 +24,13 @@ COLOR_BLACK = (0, 0, 0, 1)  # black as fallback default color
 ModelValidation = namedtuple("ModelValidation", "valid peak_group model_inst message")
 
 
-PLOT_WINDOW_AXES = {
-    WindowNames.full: (0, 0),
-    WindowNames.low: (0, 1),
-    WindowNames.first_order: (0, 2),
-    WindowNames.mid: (1, 1),
-    WindowNames.second_order: (1, 2),
-    WindowNames.normalization: (1, 0),
+PLOT_region_AXES = {
+    RegionNames.full: (0, 0),
+    RegionNames.low: (0, 1),
+    RegionNames.first_order: (0, 2),
+    RegionNames.mid: (1, 1),
+    RegionNames.second_order: (1, 2),
+    RegionNames.normalization: (1, 0),
 }
 
 
@@ -50,7 +50,7 @@ def get_cmap_list(
     length: int,
     cmap_options: Tuple = CMAP_OPTIONS_DEFAULT,
     default_color: Tuple = DEFAULT_COLOR,
-) -> Tuple:
+) -> Tuple | None:
     lst = list(range(length))
     if not lst:
         return None
@@ -58,9 +58,10 @@ def get_cmap_list(
     # set fallback color from class
     if isinstance(default_color, tuple) and default_color is not None:
         if len(default_color) == 4:
-            cmap = [default_color for i in lst]
+            cmap = [default_color for _ in lst]
+            return cmap
     elif default_color is None:
-        cmap = [DEFAULT_COLOR for i in lst]
+        cmap = [DEFAULT_COLOR for _ in lst]
     else:
         raise ValueError(f"default color is not tuple but {type(default_color)}")
 

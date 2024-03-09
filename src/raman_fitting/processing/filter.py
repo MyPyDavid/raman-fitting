@@ -10,8 +10,7 @@ from raman_fitting.models.spectrum import SpectrumData
 
 
 class IntensityProcessor(Protocol):
-    def process_intensity(self, intensity: np.ndarray) -> np.ndarray:
-        ...
+    def process_intensity(self, intensity: np.ndarray) -> np.ndarray: ...
 
 
 @dataclass
@@ -53,15 +52,6 @@ def filter_spectrum(
         update={"intensity": filtered_intensity, "label": label}
     )
     return filtered_spectrum
-
-
-# def savgol_filter(intensity: np.ndarray):
-#     args = (13, 3)
-#     kwargs = dict(mode='nearest')
-#     func = signal.savgol_filter
-#     savgol_int_filter = IntensityFilter(func, filter_args=args, filter_kwargs=kwargs)
-#     filtered_intensity = savgol_int_filter.process_intensity()
-#     return filtered_intensity
 
 
 """

@@ -37,7 +37,7 @@ class ValidateSpectrumValues:
 def validate_spectrum_keys_expected_values(
     spectrum_data: Dataset, expected_values: ValidateSpectrumValues
 ):
-    if not expected_values.spectrum_key not in spectrum_data.columns:
+    if expected_values.spectrum_key not in spectrum_data.columns:
         logger.error(
             f"The expected value type {expected_values.spectrum_key} is not in the columns {spectrum_data.columns}"
         )

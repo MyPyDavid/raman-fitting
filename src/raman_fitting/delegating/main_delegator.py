@@ -18,7 +18,7 @@ from raman_fitting.models.deconvolution.base_model import (
 )
 from raman_fitting.models.spectrum import SpectrumData
 from raman_fitting.models.fit_models import SpectrumFitModel
-from raman_fitting.models.splitter import WindowNames
+from raman_fitting.models.splitter import RegionNames
 from raman_fitting.exports.exporter import ExportManager
 from raman_fitting.imports.files.file_indexer import (
     RamanFileIndex,
@@ -56,11 +56,11 @@ class MainDelegator:
     lmfit_models: LMFitModelCollection = field(
         default_factory=get_models_and_peaks_from_definitions
     )
-    fit_model_window_names: Sequence[WindowNames] = field(
-        default=(WindowNames.first_order, WindowNames.second_order)
+    fit_model_region_names: Sequence[RegionNames] = field(
+        default=(RegionNames.first_order, RegionNames.second_order)
     )
     fit_model_specific_names: Sequence[str] | None = None
-    sample_IDs: Sequence[str] = field(default_factory=list)
+    sample_ids: Sequence[str] = field(default_factory=list)
     sample_groups: Sequence[str] = field(default_factory=list)
     index: RamanFileIndex = None
 
@@ -92,7 +92,7 @@ class MainDelegator:
             **dict(
                 raman_files=index.raman_files,
                 sample_groups=self.sample_groups,
-                sample_IDs=self.sample_IDs,
+                sample_ids=self.sample_ids,
             )
         )
         selection = index_selector.selection
@@ -106,38 +106,38 @@ class MainDelegator:
         exports = export.export_files()
         return exports
 
-    # window_names:List[WindowNames], model_names: List[str]
+    # region_names:List[RegionNames], model_names: List[str]
     def select_models_from_provided_models(self) -> LMFitModelCollection:
-        selected_window_names = self.fit_model_window_names
+        selected_region_names = self.fit_model_region_names
         selected_model_names = self.fit_model_specific_names
         selected_models = {}
-        for window_name, all_window_models in self.lmfit_models.items():
-            if window_name not in selected_window_names:
+        for region_name, all_region_models in self.lmfit_models.items():
+            if region_name not in selected_region_names:
                 continue
             if not selected_model_names:
-                selected_models[window_name] = all_window_models
+                selected_models[region_name] = all_region_models
                 continue
-            selected_window_models = {}
-            for mod_name, mod_val in all_window_models.items():
+            selected_region_models = {}
+            for mod_name, mod_val in all_region_models.items():
                 if mod_name not in selected_model_names:
                     continue
-                selected_window_models[mod_name] = mod_val
+                selected_region_models[mod_name] = mod_val
 
-            selected_models[window_name] = selected_window_models
+            selected_models[region_name] = selected_region_models
         return selected_models
 
     def select_fitting_model(
-        self, window_name: WindowNames, model_name: str
+        self, region_name: RegionNames, model_name: str
     ) -> BaseLMFitModel:
         try:
-            return self.lmfit_models[window_name][model_name]
+            return self.lmfit_models[region_name][model_name]
         except KeyError as exc:
-            raise KeyError(f"Model {window_name} {model_name} not found.") from exc
+            raise KeyError(f"Model {region_name} {model_name} not found.") from exc
 
     def main_run(self):
         selection = self.select_samples_from_index()
-        if not self.fit_model_window_names:
-            logger.info("No model window names were selected.")
+        if not self.fit_model_region_names:
+            logger.info("No model region names were selected.")
         if not self.selected_models:
             logger.info("No fit models were selected.")
 
@@ -157,42 +157,38 @@ class MainDelegator:
                     continue
 
                 unique_positions = {i.sample.position for i in sgrp}
-                if not len(unique_positions) > len(sgrp):
-                    # TODO handle edge-case, multiple source files for a single position on a sample
+                if len(unique_positions) <= len(sgrp):
+                    #  handle edge-case, multiple source files for a single position on a sample
                     _error_msg = f"Handle multiple source files for a single position on a sample, {group_name} {sample_id}"
                     results[group_name][sample_id]["errors"] = _error_msg
                     logger.debug(_error_msg)
-                # results[group_name][sample_id]['data_source'] = sgrp
                 model_result = run_fit_over_selected_models(sgrp, self.selected_models)
                 results[group_name][sample_id]["fit_results"] = model_result
         self.results = results
-        # TODO add a FitResultModel for collection all the results
-        # sample_result = {'group': grp, 'spec_fit': spec_fit, 'mean_spec': mean_spec}
-        # results[group_name][sample_id].update(sample_result)
 
 
 def run_fit_over_selected_models(
     raman_files: List[RamanFileInfo], models: LMFitModelCollection
-) -> Dict[WindowNames, AggregatedSampleSpectrumFitResult]:
+) -> Dict[RegionNames, AggregatedSampleSpectrumFitResult]:
     results = {}
-    for window_name, window_grp in models.items():
+    for region_name, region_grp in models.items():
         aggregated_spectrum = prepare_aggregated_spectrum_from_files(
-            window_name, raman_files
+            region_name, raman_files
         )
         if aggregated_spectrum is None:
             continue
         fit_model_results = {}
-        for model_name, model in window_grp.items():
+        for model_name, model in region_grp.items():
             spectrum_fit = run_sample_fit_with_model(
                 aggregated_spectrum.spectrum, model
             )
             fit_model_results[model_name] = spectrum_fit
-        fit_window_results = AggregatedSampleSpectrumFitResult(
-            window_name=window_name,
+        fit_region_results = AggregatedSampleSpectrumFitResult(
+            region_name=region_name,
             aggregated_spectrum=aggregated_spectrum,
             fit_model_results=fit_model_results,
         )
-        results[window_name] = fit_window_results
+        results[region_name] = fit_region_results
     return results
 
 
@@ -200,12 +196,12 @@ def run_sample_fit_with_model(
     spectrum: SpectrumData, model: BaseLMFitModel
 ) -> SpectrumFitModel:
     name = model.name
-    window = model.window_name.name
-    spec_fit = SpectrumFitModel(spectrum=spectrum, model=model, window=window)
-    #  TODO include optional https://lmfit.github.io/lmfit-py/model.html#saving-and-loading-modelresults
+    region = model.region_name.name
+    spec_fit = SpectrumFitModel(spectrum=spectrum, model=model, region=region)
+    #  include optional https://lmfit.github.io/lmfit-py/model.html#saving-and-loading-modelresults
     spec_fit.run_fit()
     logger.debug(
-        f"Fit with model {name} on {window} success: {spec_fit.fit_result.success} in {spec_fit.elapsed_time:.2f}s."
+        f"Fit with model {name} on {region} success: {spec_fit.fit_result.success} in {spec_fit.elapsed_time:.2f}s."
     )
     # spec_fit.fit_result.plot(show_init=True)
     return spec_fit

@@ -20,5 +20,5 @@ def get_filename_id_from_path(path: Path) -> str:
     _parent_suffix_hash = hashlib.sha512(
         (str(path.parent) + path.suffix).encode("utf-8")
     ).hexdigest()
-    fnID = f"{_parent_suffix_hash}_{path.stem}"
-    return fnID
+    filename_id = f"{_parent_suffix_hash}_{path.stem}"
+    return filename_id

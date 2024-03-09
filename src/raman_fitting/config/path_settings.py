@@ -36,11 +36,10 @@ INDEX_FILE_NAME = f"{PACKAGE_NAME}_index.csv"
 # Storage file of the index
 USER_INDEX_FILE_PATH: Path = USER_HOME_PACKAGE / INDEX_FILE_NAME
 
-TEMP_DIR = Path(tempfile.mkdtemp(prefix='raman-fitting-'))
-TEMP_RESULTS_DIR: Path = TEMP_DIR / 'results'
+TEMP_DIR = Path(tempfile.mkdtemp(prefix="raman-fitting-"))
+TEMP_RESULTS_DIR: Path = TEMP_DIR / "results"
 
-# TODO fix label on clean processed spectrum to simple window name
-CLEAN_SPEC_WINDOW_NAME_PREFIX = "savgol_filter_raw_window_"
+CLEAN_SPEC_REGION_NAME_PREFIX = "savgol_filter_raw_region_"
 
 ERROR_MSG_TEMPLATE = "{sample_group} {sampleid}: {msg}"
 
@@ -52,7 +51,7 @@ class InternalPathSettings(BaseModel):
     example_fixtures: DirectoryPath = Field(INTERNAL_EXAMPLE_FIXTURES)
     pytest_fixtures: DirectoryPath = Field(INTERNAL_PYTEST_FIXTURES)
     temp_dir: DirectoryPath = Field(TEMP_RESULTS_DIR)
-    temp_index_file: FilePath = Field(TEMP_DIR / INDEX_FILE_NAME )
+    temp_index_file: FilePath = Field(TEMP_DIR / INDEX_FILE_NAME)
 
 
 EXPORT_FOLDER_NAMES = {
@@ -84,9 +83,7 @@ def get_run_mode_paths(run_mode: RunModes, user_package_home: Path = None):
             "RESULTS_DIR": user_package_home / "examples",
             "DATASET_DIR": INTERNAL_EXAMPLE_FIXTURES,
             "USER_CONFIG_FILE": INTERNAL_EXAMPLE_FIXTURES / f"{PACKAGE_NAME}.toml",
-            "INDEX_FILE": user_package_home
-            / "examples"
-            / f"{PACKAGE_NAME}_index.csv",
+            "INDEX_FILE": user_package_home / "examples" / f"{PACKAGE_NAME}_index.csv",
         },
         RunModes.NORMAL.name: {
             "RESULTS_DIR": user_package_home / "results",
@@ -139,12 +136,9 @@ def initialize_run_mode_paths(
 ) -> RunModePaths:
     run_mode_paths = get_run_mode_paths(run_mode, user_package_home=user_package_home)
 
-    # USER_HOME_PACKAGE = get_user_destination_dir(USER_HOME_PACKAGE)
     for destname, destdir in run_mode_paths.items():
         destdir = Path(destdir)
         check_and_make_dirs(destdir)
-    # dest_dirs["RUN_MODE"] = run_mode
-    # breakpoint()
     return RunModePaths(RUN_MODE=run_mode, **run_mode_paths)
 
 

@@ -6,10 +6,11 @@ from typing import Dict
 import pandas as pd
 
 from raman_fitting.imports.spectrumdata_parser import SpectrumReader
-from raman_fitting.models.splitter import SplittedSpectrum
 from pydantic import BaseModel
 
 from raman_fitting.processing.post_processing import SpectrumProcessor
+
+from raman_fitting.models.splitter import SplitSpectrum
 
 logger = logging.getLogger(__name__)
 SPECTRUM_KEYS = ("ramanshift", "intensity")
@@ -33,7 +34,7 @@ class SpectrumDataLoader:
     # ovv: pd.DataFrame = field(default_factory=pd.DataFrame, repr=False)
     run_kwargs: Dict = field(default_factory=dict, repr=False)
     spectrum_length: int = field(default=0, init=False)
-    clean_spectrum: SplittedSpectrum = field(default=None, init=False)
+    clean_spectrum: SplitSpectrum = field(default=None, init=False)
 
     def __post_init__(self):
         self._qcnm = self.__class__.__qualname__
@@ -44,12 +45,11 @@ class SpectrumDataLoader:
         if not self.info:
             self.info = {"FilePath": self.file}
             return
-        FP_from_info = self.info.get("FilePath", None)
-        if FP_from_info:
-            if Path(FP_from_info) != self.file:
-                raise ValueError(
-                    f"Mismatch in value for FilePath: {self.file} != {FP_from_info}"
-                )
+        filepath_ = self.info.get("FilePath", None)
+        if filepath_ and Path(filepath_) != self.file:
+            raise ValueError(
+                f"Mismatch in value for FilePath: {self.file} != {filepath_}"
+            )
 
     def load_data_delegator(self):
         """calls the SpectrumReader class"""
