@@ -24,7 +24,7 @@ COLOR_BLACK = (0, 0, 0, 1)  # black as fallback default color
 ModelValidation = namedtuple("ModelValidation", "valid peak_group model_inst message")
 
 
-PLOT_region_AXES = {
+PLOT_REGION_AXES = {
     RegionNames.full: (0, 0),
     RegionNames.low: (0, 1),
     RegionNames.first_order: (0, 2),
