@@ -22,6 +22,8 @@ from raman_fitting.imports.files.utils import (
 from raman_fitting.imports.models import RamanFileInfo
 from tablib import Dataset
 
+from raman_fitting.imports.spectrum import SPECTRUM_FILETYPE_PARSERS
+
 RamanFileInfoSet: TypeAlias = Sequence[RamanFileInfo]
 
 
@@ -180,7 +182,16 @@ def collect_raman_file_index_info(
     raman_files: Sequence[Path] | None = None, **kwargs
 ) -> RamanFileInfoSet:
     """loops over the files and scrapes the index data from each file"""
-    index, files = collect_raman_file_infos(raman_files, **kwargs)
+    raman_files = list(raman_files)
+    total_files = []
+    dirs = [i for i in raman_files if i.is_dir()]
+    files = [i for i in raman_files if i.is_file()]
+    total_files += files
+    suffixes = [i.lstrip(".") for i in SPECTRUM_FILETYPE_PARSERS.keys()]
+    for d1 in dirs:
+        paths = [path for i in suffixes for path in d1.glob(f"*.{i}")]
+        total_files += paths
+    index, files = collect_raman_file_infos(total_files, **kwargs)
     logger.info(f"successfully made index {len(index)} from {len(files)} files")
     return index
 
@@ -191,6 +202,7 @@ def initialize_index_from_source_files(
     force_reindex: bool = False,
 ) -> RamanFileIndex:
     raman_files = collect_raman_file_index_info(raman_files=files)
+    # breakpoint()
     raman_index = RamanFileIndex(
         index_file=index_file, raman_files=raman_files, force_reindex=force_reindex
     )

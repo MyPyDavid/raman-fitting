@@ -4,7 +4,7 @@ from lmfit.parameter import Parameter
 def join_prefix_suffix(prefix: str, suffix: str) -> str:
     prefix_ = prefix.rstrip("_")
     suffix_ = suffix.lstrip("_")
-    if prefix.endswith(suffix_):
+    if suffix_ in prefix:
         return prefix_
     return f"{prefix_}_{suffix_}"
 
