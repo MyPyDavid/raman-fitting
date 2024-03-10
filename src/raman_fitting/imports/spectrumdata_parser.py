@@ -38,7 +38,7 @@ spectrum_keys_expected_values = {
 }
 
 
-def get_file_parser(filepath: Path) -> Callable[Path, Dataset]:
+def get_file_parser(filepath: Path) -> Callable[[Path], Dataset]:
     "Get callable file parser function."
     suffix = filepath.suffix
     parser = SPECTRUM_FILETYPE_PARSERS[suffix]["method"]
@@ -49,9 +49,9 @@ def get_file_parser(filepath: Path) -> Callable[Path, Dataset]:
 @dataclass
 class SpectrumReader:
     """
-    Reads a clean spectrum from a file Path or str
+    Reads a spectrum from a 'raw' data file Path or str
 
-    with columns "ramanshift" and "intensity".
+    with spectrum_data_keys "ramanshift" and "intensity".
     Double checks the values
     Sets a hash attribute afterwards
     """
@@ -65,14 +65,14 @@ class SpectrumReader:
     spectrum_hash: str = field(default=None, repr=False)
     spectrum_length: int = field(default=0, init=False)
 
-    def __post_init__(self, **kwargs):
+    def __post_init__(self):
         super().__init__()
 
         self.filepath = validate_filepath(self.filepath)
         self.spectrum_length = 0
 
         if self.filepath is None:
-            return
+            raise ValueError(f"File is not valid. {self.filepath}")
         parser = get_file_parser(self.filepath)
         parsed_spectrum = parser(self.filepath, self.spectrum_data_keys)
         if parsed_spectrum is None:
@@ -86,7 +86,11 @@ class SpectrumReader:
                 logger.warning(
                     f"The values of {spectrum_key} of this spectrum are invalid. {validator}"
                 )
-        spec_init = {"label": self.label, "region_name": self.region_name}
+        spec_init = {
+            "label": self.label,
+            "region_name": self.region_name,
+            "source": self.filepath,
+        }
         _parsed_spec_dict = {
             k: parsed_spectrum[k] for k in spectrum_keys_expected_values.keys()
         }

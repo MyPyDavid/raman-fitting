@@ -23,7 +23,5 @@ def test_delegator_index(delegator):
     assert len(delegator.index.raman_files) == len(selection)
 
 
-@pytest.mark.skip(reason="enable main_run before release.")
-def test_main_run():
-    delegator.main_run()
+def test_main_run(delegator):
     assert delegator.results

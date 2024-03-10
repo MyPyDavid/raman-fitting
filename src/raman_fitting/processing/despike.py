@@ -23,7 +23,7 @@ class SpectrumDespiker(BaseModel):
     moving_region_size: int = 1
     ignore_lims: Tuple[int, int] = (20, 46)
     info: Dict = Field(default_factory=dict)
-    despiked_spectrum: SpectrumData = Field(None)
+    processed_spectrum: SpectrumData = Field(None)
 
     @model_validator(mode="after")
     def process_spectrum(self) -> "SpectrumDespiker":
@@ -36,7 +36,7 @@ class SpectrumDespiker(BaseModel):
             update={"intensity": despiked_intensity}, deep=True
         )
         SpectrumData.model_validate(despiked_spec, from_attributes=True)
-        self.despiked_spectrum = despiked_spec
+        self.processed_spectrum = despiked_spec
         self.info.update(**result_info)
         return self
 

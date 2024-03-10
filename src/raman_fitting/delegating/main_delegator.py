@@ -1,7 +1,6 @@
 # pylint: disable=W0614,W0401,W0611,W0622,C0103,E0401,E0402
 from dataclasses import dataclass, field
 from typing import Dict, List, Sequence, Any
-from typing import TypeAlias
 
 
 from raman_fitting.config.path_settings import (
@@ -16,8 +15,6 @@ from raman_fitting.models.deconvolution.base_model import BaseLMFitModel
 from raman_fitting.models.deconvolution.base_model import (
     get_models_and_peaks_from_definitions,
 )
-from raman_fitting.models.spectrum import SpectrumData
-from raman_fitting.models.fit_models import SpectrumFitModel
 from raman_fitting.models.splitter import RegionNames
 from raman_fitting.exports.exporter import ExportManager
 from raman_fitting.imports.files.file_indexer import (
@@ -34,12 +31,11 @@ from raman_fitting.delegating.models import (
 from raman_fitting.delegating.pre_processing import (
     prepare_aggregated_spectrum_from_files,
 )
+from raman_fitting.types import LMFitModelCollection
+from .run_fit_spectrum import run_fit_over_selected_models
+
 
 from loguru import logger
-
-
-LMFitModelCollection: TypeAlias = Dict[str, Dict[str, BaseLMFitModel]]
-SpectrumFitModelCollection: TypeAlias = Dict[str, Dict[str, SpectrumFitModel]]
 
 
 @dataclass
@@ -53,6 +49,7 @@ class MainDelegator:
     """
 
     run_mode: RunModes
+    use_multiprocessing: bool = False
     lmfit_models: LMFitModelCollection = field(
         default_factory=get_models_and_peaks_from_definitions
     )
@@ -142,6 +139,7 @@ class MainDelegator:
             logger.info("No fit models were selected.")
 
         results = {}
+
         for group_name, grp in groupby_sample_group(selection):
             results[group_name] = {}
             for sample_id, sample_grp in groupby_sample_id(grp):
@@ -162,13 +160,17 @@ class MainDelegator:
                     _error_msg = f"Handle multiple source files for a single position on a sample, {group_name} {sample_id}"
                     results[group_name][sample_id]["errors"] = _error_msg
                     logger.debug(_error_msg)
-                model_result = run_fit_over_selected_models(sgrp, self.selected_models)
+                model_result = run_fit_over_selected_models(
+                    sgrp,
+                    self.selected_models,
+                    use_multiprocessing=self.use_multiprocessing,
+                )
                 results[group_name][sample_id]["fit_results"] = model_result
         self.results = results
 
 
-def run_fit_over_selected_models(
-    raman_files: List[RamanFileInfo], models: LMFitModelCollection
+def get_results_over_selected_models(
+    raman_files: List[RamanFileInfo], models: LMFitModelCollection, fit_model_results
 ) -> Dict[RegionNames, AggregatedSampleSpectrumFitResult]:
     results = {}
     for region_name, region_grp in models.items():
@@ -177,12 +179,6 @@ def run_fit_over_selected_models(
         )
         if aggregated_spectrum is None:
             continue
-        fit_model_results = {}
-        for model_name, model in region_grp.items():
-            spectrum_fit = run_sample_fit_with_model(
-                aggregated_spectrum.spectrum, model
-            )
-            fit_model_results[model_name] = spectrum_fit
         fit_region_results = AggregatedSampleSpectrumFitResult(
             region_name=region_name,
             aggregated_spectrum=aggregated_spectrum,
@@ -190,21 +186,6 @@ def run_fit_over_selected_models(
         )
         results[region_name] = fit_region_results
     return results
-
-
-def run_sample_fit_with_model(
-    spectrum: SpectrumData, model: BaseLMFitModel
-) -> SpectrumFitModel:
-    name = model.name
-    region = model.region_name.name
-    spec_fit = SpectrumFitModel(spectrum=spectrum, model=model, region=region)
-    #  include optional https://lmfit.github.io/lmfit-py/model.html#saving-and-loading-modelresults
-    spec_fit.run_fit()
-    logger.debug(
-        f"Fit with model {name} on {region} success: {spec_fit.fit_result.success} in {spec_fit.elapsed_time:.2f}s."
-    )
-    # spec_fit.fit_result.plot(show_init=True)
-    return spec_fit
 
 
 def make_examples():

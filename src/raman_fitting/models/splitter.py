@@ -29,6 +29,7 @@ class SplitSpectrum(BaseModel):
             self.spectrum.intensity,
             spec_region_limits=self.region_limits,
             label=self.spectrum.label,
+            source=self.spectrum.source,
         )
         self.spec_regions = spec_regions
         return self
@@ -56,7 +57,11 @@ def get_default_spectrum_region_limits(
 
 
 def split_spectrum_data_in_regions(
-    ramanshift: np.array, intensity: np.array, spec_region_limits=None, label=None
+    ramanshift: np.array,
+    intensity: np.array,
+    spec_region_limits=None,
+    label=None,
+    source=None,
 ) -> Dict[str, SpectrumData]:
     """
     For splitting of spectra into the several SpectrumRegionLimits,
@@ -78,6 +83,7 @@ def split_spectrum_data_in_regions(
             "intensity": intensity[ind],
             "label": region_lbl,
             "region_name": region_name,
+            "source": source,
         }
         spec_regions[region_lbl] = SpectrumData(**_data)
     return spec_regions

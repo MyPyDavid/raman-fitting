@@ -1,18 +1,18 @@
-from raman_fitting.imports.spectrum.spectrum_constructor import (
-    SpectrumDataLoader,
-)
+import pytest
+
+from raman_fitting.imports.spectrumdata_parser import SpectrumReader
+from raman_fitting.models.deconvolution.spectrum_regions import RegionNames
 
 
 def test_spectrum_data_loader_empty():
-    spd = SpectrumDataLoader("empty.txt")
-    assert spd.file == "empty.txt"
-    assert spd.clean_spectrum is None
+    with pytest.raises(ValueError):
+        SpectrumReader("empty.txt")
 
 
 def test_spectrum_data_loader_file(example_files):
     for file in example_files:
-        spd = SpectrumDataLoader(
-            file, run_kwargs=dict(sample_id=file.stem, sample_pos=1)
-        )
-        assert len(spd.clean_spectrum.spectrum) == 1600
-        assert len(spd.clean_spectrum.spec_regions) >= 5
+        sprdr = SpectrumReader(file)
+        assert len(sprdr.spectrum.intensity) == 1600
+        assert len(sprdr.spectrum.ramanshift) == 1600
+        assert sprdr.spectrum.source == file
+        assert sprdr.spectrum.region_name == RegionNames.full

@@ -40,7 +40,7 @@ available_filters = {
 
 
 def filter_spectrum(
-    spectrum: SpectrumData, filter_name="savgol_filter"
+    spectrum: SpectrumData = None, filter_name="savgol_filter"
 ) -> SpectrumData:
     if filter_name not in available_filters:
         raise ValueError(f"Chosen filter {filter_name} not available.")

@@ -1,7 +1,7 @@
-from logging import warn
 import math
 from enum import StrEnum
 from typing import List, Optional, Dict
+from warnings import warn
 
 from lmfit import Parameter
 from lmfit.models import GaussianModel, LorentzianModel, Model, VoigtModel

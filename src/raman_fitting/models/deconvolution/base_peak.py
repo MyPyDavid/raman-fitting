@@ -18,6 +18,7 @@ from raman_fitting.models.deconvolution.lmfit_parameter import (
     parmeter_to_dict,
 )
 from raman_fitting.config.default_models import load_config_from_toml_files
+from raman_fitting.utils.string_operations import prepare_text_from_param
 
 ParamHintDict = Dict[str, Dict[str, Optional[float | bool | str]]]
 
@@ -197,19 +198,8 @@ class BasePeak(BaseModel):
 
 
 def make_string_from_param_hints(param_hints: Parameters) -> str:
-    text = ""
     param_center = param_hints.get("center", {})
-    if param_center:
-        center_txt = ""
-        center_val = param_center.value
-        center_min = param_center.min
-        if center_min != center_val:
-            center_txt += f"{center_min} < "
-        center_txt += f"{center_val}"
-        center_max = param_center.max
-        if center_max != center_val:
-            center_txt += f" > {center_max}"
-        text += f", center : {center_txt}"
+    text = prepare_text_from_param(param_center)
     return text
 
 

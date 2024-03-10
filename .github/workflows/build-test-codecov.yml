@@ -53,6 +53,8 @@ jobs:
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v1
 
-    - name: raman_fitting -M make_examples
+    - name: raman_fitting run examples
+
+
       run: |
-        raman_fitting -M make_examples
+        raman_fitting run examples
