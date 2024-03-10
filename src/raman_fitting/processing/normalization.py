@@ -50,6 +50,7 @@ def normalize_regions_in_split_spectrum(
                 "intensity": spec.intensity * norm_factor,
                 "label": norm_label,
                 "region_name": region_name,
+                "source": spec.source,
             }
         )
         norm_spec_regions.update(**{region_name: _data})
@@ -61,7 +62,7 @@ def normalize_regions_in_split_spectrum(
 
 
 def normalize_split_spectrum(
-    split_spectrum: SplitSpectrum,
+    split_spectrum: SplitSpectrum = None,
 ) -> SplitSpectrum:
     "Normalize the spectrum intensity according to normalization method."
     normalization_factor = get_normalization_factor(split_spectrum)

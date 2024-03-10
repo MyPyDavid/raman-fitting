@@ -1,8 +1,7 @@
-from typing import List, Sequence
+from typing import Sequence
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 from tablib import Dataset
 
 from loguru import logger
@@ -84,27 +83,3 @@ def use_np_loadtxt(filepath, usecols=(0, 1), **kwargs) -> np.array:
         logger.error(_msg)
         raise ValueError(_msg) from exc
     return array
-
-
-def cast_array_into_spectrum_frame(array, keys: List[str] = None) -> pd.DataFrame:
-    """cast array into spectrum frame"""
-    if array.ndim != len(keys):
-        raise ValueError(
-            f"Array dimension {array.ndim} does not match the number of keys {len(keys)}"
-        )
-
-    try:
-        spectrum_data = pd.DataFrame(array, columns=keys)
-        return spectrum_data
-    except Exception as exc:
-        _msg = f"Can not create DataFrame from array object: {array}\n{exc}"
-        logger.error(_msg)
-        raise ValueError(_msg) from exc
-
-
-def load_spectrum_from_txt(filepath, **kwargs) -> pd.DataFrame:
-    """load spectrum from txt file"""
-    keys = kwargs.pop("keys")
-    array = use_np_loadtxt(filepath, **kwargs)
-    spectrum_data = cast_array_into_spectrum_frame(array, keys=keys)
-    return spectrum_data

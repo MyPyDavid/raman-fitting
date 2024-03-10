@@ -40,7 +40,7 @@ def subtract_baseline_per_region(spec: SpectrumData, split_spectrum: SplitSpectr
 
 
 def subtract_baseline_from_split_spectrum(
-    split_spectrum: SplitSpectrum, label=None
+    split_spectrum: SplitSpectrum = None, label=None
 ) -> SplitSpectrum:
     _bl_spec_regions = {}
     _info = {}
@@ -53,7 +53,8 @@ def subtract_baseline_from_split_spectrum(
                 "ramanshift": spec.ramanshift,
                 "intensity": blcorr_int,
                 "label": new_label,
-                "regionn_name": region_name,
+                "region_name": region_name,
+                "source": spec.source,
             }
         )
         _bl_spec_regions.update(**{region_name: spec})
@@ -62,15 +63,3 @@ def subtract_baseline_from_split_spectrum(
         update={"spec_regions": _bl_spec_regions, "info": _info}
     )
     return bl_corrected_spectra
-
-
-def subtract_baseline(
-    ramanshift: np.array, intensity: np.array, label: str = None
-) -> SplitSpectrum:
-    "Subtract the a baseline of background intensity of a spectrum."
-    spectrum = SpectrumData(ramanshift=ramanshift, intensity=intensity, label=label)
-    split_spectrum = SplitSpectrum(spectrum=spectrum)
-    blcorrected_spectrum = subtract_baseline_from_split_spectrum(
-        split_spectrum, label=label
-    )
-    return blcorrected_spectrum

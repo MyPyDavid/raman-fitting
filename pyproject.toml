@@ -82,7 +82,7 @@ sources = ["src"]
 
 # testing
 [tool.pytest.ini_options]
-minversion = "6.0"
+minversion = "7.0"
 pythonpath = "src"
 addopts = [
     "--import-mode=importlib",
@@ -96,6 +96,34 @@ testpaths = [
 
 [tool.coverage.run]
 source = ["src"]
+omit = [
+    "*/example_fixtures/*",
+    ]
+
+[tool.coverage.report]
+# Regexes for lines to exclude from consideration
+exclude_also = [
+    # Don't complain about missing debug-only code:
+    "def __repr__",
+    "if self\\.debug",
+
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+
+    # Don't complain if non-runnable code isn't run:
+    "if 0:",
+    "if __name__ == .__main__.:",
+
+    # Don't complain about abstract methods, they aren't run:
+    "@(abc\\.)?abstractmethod",
+    ]
+
+ignore_errors = true
+
+[tool.coverage.html]
+directory = "coverage_html_report"
+
 
 [tool.bumpversion]
 current_version = "0.8.0"
@@ -116,16 +144,6 @@ serialize =[
 filename= "README.md"
 search = "The current version is v{current_version}"
 replace = "The current version is v{new_version}"
-
-# [[bumpversion.files]]
-# filename= "src/raman_fitting/__init__.py"
-# search = "__version__ = '{current_version}'"
-# replace = "__version__ = '{new_version}'"
-
-# [[bumpversion.files]]
-# filename= "src/raman_fitting/_version.py"
-# search = "version = '{current_version}'"
-# replace = "version = '{new_version}'"
 
 [[tool.bumpversion.files]]
 filename= "pyproject.toml"

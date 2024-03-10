@@ -31,4 +31,3 @@ RUN pip install -e  ./
 
 # command to run on container start
 CMD [ "raman_fitting run examples" ]
-# CMD [ "python", "./raman_fitting/docker/run_make_examples.py" ]

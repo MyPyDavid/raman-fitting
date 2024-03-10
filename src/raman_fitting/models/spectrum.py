@@ -16,7 +16,7 @@ class SpectrumData(BaseModel):
     intensity: pnd.Np1DArrayFp32 = Field(repr=False)
     label: str
     region_name: str | None = None
-    source: Sequence[str] | None = None
+    source: FilePath | Sequence[FilePath] | str | Sequence[str] | None = None
 
     @model_validator(mode="after")
     def validate_equal_length(self):
