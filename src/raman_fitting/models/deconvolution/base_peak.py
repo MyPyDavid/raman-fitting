@@ -217,37 +217,3 @@ def get_peaks_from_peak_definitions(
         for peak_name, peak_def in peak_type_defs.items():
             peak_models[peak_name] = BasePeak(**peak_def)
     return peak_models
-
-
-def _main():
-    model_definitions = load_config_from_toml_files()
-    print(model_definitions["first_order"]["models"])
-    peaks = {}
-    peak_items = {
-        **model_definitions["first_order"]["peaks"],
-        **model_definitions["second_order"]["peaks"],
-    }.items()
-    for k, v in peak_items:
-        peaks.update({k: BasePeak(**v)})
-
-    peak_d = BasePeak(**model_definitions["first_order"]["peaks"]["D"])
-    print(peak_d)
-    model_items = {
-        **model_definitions["first_order"]["models"],
-        **model_definitions["second_order"]["models"],
-    }.items()
-    models = {}
-    for model_name, model_comp in model_items:
-        print(k, v)
-        comps = model_comp.split("+")
-        peak_comps = [peaks[i] for i in comps]
-        lmfit_comp_model = sum(
-            map(lambda x: x.lmfit_model, peak_comps), peak_comps.pop().lmfit_model
-        )
-        models[model_name] = lmfit_comp_model
-        print(lmfit_comp_model)
-    # breakpoint()
-
-
-if __name__ == "__main__":
-    _main()
