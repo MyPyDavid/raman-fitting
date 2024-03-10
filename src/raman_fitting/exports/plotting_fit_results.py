@@ -20,6 +20,7 @@ from loguru import logger
 
 
 matplotlib.rcParams.update({"font.size": 14})
+FIT_REPORT_MIN_CORREL = 0.7
 
 
 def fit_spectrum_plot(
@@ -63,20 +64,18 @@ def prepare_combined_spectrum_fit_result_plot(
     first_model_name = first_model.model.name
 
     fit_plot_first(ax, ax_res, first_model, plot_residuals=plot_residuals)
-
-    ax2nd = plt.subplot(gs[2])
-    ax2nd_res = plt.subplot(gs[3])
-
-    if second_model is not None:
-        fit_plot_second(ax2nd, ax2nd_res, second_model, plot_residuals=plot_residuals)
-
-    _bbox_artists = tuple()
+    _bbox_artists = None
     if plot_annotation:
         annotate_report_first = prepare_annotate_fit_report_first(
             ax, first_model.fit_result
         )
         _bbox_artists = (annotate_report_first,)
-        if second_model is not None:
+
+    if second_model is not None:
+        ax2nd = plt.subplot(gs[2])
+        ax2nd_res = plt.subplot(gs[3])
+        fit_plot_second(ax2nd, ax2nd_res, second_model, plot_residuals=plot_residuals)
+        if plot_annotation:
             annotate_report_second = prepare_annotate_fit_report_second(
                 ax2nd, second_model.fit_result
             )
@@ -87,7 +86,6 @@ def prepare_combined_spectrum_fit_result_plot(
     set_axes_labels_and_legend(ax)
 
     plot_special_si_components(ax, first_model)
-
     if export_paths is not None:
         savepath = export_paths.plots.joinpath(f"Model_{first_model_name}").with_suffix(
             ".png"
@@ -244,7 +242,7 @@ def prepare_annotate_fit_report_second(ax2nd, second_result) -> Text:
     annotate_report_second = ax2nd.text(
         1.01,
         0.7,
-        second_result.fit_report(),
+        second_result.fit_report(min_correl=FIT_REPORT_MIN_CORREL),
         transform=ax2nd.transAxes,
         fontsize=11,
         verticalalignment="top",
@@ -255,7 +253,7 @@ def prepare_annotate_fit_report_second(ax2nd, second_result) -> Text:
 
 
 def prepare_annotate_fit_report_first(ax, first_result):
-    fit_report = first_result.fit_report()
+    fit_report = first_result.fit_report(min_correl=FIT_REPORT_MIN_CORREL)
     if len(fit_report) > -1:
         fit_report = fit_report.replace("prefix='D3_'", "prefix='D3_' \n")
     props = dict(boxstyle="round", facecolor="wheat", alpha=0.5)
