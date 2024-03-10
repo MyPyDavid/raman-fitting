@@ -12,7 +12,7 @@ from pydantic import (
     model_validator,
 )
 
-from raman_fitting.config.default_models import load_config_from_toml_files
+
 from raman_fitting.models.deconvolution.base_peak import (
     BasePeak,
     get_peaks_from_peak_definitions,
@@ -131,8 +131,6 @@ def construct_lmfit_model(
 def get_models_and_peaks_from_definitions(
     models_and_peaks_definitions: Optional[Dict] = None,
 ) -> Dict[str, Dict[str, BaseLMFitModel]]:
-    if models_and_peaks_definitions is None:
-        models_and_peaks_definitions = load_config_from_toml_files()
     peak_collection = get_peaks_from_peak_definitions(
         peak_definitions=models_and_peaks_definitions
     )
