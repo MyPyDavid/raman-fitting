@@ -3,9 +3,6 @@ import math
 import pytest
 
 from raman_fitting.models.fit_models import SpectrumFitModel
-from raman_fitting.models.deconvolution.base_model import (
-    get_models_and_peaks_from_definitions,
-)
 from raman_fitting.imports.spectrumdata_parser import SpectrumReader
 from raman_fitting.processing.post_processing import SpectrumProcessor
 
@@ -23,12 +20,11 @@ def clean_spec(example_files) -> None:
     return clean_spec_1st_order
 
 
-def test_fit_first_order(clean_spec):
-    models = get_models_and_peaks_from_definitions()
+def test_fit_first_order(clean_spec, default_models):
     spectrum = clean_spec
     test_component = "center"
 
-    for model_name, test_model in models["first_order"].items():
+    for model_name, test_model in default_models["first_order"].items():
         # with subTest(model_name=model_name, test_model=test_model):
         spec_fit = SpectrumFitModel(
             **{"spectrum": spectrum, "model": test_model, "region": "first_order"}
