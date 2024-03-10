@@ -171,7 +171,6 @@ class BasePeak(BaseModel):
         if lmfit_model is None:
             raise ValueError("lmfit_model is None")
 
-        # breakpoint()
         if self.param_hints is not None:
             for k, v in self.param_hints.items():
                 par_dict = parmeter_to_dict(v)
