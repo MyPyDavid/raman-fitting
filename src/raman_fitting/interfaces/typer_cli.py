@@ -70,22 +70,33 @@ def run(
         raise typer.Exit()
     kwargs = {"run_mode": run_mode, "use_multiprocessing": multiprocessing}
     if run_mode == RunModes.EXAMPLES:
-        kwargs.update({"fit_model_specific_names": ["2peaks", "3peaks", "4peaks"]})
+        kwargs.update(
+            {
+                "fit_model_specific_names": [
+                    "2peaks",
+                    "3peaks",
+                    "4peaks",
+                    "2nd_4peaks",
+                ],
+                "sample_groups": ["test"],
+            }
+        )
     logger.info(f"Starting raman_fitting with CLI args:\n{run_mode}")
     _main_run = MainDelegator(**kwargs)
 
 
 @app.command()
 def make(
+    make_type: Annotated[MakeTypes, typer.Argument()],
     source_files: Annotated[List[Path], typer.Option()],
-    index_file: Annotated[List[Path], typer.Option()],
+    index_file: Annotated[Path, typer.Option()] = None,
     force_reindex: Annotated[bool, typer.Option("--force-reindex")] = False,
-    make_type: Annotated[MakeTypes, typer.Option()] = None,
 ):
     if make_type is None:
         print("No make type args passed")
         raise typer.Exit()
-
+    if index_file:
+        index_file = index_file.resolve()
     if make_type == MakeTypes.INDEX:
         initialize_index_from_source_files(
             files=source_files, index_file=index_file, force_reindex=force_reindex
