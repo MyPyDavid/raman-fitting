@@ -36,6 +36,7 @@ dependencies = [
 	"pydantic_numpy>=4.1",
 	"loguru>=0.7",
 	"typer[all]",
+	"mpire[dill]~=2.10.0",
 ]
 
 [project.optional-dependencies]

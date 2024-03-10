@@ -63,11 +63,12 @@ def run(
         ),
     ],
     run_mode: Annotated[RunModes, typer.Argument()] = RunModes.NORMAL,
+    multiprocessing: Annotated[bool, typer.Option("--multiprocessing")] = False,
 ):
     if run_mode is None:
         print("No make run mode passed")
         raise typer.Exit()
-    kwargs = {"run_mode": run_mode}
+    kwargs = {"run_mode": run_mode, "use_multiprocessing": multiprocessing}
     if run_mode == RunModes.EXAMPLES:
         kwargs.update({"fit_model_specific_names": ["2peaks", "3peaks", "4peaks"]})
     logger.info(f"Starting raman_fitting with CLI args:\n{run_mode}")
