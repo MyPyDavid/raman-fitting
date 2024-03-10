@@ -15,5 +15,3 @@ SPECTRUM_FILETYPE_PARSERS = {
         "method": read_file_with_tablib,
     },
 }
-
-supported_filetypes = [".txt"]

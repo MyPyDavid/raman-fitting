@@ -2,19 +2,16 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Sequence, Any
 
-
 from raman_fitting.config.path_settings import (
     RunModes,
     ERROR_MSG_TEMPLATE,
     initialize_run_mode_paths,
 )
+from raman_fitting.config import settings
 
 from raman_fitting.imports.models import RamanFileInfo
 
 from raman_fitting.models.deconvolution.base_model import BaseLMFitModel
-from raman_fitting.models.deconvolution.base_model import (
-    get_models_and_peaks_from_definitions,
-)
 from raman_fitting.models.splitter import RegionNames
 from raman_fitting.exports.exporter import ExportManager
 from raman_fitting.imports.files.file_indexer import (
@@ -32,7 +29,7 @@ from raman_fitting.delegating.pre_processing import (
     prepare_aggregated_spectrum_from_files,
 )
 from raman_fitting.types import LMFitModelCollection
-from .run_fit_spectrum import run_fit_over_selected_models
+from raman_fitting.delegating.run_fit_spectrum import run_fit_over_selected_models
 
 
 from loguru import logger
@@ -51,7 +48,7 @@ class MainDelegator:
     run_mode: RunModes
     use_multiprocessing: bool = False
     lmfit_models: LMFitModelCollection = field(
-        default_factory=get_models_and_peaks_from_definitions
+        default_factory=lambda: settings.default_models
     )
     fit_model_region_names: Sequence[RegionNames] = field(
         default=(RegionNames.first_order, RegionNames.second_order)
@@ -60,7 +57,6 @@ class MainDelegator:
     sample_ids: Sequence[str] = field(default_factory=list)
     sample_groups: Sequence[str] = field(default_factory=list)
     index: RamanFileIndex = None
-
     selection: Sequence[RamanFileInfo] = field(init=False)
     selected_models: Sequence[RamanFileInfo] = field(init=False)
 
@@ -191,7 +187,7 @@ def get_results_over_selected_models(
 def make_examples():
     # breakpoint()
     _main_run = MainDelegator(
-        run_mode="pytest", fit_model_specific_names=["2peaks", "4peaks"]
+        run_mode="pytest", fit_model_specific_names=["2peaks", "3peaks", "2nd_4peaks"]
     )
     _main_run.main_run()
     return _main_run

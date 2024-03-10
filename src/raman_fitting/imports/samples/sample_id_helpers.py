@@ -6,7 +6,7 @@ from .models import SampleMetaData
 
 def parse_string_to_sample_id_and_position(
     string: str, seps=("_", " ", "-")
-) -> Tuple[str, str]:
+) -> Tuple[str, int]:
     """
     Parser for the filenames -> finds SampleID and sample position
 
@@ -48,6 +48,7 @@ def parse_string_to_sample_id_and_position(
     elif len(split) >= 3:
         sample_id = "_".join(split[0:-1])
         position = int("".join(filter(str.isdigit, split[-1])))
+    position = position or 0
     return (sample_id, position)
 
 

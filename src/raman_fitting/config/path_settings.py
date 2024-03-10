@@ -71,6 +71,8 @@ class RunModes(StrEnum):
 def get_run_mode_paths(run_mode: RunModes, user_package_home: Path = None):
     if user_package_home is None:
         user_package_home = USER_HOME_PACKAGE
+    if isinstance(run_mode, str):
+        run_mode = RunModes(run_mode)
 
     RUN_MODE_PATHS = {
         RunModes.PYTEST.name: {
