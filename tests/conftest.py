@@ -2,11 +2,17 @@
 Configuration file for pytest and commonly used fixtures
 """
 
+import sys
 import pytest
 from raman_fitting.config import settings
 from raman_fitting.config.path_settings import InternalPathSettings
 
 # Global fixtures
+from loguru import logger
+
+logger.enable("raman_fitting")
+logger.remove()  # Remove any existing handlers
+logger.add(sys.stderr, level="DEBUG", format="{time} - {name} - {message}")
 
 
 @pytest.fixture(autouse=True)

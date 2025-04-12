@@ -16,7 +16,7 @@ def test_call_make_examples_on_package():
     example_run = raman_fitting.make_examples()
     assert example_run
     fit_result = (
-        example_run.results["test"]["testDW38C"]["fit_results"]["first_order"]
+        example_run["test"]["testDW38C"]["first_order"]
         .fit_model_results["2peaks"]
         .fit_result
     )
