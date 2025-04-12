@@ -106,15 +106,23 @@ def calc_z_value_intensity(intensity: np.ndarray) -> np.ndarray:
     diff_intensity = np.append(np.diff(intensity), 0)  # dYt
     median_diff_intensity = np.median(diff_intensity)  # dYt_Median
     median_abs_deviation = np.median(abs(diff_intensity - median_diff_intensity))
+
+    # Handle the case where median_abs_deviation is zero
+    if median_abs_deviation == 0:
+        logger.warning(
+            "median_abs_deviation is zero, setting intensity_values_z to zero."
+        )
+        return np.zeros_like(diff_intensity)
+
     intensity_values_z = (
         0.6745 * (diff_intensity - median_diff_intensity)
     ) / median_abs_deviation
     return intensity_values_z
 
 
-def filter_z_intensity_values(z_intensity, z_intensityhreshold):
-    filtered_z_intensity = copy.deepcopy(z_intensity)
-    filtered_z_intensity[np.abs(z_intensity) > z_intensityhreshold] = np.nan
+def filter_z_intensity_values(z_intensity, z_intensitythreshold):
+    filtered_z_intensity = z_intensity.astype(float)
+    filtered_z_intensity[np.abs(z_intensity) > z_intensitythreshold] = np.nan
     filtered_z_intensity[0] = filtered_z_intensity[-1] = 0
     return filtered_z_intensity
 

@@ -83,7 +83,7 @@ def normalizer_fit_model(
     spectrum: SpectrumData, normalization_model: LMFitModel
 ) -> float | None:
     spec_fit = SpectrumFitModel(spectrum=spectrum, model=normalization_model)
-    spec_fit.run_fit()
+    spec_fit.run()
     if not spec_fit.fit_result:
         return
     try:
