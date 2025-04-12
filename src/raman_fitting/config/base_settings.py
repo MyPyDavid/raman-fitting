@@ -12,6 +12,7 @@ from raman_fitting.models.deconvolution.base_model import (
     get_models_and_peaks_from_definitions,
 )
 from raman_fitting.models.deconvolution.spectrum_regions import (
+    SpectrumRegionLimits,
     get_default_regions_from_toml_files,
 )
 from .load_config_from_toml import load_config_from_toml_files
@@ -31,7 +32,7 @@ class Settings(BaseSettings):
         init_var=False,
         validate_default=False,
     )
-    default_regions: Dict[str, Dict[str, float]] | None = Field(
+    default_regions: Dict[str, SpectrumRegionLimits] | None = Field(
         default_factory=get_default_regions_from_toml_files,
         alias="my_default_regions",
         init_var=False,
