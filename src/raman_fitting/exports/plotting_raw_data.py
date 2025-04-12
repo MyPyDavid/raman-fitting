@@ -59,7 +59,7 @@ def raw_data_spectra_plot(
     regions = settings.default_regions
     valid_regions = filter_regions_for_spectrum(regions, sources[0].read.spectrum)
 
-    destfile = export_paths.plots.joinpath(f"{sample_id}_mean.png")
+    destfile = export_paths.plots_dir.joinpath(f"{sample_id}_mean.png")
     destfile.parent.mkdir(exist_ok=True, parents=True)
 
     nrows = 3

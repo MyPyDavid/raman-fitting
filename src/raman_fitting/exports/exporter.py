@@ -32,6 +32,9 @@ class ExportManager:
 
     def export_files(self) -> list[Dict[str, Any]]:
         exports = []
+        if self.fit_results is None:
+            raise ExporterError("No fit results to export")
+
         for group_name, group_results in self.fit_results.items():
             for sample_id, sample_results in group_results.items():
                 export_dir = self.paths.results_dir / group_name / sample_id
@@ -48,7 +51,7 @@ class ExportManager:
 
                 try:
                     fit_spectrum_plot_results = fit_spectrum_plot(
-                        sample_results["fit_results"], export_paths=export_paths
+                        sample_results, export_paths=export_paths
                     )
                     export_results += fit_spectrum_plot_results
                 except Exception as exc:
@@ -57,7 +60,7 @@ class ExportManager:
 
                 exports.append(
                     {
-                        "sample": sample_results["fit_results"],
+                        "sample": sample_results,
                         "export_paths": export_paths,
                         "results": export_results,
                     }

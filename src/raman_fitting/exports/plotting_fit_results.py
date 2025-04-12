@@ -68,7 +68,7 @@ def fit_spectrum_plot(
 
 def prepare_combined_spectrum_fit_result_plot(
     first_model: SpectrumFitModel,
-    second_model: SpectrumFitModel,
+    second_model: SpectrumFitModel | None,
     sample: SampleMetaData,
     export_paths: ExportPathSettings,
     plot_annotation=True,
@@ -107,27 +107,37 @@ def prepare_combined_spectrum_fit_result_plot(
     plot_special_si_components(ax, first_model)
     result = None
     if export_paths is not None:
-        savepath = export_paths.plots.joinpath(f"Model_{first_model_name}").with_suffix(
-            ".png"
-        )
-        plt.savefig(
-            savepath,
-            dpi=100,
-            bbox_extra_artists=_bbox_artists,
-            bbox_inches="tight",
-        )
-        _msg = (
-            f"Plot saved with prepare_combined_spectrum_fit_result_plot to {savepath}"
-        )
-        logger.debug(_msg)
-        result = ExportResult(target=savepath, message=_msg)
-    plt.close()
+        savepath = export_paths.plots_dir.joinpath(
+            f"Model_{first_model_name}"
+        ).with_suffix(".png")
+
+        # Ensure the directory exists
+        savepath.parent.mkdir(parents=True, exist_ok=True)
+
+        try:
+            plt.savefig(
+                savepath,
+                dpi=100,
+                bbox_extra_artists=_bbox_artists,
+                bbox_inches="tight",
+            )
+            _msg = f"Plot saved with prepare_combined_spectrum_fit_result_plot to {savepath}"
+            logger.debug(_msg)
+            result = ExportResult(target=savepath, message=_msg)
+        except FileNotFoundError as e:
+            logger.error(
+                f"Could not save plot with prepare_combined_spectrum_fit_result_plot: {e}"
+            )
+            raise e
+        finally:
+            plt.close()
+
     return result
 
 
 def fit_plot_first(
     ax, ax_res, first_model: SpectrumFitModel, plot_residuals: bool = True
-) -> matplotlib.text.Text | None:
+) -> None:
     first_result = first_model.fit_result
     first_components = first_model.fit_result.components
     first_eval_comps = first_model.fit_result.eval_components()
@@ -277,7 +287,7 @@ def prepare_annotate_fit_report_second(ax2nd, second_result) -> Text:
     return annotate_report_second
 
 
-def prepare_annotate_fit_report_first(ax, first_result):
+def prepare_annotate_fit_report_first(ax, first_result) -> Text:
     fit_report = first_result.fit_report(min_correl=FIT_REPORT_MIN_CORREL)
     if len(fit_report) > -1:
         fit_report = fit_report.replace("prefix='D3_'", "prefix='D3_' \n")
