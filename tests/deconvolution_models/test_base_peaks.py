@@ -41,23 +41,21 @@ def test_basepeak_initialization():
     assert test_peak.peak_name == "test"
 
 
-@pytest.mark.skip(reason="TODO: add field validations")
+# @pytest.mark.skip(reason="TODO: add field validations")
 def test_empty_base_class_with_kwargs_raises():
-    eb = BasePeak(peak_type="Voigt", peak_name="test")
-
+    eb = BasePeak(peak_name="test", peak_type="Voigt")
     assert eb.peak_type == "Voigt"
 
     # add in field validation str_length
     with pytest.raises(ValueError) as excinfo:
-        eb.peak_name = 10 * "emptytest"
+        eb = BasePeak(peak_name=10 * "emptytest", peak_type="Voigt")
     assert _error_message_contains(excinfo, "value for peak_name is too long 90")
 
-    # add built in field validation for peak_type
-    with pytest.raises(ValueError) as excinfo:
-        eb.peak_type = "VoigtLorentzian"
+    with pytest.raises(KeyError) as excinfo:
+        eb = BasePeak(peak_name=10 * "emptytest", peak_type="XY-Voigt")
     assert _error_message_contains(
         excinfo,
-        ''''Multiple options ['Lorentzian', 'Voigt'] for misspelled value "VoigtLorentzian"''',
+        "peak_type is not in XY-Voigt",
     )
 
 

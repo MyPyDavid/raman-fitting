@@ -164,7 +164,6 @@ DEFAULT_GAMMA_PARAM_HINT = LMFitParameterHints(
 
 def main():
     pass
-    # breakpoint()
 
 
 if __name__ == "__main__":

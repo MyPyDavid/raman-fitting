@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Annotated
 
 from loguru import logger
 from pydantic import (
@@ -106,9 +106,9 @@ class BasePeak(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True)
 
-    peak_name: str
+    peak_name: Annotated[str, Field(max_length=30)]
     param_hints: Optional[Parameters | List[LMFitParameterHints] | ParamHintDict] = None
-    peak_type: Optional[str] = None
+    peak_type: Optional[Annotated[str, Field(max_length=50)]] = None
     is_substrate: Optional[bool] = False
     is_for_normalization: Optional[bool] = False
     docstring: Optional[str] = Field(None, repr=False)

@@ -33,15 +33,13 @@ def test_empty_base_model():
         BaseLMFitModel(peaks="A+B")
 
 
-@pytest.mark.skip("raise validationerror")
+# @pytest.mark.skip("raise validationerror")
 def test_empty_base_model_missing_peak():
-    # breakpoint()
     with pytest.raises(ValidationError):
-        BaseLMFitModel(name="Test_empty", peaks="A+B", region_name="full")
+        BaseLMFitModel(name="Test_empty", peaks="XX+YY", region_name="full")
 
 
 def test_base_model_2peaks():
-    # breakpoint()
     bm = BaseLMFitModel(name="Test_2peaks", peaks="K2+D+G", region_name="full")
     assert set(helper_get_list_components(bm)) == set(["D_", "G_"])
     bm.add_substrate()

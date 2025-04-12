@@ -50,7 +50,6 @@ def main():
     print("model_definitions: ", model_definitions)
     models = InitializeModels()
     print(models)
-    # breakpoint()
 
 
 if __name__ == "__main__":

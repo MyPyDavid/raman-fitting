@@ -30,7 +30,7 @@ def test_fit_first_order(clean_spec, default_models):
         spec_fit = SpectrumFitModel(
             **{"spectrum": spectrum, "model": test_model, "region": "first_order"}
         )
-        spec_fit.run_fit()
+        spec_fit.run()
         for component in test_model.lmfit_model.components:
             # with subTest(component=component):
             peak_component = f"{component.prefix}{test_component}"

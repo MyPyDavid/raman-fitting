@@ -95,7 +95,7 @@ class BaseLMFitModel(BaseModel):
         self.peaks = SEP.join(_peaks)
         self.reconstruct_lmfit_model()
 
-    @computed_field
+    @computed_field(repr=False)
     @property
     def substrate_peaks(self) -> Dict[str, BasePeak]:
         return {k: val for k, val in self.peak_collection.items() if val.is_substrate}

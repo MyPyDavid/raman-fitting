@@ -14,7 +14,7 @@ class SpectrumData(BaseModel):
     ramanshift: pnd.Np1DArrayFp32 = Field(repr=False)
     intensity: pnd.Np1DArrayFp32 = Field(repr=False)
     label: str
-    source: FilePath | str | set[FilePath] | set[str]
+    source: FilePath | str | set[FilePath] | set[str] = Field(repr=False)
     region_name: str | None = None
 
     @model_validator(mode="after")

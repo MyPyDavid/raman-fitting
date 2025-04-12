@@ -1,7 +1,16 @@
-from typing import Dict
+from dataclasses import dataclass, field
 import time
+from functools import cached_property
+from typing import Mapping
 
-from pydantic import BaseModel, model_validator, Field, ConfigDict
+from pydantic import (
+    BaseModel,
+    PrivateAttr,
+    model_validator,
+    Field,
+    ConfigDict,
+    computed_field,
+)
 from lmfit import Model as LMFitModel
 from lmfit.model import ModelResult
 
@@ -21,10 +30,13 @@ class SpectrumFitModel(BaseModel):
     spectrum: SpectrumData
     model: BaseLMFitModel
     region: RegionNames
-    fit_kwargs: Dict = Field(default_factory=dict, repr=False)
-    fit_result: ModelResult = Field(None, init_var=False)  # TODO move to property
-    param_results: Dict = Field(default_factory=dict)
-    elapsed_time: float = Field(0, init_var=False, repr=False)
+    fit_kwargs: dict = Field(default_factory=dict, repr=False)
+    reuse_params: bool = False
+
+    # Private attributes using PrivateAttr
+    _fit_result: ModelResult | None = PrivateAttr(default=None)
+    _elapsed_seconds: float | None = PrivateAttr(default=None)
+    _param_result: dict | None = PrivateAttr(default=None)
 
     @model_validator(mode="after")
     def match_region_names(self) -> "SpectrumFitModel":
@@ -55,30 +67,64 @@ class SpectrumFitModel(BaseModel):
             raise ValueError(
                 "Not all model params are covered by the spectrum ramanshift data."
             )
-
         return self
 
-    def run_fit(self) -> None:
-        if "method" not in self.fit_kwargs:
-            self.fit_kwargs["method"] = "leastsq"
-        lmfit_model = self.model.lmfit_model
-        start_time = time.time()
-        fit_result = call_fit_on_model(lmfit_model, self.spectrum, **self.fit_kwargs)
-        end_time = time.time()
-        elapsed_seconds = abs(start_time - end_time)
-        self.elapsed_time = elapsed_seconds
-        self.fit_result = fit_result
-        self.post_process()
-
-    def post_process(self):
-        if not self.fit_result:
-            return
-        param_results = self.fit_result.params.valuesdict()
-        params_ratio_vars = calculate_ratio_of_unique_vars_in_results(
-            param_results, raise_exception=False
+    def run(self):
+        fit_result, elapsed_seconds = run_fit(
+            self.spectrum, self.model.lmfit_model, **self.fit_kwargs
         )
-        param_results["ratios"] = params_ratio_vars
-        self.param_results = param_results
+        param_result = post_process(fit_result, elapsed_seconds=elapsed_seconds)
+        self._fit_result = fit_result
+        self._elapsed_seconds = elapsed_seconds
+        self._param_result = param_result
+
+    @computed_field
+    @cached_property
+    def fit_result(self) -> ModelResult:
+        if self._fit_result is None:
+            self.run()
+        return self._fit_result
+
+    @computed_field
+    @cached_property
+    def elapsed_seconds(self) -> float | None:
+        return self._elapsed_seconds
+
+    @computed_field(repr=False)
+    @cached_property
+    def param_result(self) -> dict | None:
+        return self._param_result
+
+
+@dataclass
+class SpectrumFitModelRegistry:
+    spec_fit_model: Mapping[str, SpectrumFitModel] = field(default_factory=dict)
+
+    def add_fit(
+        self, spec_fit_model: SpectrumFitModel, name: str | None = None
+    ) -> None:
+        name = name if name is not None else spec_fit_model.model.name
+        self.spec_fit_model[name] = spec_fit_model
+
+
+def run_fit(
+    spectrum: SpectrumData, lmfit_model: LMFitModel, method: str = "leastsq", **kwargs
+) -> tuple[ModelResult, float]:
+    start_time = time.time()
+    fit_result = call_fit_on_model(lmfit_model, spectrum, method=method, **kwargs)
+    end_time = time.time()
+    elapsed_seconds = abs(start_time - end_time)
+    return fit_result, elapsed_seconds
+
+
+def post_process(fit_result: ModelResult, elapsed_seconds: float | None = None) -> dict:
+    param_results = fit_result.params.valuesdict()
+    params_ratio_vars = calculate_ratio_of_unique_vars_in_results(
+        param_results, raise_exception=False
+    )
+    param_results["ratios"] = params_ratio_vars
+    param_results["elapsed_time_s"] = elapsed_seconds
+    return param_results
 
 
 def call_fit_on_model(
