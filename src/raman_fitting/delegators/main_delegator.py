@@ -39,6 +39,23 @@ from loguru import logger
 
 
 @dataclass
+class SampleGroupResult:
+    sample_id: str
+    region_results: Dict[RegionNames, AggregatedSampleSpectrumFitResult]
+
+
+@dataclass
+class GroupResult:
+    group_name: str
+    sample_results: Dict[str, SampleGroupResult]
+
+
+@dataclass
+class MainDelegatorResult:
+    results: Dict[str, GroupResult]
+
+
+@dataclass
 class MainDelegator:
     """
     Main delegator for processing files containing Raman spectra.
@@ -121,7 +138,7 @@ def main_run(
     selected_models: LMFitModelCollection,
     use_multiprocessing: bool,
     fit_model_region_names: Sequence[RegionNames],
-) -> Dict[str, Any]:
+) -> dict[str, dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]]]:
     """Main function to run the processing of Raman spectra."""
     try:
         selection = select_samples_from_index(
@@ -137,19 +154,24 @@ def main_run(
     if not selected_models:
         logger.info("No fit models were selected.")
 
-    results = process_selection(
+    results, errors = process_selection(
         selection, selected_models, use_multiprocessing, run_mode_paths
     )
-    log_results(results)
+    log_results(results, errors)
     return results
 
 
-def log_results(results: Dict[str, Any]) -> None:
+def log_results(
+    results: dict[str, dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]]],
+    errors: list[str],
+) -> None:
     """Log the results of the processing."""
     if results:
-        logger.debug("Results: {}", results)
+        logger.debug(f"Results: {results.keys()}")
     else:
         logger.warning("No results generated.")
+    if errors:
+        logger.error(f"Errors: {errors}")
 
 
 def initialize_index(
@@ -206,14 +228,19 @@ def process_selection(
     selected_models: LMFitModelCollection,
     use_multiprocessing: bool,
     run_mode_paths: RunModePaths,
-) -> Dict[str, Any]:
+) -> tuple[
+    dict[str, dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]]],
+    list[str],
+]:
     """Process the selection of samples."""
-    results = {}
+    results, errors = {}, []
     for group_name, grp in group_by_sample_group(selection):
-        results[group_name] = process_group(
+        group_result, _errors = process_group(
             group_name, grp, selected_models, use_multiprocessing, run_mode_paths
         )
-    return results
+        results[group_name] = group_result
+        errors.extend(_errors)
+    return results, errors
 
 
 def process_group(
@@ -222,11 +249,12 @@ def process_group(
     selected_models: LMFitModelCollection,
     use_multiprocessing: bool,
     run_mode_paths: RunModePaths,
-) -> Dict[str, Any]:
+) -> tuple[dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]], list[str]]:
     """Process a group of samples."""
     results = {}
+    errors = []
     for sample_id, sample_id_grp in group_by_sample_id(grp):
-        results[sample_id] = process_sample(
+        sample_result, _errors = process_sample(
             group_name,
             sample_id,
             sample_id_grp,
@@ -234,7 +262,9 @@ def process_group(
             use_multiprocessing,
             run_mode_paths,
         )
-    return results
+        results[sample_id] = sample_result
+        errors.extend(_errors)
+    return results, errors
 
 
 def process_sample(
@@ -244,12 +274,13 @@ def process_sample(
     selected_models: LMFitModelCollection,
     use_multiprocessing: bool,
     run_mode_paths: RunModePaths,
-) -> Dict[str, Any]:
+) -> tuple[dict[RegionNames, AggregatedSampleSpectrumFitResult], list[str]]:
     """Process a single sample."""
+    errors = []
     if not sample_id_grp:
         _error_msg = ERROR_MSG_TEMPLATE.format(group_name, sample_id, "group is empty")
         logger.debug(_error_msg)
-        return {"errors": _error_msg}
+        errors.append(_error_msg)
 
     sample_id_grp = sorted(sample_id_grp, key=lambda x: x.sample.position)
     unique_positions = {i.sample.position for i in sample_id_grp}
@@ -257,15 +288,15 @@ def process_sample(
     if len(unique_positions) < len(sample_id_grp):
         _error_msg = f"Handle multiple source files for a single position on a sample, {group_name} {sample_id}"
         logger.debug(_error_msg)
-        return {"errors": _error_msg}
+        errors.append(_error_msg)
 
     model_result = run_fit_over_selected_models(
         sample_id_grp,
         selected_models,
         use_multiprocessing=use_multiprocessing,
-        file_paths=run_mode_paths,
+        run_mode_paths=run_mode_paths,
     )
-    return {"fit_results": model_result}
+    return model_result, errors
 
 
 def get_results_over_selected_models(
@@ -304,7 +335,9 @@ def call_export_manager(
     return export_manager.export_files()
 
 
-def make_examples(**kwargs) -> MainDelegator:
+def make_examples(
+    **kwargs,
+) -> dict[str, dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]]]:
     """Create example instances of MainDelegator for testing."""
     _main_run = MainDelegator(
         run_mode=RunModes.PYTEST,
@@ -314,7 +347,7 @@ def make_examples(**kwargs) -> MainDelegator:
     )
     assert isinstance(_main_run.index, RamanFileIndex)
     assert isinstance(_main_run.run_mode_paths, RunModePaths)
-    main_run(
+    results = main_run(
         _main_run.index,
         _main_run.select_sample_groups,
         _main_run.select_sample_ids,
@@ -323,7 +356,7 @@ def make_examples(**kwargs) -> MainDelegator:
         _main_run.use_multiprocessing,
         _main_run.fit_model_region_names,
     )
-    return _main_run
+    return results
 
 
 if __name__ == "__main__":

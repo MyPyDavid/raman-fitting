@@ -1,4 +1,4 @@
-from typing import List
+from typing import Sequence
 
 from loguru import logger
 
@@ -17,7 +17,7 @@ from raman_fitting.imports.spectrum.spectra_collection import SpectraDataCollect
 
 
 def prepare_aggregated_spectrum_from_files(
-    region_name: RegionNames, raman_files: List[RamanFileInfo]
+    region_name: RegionNames, raman_files: Sequence[RamanFileInfo]
 ) -> AggregatedSampleSpectrum | None:
     select_region_key = f"{CLEAN_SPEC_REGION_NAME_PREFIX}{region_name}"
     clean_data_for_region = []
