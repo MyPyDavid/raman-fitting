@@ -8,10 +8,14 @@ pytest:
 
 [group('pytest')]
 pytest-all:
-  pytest -m "slow" tests/
+  pytest -s -v --pdb --log-level=DEBUG --cov --cov-report=xml --cov-report=term-missing -m "" tests/
 
 [group('pytest')]
 pytest-debug:
+  pytest -s -v --pdb --log-level=DEBUG -m "not slow" tests/
+
+[group('pytest')]
+pytest-debug-slow:
   pytest -s -v --pdb --log-level=DEBUG -m "slow" tests/
 
 
