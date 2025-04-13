@@ -46,6 +46,7 @@ pytest = [
 	"pytest-cov",
 	"pytest-flake8",
 	"pytest-loguru",
+	"coverage",
 	"mock",
 	"wheel"
 	]
