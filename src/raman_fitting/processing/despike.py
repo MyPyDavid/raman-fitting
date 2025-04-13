@@ -10,7 +10,7 @@ import logging
 
 import numpy as np
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, computed_field
 
 from raman_fitting.models.spectrum import SpectrumData
 
@@ -24,33 +24,26 @@ class SpectrumDespiker(BaseModel):
     ignore_lims: Tuple[int, int] = (20, 46)
     info: Dict = Field(default_factory=dict)
 
-    @model_validator(mode="after")
-    def process_spectrum(self) -> "SpectrumDespiker":
-        despiked_intensity, result_info = self.call_despike_spectrum(
+    @computed_field
+    @property
+    def despiked_spectrum(self) -> SpectrumData:
+        despiked_intensity, result_info = self.run_despiking_algorithm(
             self.spectrum.intensity
         )
-        despiked_spec = self.spectrum.model_copy(
-            update={"intensity": despiked_intensity}, deep=True
+        # Create a new instance of SpectrumData with the updated intensity
+        despiked_spec = SpectrumData(
+            ramanshift=self.spectrum.ramanshift,
+            intensity=despiked_intensity,
+            label=self.spectrum.label,
+            source=self.spectrum.source,
+            region_name=self.spectrum.region_name,
+            processing_steps=self.spectrum.processing_steps.copy(),
         )
-        despiked_spec.add_processing_step(self.__class__.__name__)
-        SpectrumData.model_validate(despiked_spec, from_attributes=True)
-        self._processed_spectrum = despiked_spec
+        despiked_spec.add_processing_step(f"Despiked: {self.__class__.__name__}")
         self.info.update(**result_info)
-        return self
+        return despiked_spec
 
-    @property
-    def processed_spectrum(self) -> SpectrumData:
-        if not hasattr(self, "_processed_spectrum"):
-            raise ValueError(
-                "Processed spectrum is not available. Ensure the model is properly initialized."
-            )
-        return self._processed_spectrum
-
-    def process_intensity(self, intensity: np.ndarray) -> np.ndarray:
-        despiked_intensity, _ = self.call_despike_spectrum(intensity)
-        return despiked_intensity
-
-    def call_despike_spectrum(self, intensity: np.ndarray) -> Tuple[np.ndarray, Dict]:
+    def run_despiking_algorithm(self, intensity: np.ndarray) -> Tuple[np.ndarray, Dict]:
         despiked_intensity, result_info = despike_spectrum_intensity(
             intensity,
             self.threshold_z_value,
@@ -149,4 +142,4 @@ def despike_filter(
 
 
 def despike_spectrum_data(spectrum: SpectrumData) -> SpectrumData:
-    return SpectrumDespiker(spectrum=spectrum).processed_spectrum
+    return SpectrumDespiker(spectrum=spectrum).despiked_spectrum

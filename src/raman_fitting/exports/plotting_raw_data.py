@@ -58,9 +58,14 @@ def raw_data_spectra_plot(
     if not aggregated_spectra:
         return export_results
 
-    sources = list(aggregated_spectra.values())[0].aggregated_spectrum.sources
-    sample_id = "-".join(set(i.file_info.sample.id for i in sources))
     regions = settings.default_regions
+
+    sources = list(
+        set(source for i in aggregated_spectra.values() for source in i.sources)
+    )
+    sample_id = "-".join(
+        set(i.aggregated_spectrum.sample_id for i in aggregated_spectra.values())
+    )
     valid_regions = filter_regions_for_spectrum(regions, sources[0].read.spectrum)
 
     destfile = export_paths.plots_dir.joinpath(f"{sample_id}_mean.png")
@@ -70,7 +75,6 @@ def raw_data_spectra_plot(
     plot_region_axes = get_plot_region_axes(nrows=nrows, regions=valid_regions)
     ncols = 3
     _, ax = plt.subplots(nrows, ncols, figsize=(18, 12))
-
     for spec_source in sources:
         for (
             region_name,
@@ -90,13 +94,17 @@ def raw_data_spectra_plot(
             ax_.set_title(region_name)
             if region_name in aggregated_spectra:
                 mean_spec = aggregated_spectra[region_name].aggregated_spectrum.spectrum
-                # plot the mean aggregated spectrum
-                ax_.plot(
-                    mean_spec.ramanshift,
-                    mean_spec.intensity,
-                    label=mean_spec.label,
-                    **RAW_MEAN_SPEC_FMT,
-                )
+                # Check if the mean spectrum has already been plotted
+                if not any(
+                    line.get_label() == mean_spec.label for line in ax_.get_lines()
+                ):
+                    # plot the mean aggregated spectrum
+                    ax_.plot(
+                        mean_spec.ramanshift,
+                        mean_spec.intensity,
+                        label=mean_spec.label,
+                        **RAW_MEAN_SPEC_FMT,
+                    )
 
             # filter legend for a certain region
             ax_.legend(fontsize=10)

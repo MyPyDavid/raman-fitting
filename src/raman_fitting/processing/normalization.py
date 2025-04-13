@@ -48,20 +48,25 @@ def normalize_regions_in_split_spectrum(
         norm_label = f"norm_{norm_label}" if "norm" not in norm_label else norm_label
         # label looks like "norm_regionname_label"
 
-        new_spec_region = spec.model_copy(
-            update={
-                "intensity": spec.intensity * norm_factor,
-                "label": norm_label,
-            }
+        new_spec_region = SpectrumData(
+            ramanshift=spec.ramanshift,
+            intensity=spec.intensity * norm_factor,
+            label=norm_label,
+            source=spec.source,
+            region_name=spec.region_name,
+            processing_steps=spec.processing_steps.copy(),
         )
         new_spec_region.add_processing_step(f"normalization with {norm_factor}")
         norm_spec_regions.append(new_spec_region)
         norm_infos.update(**{region_name: {"normalization_factor": norm_factor}})
 
-    norm_spectra = split_spectrum.model_copy(
-        update={"spec_regions": norm_spec_regions, "info": norm_infos}
+    new_split_spectrum = SplitSpectrum(
+        spectrum=split_spectrum.spectrum,
+        region_limits=split_spectrum.region_limits,
+        split_spectra=norm_spec_regions,
+        info=norm_infos,
     )
-    return norm_spectra
+    return new_split_spectrum
 
 
 def normalize_split_spectrum(

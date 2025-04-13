@@ -14,7 +14,6 @@ from pydantic import (
     Field,
     FilePath,
     NewPath,
-    computed_field,
 )
 
 from loguru import logger
@@ -29,7 +28,6 @@ class RamanFileIndex(BaseModel):
     force_reindex: bool = Field(default=False, validate_default=False)
     persist_to_file: bool = Field(default=True, validate_default=False)
 
-    @computed_field
     @property
     def dataset(self) -> Dataset | None:
         if self.raman_files is None or not self.raman_files:

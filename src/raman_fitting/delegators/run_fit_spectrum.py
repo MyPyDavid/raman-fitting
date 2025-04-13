@@ -4,7 +4,6 @@ from operator import itemgetter
 from typing import Sequence
 from pydantic import ValidationError
 
-from raman_fitting.config.path_settings import RunModePaths
 
 from raman_fitting.models.spectrum import SpectrumData
 from raman_fitting.models.deconvolution.base_model import LMFitModelCollection
@@ -23,7 +22,6 @@ def run_fit_over_selected_models(
     raman_files: Sequence[RamanFileInfo],
     models: LMFitModelCollection,
     use_multiprocessing: bool = False,
-    run_mode_paths: RunModePaths | None = None,
     reuse_params: bool = True,
 ) -> dict[RegionNames, AggregatedSampleSpectrumFitResult]:
     if use_multiprocessing:
@@ -85,21 +83,20 @@ def prepare_spec_fit_regions(
     spec_fits = []
     errors = []
     for model_name, model in model_region_grp.items():
-        region = model.region_name.value
         try:
             spec_fit = SpectrumFitModel(
                 spectrum=spectrum,
                 model=model,
-                region=region,
+                region=model.region_name,
                 reuse_params=reuse_params,
                 fit_kwargs=fit_kwargs,
             )
             spec_fits.append(spec_fit)
         except ValidationError as e:
             logger.error(
-                f"Could not initialize fit model {model_name} to spectrum {region}.{e}"
+                f"Could not initialize fit model {model_name} to spectrum {model.region_name}.{e}"
             )
-            errors.append(FitError(model_name, region, spectrum, e))
+            errors.append(FitError(model_name, model.region_name.name, spectrum, e))
             continue
     return spec_fits, errors
 

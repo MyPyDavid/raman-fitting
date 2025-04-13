@@ -1,6 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Protocol
 
+from pydantic import ValidationError
 
 from raman_fitting.models.spectrum import SpectrumData
 
@@ -26,8 +27,8 @@ class PostProcessor(Protocol):
 class SpectrumProcessor:
     """performs  pre-processing, post-, and"""
 
-    spectrum: SpectrumData
-    region_limits: SpectrumRegionsLimitsSet
+    spectrum: SpectrumData = field(repr=False)
+    region_limits: SpectrumRegionsLimitsSet = field(repr=False)
     processed: bool = False
     processed_spectra: SplitSpectrum | None = None
 
@@ -36,6 +37,8 @@ class SpectrumProcessor:
             self.processed_spectra = self.process_spectrum()
             self.processed = True
         except ValueError as e:
+            raise e from e
+        except ValidationError as e:
             raise e from e
 
     def process_spectrum(self) -> SplitSpectrum:

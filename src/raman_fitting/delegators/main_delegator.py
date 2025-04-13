@@ -103,7 +103,6 @@ class MainDelegator:
             self.index,
             self.select_sample_groups,
             self.select_sample_ids,
-            self.run_mode_paths,
             self.selected_models,
             self.use_multiprocessing,
             self.fit_model_region_names,
@@ -134,7 +133,6 @@ def main_run(
     index: RamanFileIndex,
     select_sample_groups: Sequence[str],
     select_sample_ids: Sequence[str],
-    run_mode_paths: RunModePaths,
     selected_models: LMFitModelCollection,
     use_multiprocessing: bool,
     fit_model_region_names: Sequence[RegionNames],
@@ -156,9 +154,7 @@ def main_run(
     else:
         logger.debug(f"Selected models {len(selected_models)}")
 
-    results, errors = process_selection(
-        selection, selected_models, use_multiprocessing, run_mode_paths
-    )
+    results, errors = process_selection(selection, selected_models, use_multiprocessing)
     log_results(results, errors)
     return results
 
@@ -220,7 +216,6 @@ def process_selection(
     selection: Sequence[RamanFileInfo],
     selected_models: LMFitModelCollection,
     use_multiprocessing: bool,
-    run_mode_paths: RunModePaths,
 ) -> tuple[
     dict[str, dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]]],
     list[str],
@@ -229,7 +224,7 @@ def process_selection(
     selection_results, errors = {}, []
     for group_name, grp in group_by_sample_group(selection):
         group_result, _errors = process_group(
-            group_name, grp, selected_models, use_multiprocessing, run_mode_paths
+            group_name, grp, selected_models, use_multiprocessing
         )
         selection_results[group_name] = group_result
         if _errors:
@@ -242,7 +237,6 @@ def process_group(
     grp: Sequence[RamanFileInfo],
     selected_models: LMFitModelCollection,
     use_multiprocessing: bool,
-    run_mode_paths: RunModePaths,
 ) -> tuple[dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]], list[str]]:
     """Process a group of samples."""
     group_results = {}
@@ -254,7 +248,6 @@ def process_group(
             sample_id_grp,
             selected_models,
             use_multiprocessing,
-            run_mode_paths,
         )
         group_results[sample_id] = sample_result
         if _errors:
@@ -268,7 +261,6 @@ def process_sample(
     sample_id_grp: Sequence[RamanFileInfo],
     selected_models: LMFitModelCollection,
     use_multiprocessing: bool,
-    run_mode_paths: RunModePaths,
 ) -> tuple[dict[RegionNames, AggregatedSampleSpectrumFitResult], list[str]]:
     """Process a single sample."""
     errors = []
@@ -289,7 +281,6 @@ def process_sample(
         sample_id_grp,
         selected_models,
         use_multiprocessing=use_multiprocessing,
-        run_mode_paths=run_mode_paths,
     )
     return model_result, errors
 
@@ -346,7 +337,6 @@ def make_examples(
         delegator.index,
         delegator.select_sample_groups,
         delegator.select_sample_ids,
-        delegator.run_mode_paths,
         delegator.selected_models,
         delegator.use_multiprocessing,
         delegator.fit_model_region_names,

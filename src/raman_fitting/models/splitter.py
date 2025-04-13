@@ -1,7 +1,8 @@
 from typing import Dict, Any
 import numpy as np
 
-from pydantic import BaseModel, model_validator, Field
+from pydantic import BaseModel, Field, computed_field, ConfigDict
+
 from .spectrum import SpectrumData
 from .deconvolution.spectrum_regions import (
     SpectrumRegionLimits,
@@ -25,27 +26,27 @@ def get_default_spectrum_region_limits(
 
 
 class SplitSpectrum(BaseModel):
-    spectrum: SpectrumData
+    spectrum: SpectrumData = Field(repr=False)
     region_limits: SpectrumRegionsLimitsSet = Field(
-        default_factory=get_default_spectrum_region_limits
+        default_factory=get_default_spectrum_region_limits, repr=False
     )
-    split_spectra: list[SpectrumData] = Field(default_factory=list)
     info: Dict[str, Any] = Field(default_factory=dict)
+    split_spectra: list[SpectrumData] | None = Field(default=None, repr=False)
 
-    @model_validator(mode="after")
-    def spit_spectrum_into_regions(self) -> "SplitSpectrum":
-        if not all(isinstance(i, SpectrumData) for i in self.split_spectra):
-            raise ValueError("Not all spectrum regions are valid SpectrumData objects.")
+    model_config = ConfigDict(extra="forbid")
 
-        self.split_spectra = split_spectrum_data_in_regions(
+    @computed_field
+    @property
+    def computed_split_spectra_from_spectrum(self) -> list[SpectrumData]:
+        if self.split_spectra is not None:
+            return self.split_spectra
+        return split_spectrum_data_in_regions(
             self.spectrum,
             spec_region_limits=self.region_limits,
         )
 
-        return self
-
-    def get_spec_for_region(self, region_name: RegionNames):
-        if not self.split_spectra:
+    def get_spec_for_region(self, region_name: RegionNames) -> SpectrumData:
+        if not self.computed_split_spectra_from_spectrum:
             raise ValueError("Missing spectrum regions.")
         region_name = RegionNames(region_name)
         _regions = set()
@@ -57,9 +58,9 @@ class SplitSpectrum(BaseModel):
             raise ValueError(f"Key {region_name} not in {_regions}")
 
     def __iter__(self) -> tuple[RegionNames, SpectrumData]:
-        if self.split_spectra is None:
-            raise ValueError("Missing spectrum regions.")
-        for spectrum in self.split_spectra:
+        if self.computed_split_spectra_from_spectrum is None:
+            raise ValueError("Missing split spectra.")
+        for spectrum in self.computed_split_spectra_from_spectrum:
             yield spectrum.region_name, spectrum
 
 
@@ -72,35 +73,32 @@ def split_spectrum_data_in_regions(
     the names of the regions are taken from SpectrumRegionLimits
     and set as attributes to the instance.
     """
-    ramanshift = spectrum.ramanshift
-    intensity = spectrum.intensity
-    label = spectrum.label
-    source = spectrum.source
-    processing_steps = spectrum.processing_steps.copy()
-
     if spec_region_limits is None:
         spec_region_limits = get_default_regions_from_toml_files()()
+
+    ramanshift = spectrum.ramanshift
+    intensity = spectrum.intensity
+
     split_spectra = []
     for region in spec_region_limits:
         # find indices of region in ramanshift array
         ind = (ramanshift >= np.min(region.min)) & (ramanshift <= np.max(region.max))
         region_lbl = f"region_{region.name}"
-        if label is not None and label not in region_lbl:
-            region_lbl = f"{label}_{region_lbl}"
+        if spectrum.label is not None and spectrum.label not in region_lbl:
+            region_lbl = f"{spectrum.label}_{region_lbl}"
 
         new_processing_step = (
             f"spectrum region {region.name} split from {spectrum.region_name} "
             f"with limits {region.min} - {region.max}"
         )
-        _data = {
-            "ramanshift": ramanshift[ind],
-            "intensity": intensity[ind],
-            "label": region_lbl,
-            "region_name": region.name,
-            "source": source,
-            "processing_steps": processing_steps,
-        }
-        spectrum_region = SpectrumData(**_data)
+        spectrum_region = SpectrumData(
+            ramanshift=ramanshift[ind],
+            intensity=intensity[ind],
+            label=region_lbl,
+            region_name=region.name,
+            source=spectrum.source,
+            processing_steps=spectrum.processing_steps.copy(),
+        )
         spectrum_region.add_processing_step(new_processing_step)
         split_spectra.append(spectrum_region)
 

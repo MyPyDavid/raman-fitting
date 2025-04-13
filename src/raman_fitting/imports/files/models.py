@@ -34,6 +34,15 @@ class RamanFileInfo(BaseModel):
     def file_metadata(self) -> FileMetaData:
         return FileMetaData(**get_file_metadata(self.file))
 
+    def __hash__(self):
+        # Use the hash of the file path as the hash of the object
+        return hash(self.file)
+
+    def __eq__(self, other):
+        if isinstance(other, RamanFileInfo):
+            return self.file == other.file
+        return False
+
 
 class RamanFileInfoSet(BaseModel):
     raman_files: Sequence[RamanFileInfo] = Field(default_factory=list)

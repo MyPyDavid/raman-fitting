@@ -54,6 +54,6 @@ def prepare_aggregated_spectrum_from_files(
         spectra=clean_data_for_region, region_name=region_name
     )
     aggregated_spectrum = AggregatedSampleSpectrum(
-        sources=data_sources, spectrum=spectra_collection.mean_spectrum
+        prepared_sources=data_sources, spectrum=spectra_collection.mean_spectrum
     )
     return aggregated_spectrum

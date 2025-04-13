@@ -8,7 +8,6 @@ from matplotlib.axes import Axes
 from matplotlib.text import Text
 from matplotlib.ticker import AutoMinorLocator
 
-from raman_fitting.imports.samples.models import SampleMetaData
 from raman_fitting.models.fit_models import SpectrumFitModel
 
 
@@ -33,30 +32,26 @@ def fit_spectrum_plot(
 ) -> ExportResultSet:  # pragma: no cover
     export_results = ExportResultSet()
     for region_name, region_aggregated_spectrum in aggregated_spectra.items():
-        sources = region_aggregated_spectrum.aggregated_spectrum.sources
-        sample = sources[0].file_info.sample
-
+        # sources = region_aggregated_spectrum.sources
+        sample_id = region_aggregated_spectrum.sample_id
         second_model = None
         if (
             region_name == RegionNames.FIRST_ORDER
             and RegionNames.SECOND_ORDER in aggregated_spectra
         ):
             second_order = aggregated_spectra[RegionNames.SECOND_ORDER]
-            second_model = second_order.fit_model_results.get(
-                DEFAULT_SECOND_ORDER_MODEL
-            )
+            second_model = second_order.get_fit_model(DEFAULT_SECOND_ORDER_MODEL)
         for (
             model_name,
             current_model,
         ) in region_aggregated_spectrum.fit_model_results.items():
             logger.info(
-                f"Starting to plot for {sample.id}, {region_name} {model_name}."
+                f"Starting to plot fit result for {sample_id}, {region_name} {model_name}."
             )
-
             export_result = prepare_combined_spectrum_fit_result_plot(
                 current_model,
                 second_model,
-                sample,
+                sample_id,
                 export_paths,
                 plot_annotation=plot_annotation,
                 plot_residuals=plot_residuals,
@@ -69,7 +64,7 @@ def fit_spectrum_plot(
 def prepare_combined_spectrum_fit_result_plot(
     first_model: SpectrumFitModel,
     second_model: SpectrumFitModel | None,
-    sample: SampleMetaData,
+    sample_id: str,
     export_paths: ExportPathSettings,
     plot_annotation=True,
     plot_residuals=True,
@@ -80,7 +75,7 @@ def prepare_combined_spectrum_fit_result_plot(
     gs = gridspec.GridSpec(4, 1, height_ratios=[4, 1, 4, 1])
     ax = plt.subplot(gs[0])
     ax_res = plt.subplot(gs[1])
-    ax.set_title(f"{sample.id}, {first_model_name}")
+    ax.set_title(f"{sample_id}, {first_model_name}")
 
     fit_plot_first(ax, ax_res, first_model, plot_residuals=plot_residuals)
     _bbox_artists = None

@@ -27,11 +27,11 @@ from raman_fitting.models.spectrum import SpectrumData
 class SpectrumFitModel(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    spectrum: SpectrumData
-    model: BaseLMFitModel
+    spectrum: SpectrumData = Field(repr=False)
+    model: BaseLMFitModel = Field(repr=False)
     region: RegionNames
     fit_kwargs: dict = Field(default_factory=dict, repr=False)
-    reuse_params: bool = False
+    reuse_params: bool = Field(default=False, repr=False)
 
     # Private attributes using PrivateAttr
     _fit_result: ModelResult | None = PrivateAttr(default=None)
@@ -40,11 +40,9 @@ class SpectrumFitModel(BaseModel):
 
     @model_validator(mode="after")
     def match_region_names(self) -> "SpectrumFitModel":
-        model_region = self.model.region_name
-        spec_region = self.spectrum.region_name
-        if model_region != spec_region:
+        if self.model.region_name != self.spectrum.region_name:
             raise ValueError(
-                f"Region names do not match {model_region} and {spec_region}"
+                f"Region names do not match {self.model.region_name} and {self.spectrum.region_name}"
             )
         return self
 

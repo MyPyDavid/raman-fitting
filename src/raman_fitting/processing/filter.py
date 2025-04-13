@@ -51,8 +51,14 @@ def filter_spectrum(
         spectrum.intensity
     )
     label = f"{filter_name}_{spectrum.label}"
-    filtered_spectrum = spectrum.model_copy(
-        update={"intensity": filtered_intensity, "label": label}
+    # Create a new instance of SpectrumData with the updated intensity and label
+    filtered_spectrum = SpectrumData(
+        ramanshift=spectrum.ramanshift,
+        intensity=filtered_intensity,
+        label=label,
+        source=spectrum.source,
+        region_name=spectrum.region_name,
+        processing_steps=spectrum.processing_steps.copy(),
     )
     filtered_spectrum.add_processing_step(filter_name)
     return filtered_spectrum
