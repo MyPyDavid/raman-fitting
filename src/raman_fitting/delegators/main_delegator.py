@@ -11,20 +11,20 @@ from raman_fitting.config.path_settings import (
     RunModePaths,
 )
 from raman_fitting.config import settings
+from raman_fitting.imports.files.index.factory import get_or_create_index
 
-from raman_fitting.imports.models import RamanFileInfo
-from raman_fitting.imports.selectors import select_samples_from_index
+from raman_fitting.imports.files.models import RamanFileInfo
+from raman_fitting.imports.files.selectors import (
+    select_samples_from_index,
+    group_by_sample_group,
+    group_by_sample_id,
+)
 
 from raman_fitting.models.deconvolution.base_model import BaseLMFitModel
 from raman_fitting.models.selectors import select_models_from_provided_models
 from raman_fitting.models.splitter import RegionNames
 from raman_fitting.exports.exporter import ExportManager
-from raman_fitting.imports.files.file_indexer import (
-    RamanFileIndex,
-    group_by_sample_group,
-    group_by_sample_id,
-    get_or_create_index,
-)
+from raman_fitting.imports.files.index.models import RamanFileIndex
 
 from raman_fitting.delegators.models import (
     AggregatedSampleSpectrumFitResult,
@@ -91,8 +91,8 @@ class MainDelegator:
         if not self.index:
             logger.info("Index is empty.")
             return
-        self.selection = initialize_selection(
-            self.index, self.select_sample_groups, self.select_sample_ids
+        self.selection = select_samples_from_index(
+            self.index.raman_files, self.select_sample_groups, self.select_sample_ids
         )
         self.selected_models = initialize_models(
             self.fit_model_region_names,
@@ -142,9 +142,9 @@ def main_run(
     """Main function to run the processing of Raman spectra."""
     try:
         selection = select_samples_from_index(
-            index, select_sample_groups, select_sample_ids
+            index.raman_files, select_sample_groups, select_sample_ids
         )
-        logger.debug(f"Selected {len(selection)} samples.")
+        logger.debug(f"Selected {len(selection)} samples for main run.")
     except ValueError as exc:
         logger.error(f"Selection failed. {exc}")
         return {}
@@ -153,6 +153,8 @@ def main_run(
         logger.info("No model region names were selected.")
     if not selected_models:
         logger.info("No fit models were selected.")
+    else:
+        logger.debug(f"Selected models {len(selected_models)}")
 
     results, errors = process_selection(
         selection, selected_models, use_multiprocessing, run_mode_paths
@@ -201,15 +203,6 @@ def initialize_index(
     return index
 
 
-def initialize_selection(
-    index: RamanFileIndex,
-    select_sample_groups: Sequence[str],
-    select_sample_ids: Sequence[str],
-) -> Sequence[RamanFileInfo]:
-    """Initialize the selection of samples from the index."""
-    return select_samples_from_index(index, select_sample_groups, select_sample_ids)
-
-
 def initialize_models(
     region_names: Sequence[RegionNames],
     model_names: Sequence[str],
@@ -233,14 +226,15 @@ def process_selection(
     list[str],
 ]:
     """Process the selection of samples."""
-    results, errors = {}, []
+    selection_results, errors = {}, []
     for group_name, grp in group_by_sample_group(selection):
         group_result, _errors = process_group(
             group_name, grp, selected_models, use_multiprocessing, run_mode_paths
         )
-        results[group_name] = group_result
-        errors.extend(_errors)
-    return results, errors
+        selection_results[group_name] = group_result
+        if _errors:
+            errors.append({group_name: _errors})
+    return selection_results, errors
 
 
 def process_group(
@@ -251,7 +245,7 @@ def process_group(
     run_mode_paths: RunModePaths,
 ) -> tuple[dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]], list[str]]:
     """Process a group of samples."""
-    results = {}
+    group_results = {}
     errors = []
     for sample_id, sample_id_grp in group_by_sample_id(grp):
         sample_result, _errors = process_sample(
@@ -262,9 +256,10 @@ def process_group(
             use_multiprocessing,
             run_mode_paths,
         )
-        results[sample_id] = sample_result
-        errors.extend(_errors)
-    return results, errors
+        group_results[sample_id] = sample_result
+        if _errors:
+            errors.append({sample_id: _errors})
+    return group_results, errors
 
 
 def process_sample(
@@ -339,22 +334,22 @@ def make_examples(
     **kwargs,
 ) -> dict[str, dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]]]:
     """Create example instances of MainDelegator for testing."""
-    _main_run = MainDelegator(
+    delegator = MainDelegator(
         run_mode=RunModes.PYTEST,
         fit_model_specific_names=["2peaks", "2nd_4peaks"],
         export=False,
         **kwargs,
     )
-    assert isinstance(_main_run.index, RamanFileIndex)
-    assert isinstance(_main_run.run_mode_paths, RunModePaths)
+    assert isinstance(delegator.index, RamanFileIndex)
+    assert isinstance(delegator.run_mode_paths, RunModePaths)
     results = main_run(
-        _main_run.index,
-        _main_run.select_sample_groups,
-        _main_run.select_sample_ids,
-        _main_run.run_mode_paths,
-        _main_run.selected_models,
-        _main_run.use_multiprocessing,
-        _main_run.fit_model_region_names,
+        delegator.index,
+        delegator.select_sample_groups,
+        delegator.select_sample_ids,
+        delegator.run_mode_paths,
+        delegator.selected_models,
+        delegator.use_multiprocessing,
+        delegator.fit_model_region_names,
     )
     return results
 

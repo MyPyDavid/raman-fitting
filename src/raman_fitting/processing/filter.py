@@ -47,12 +47,14 @@ def filter_spectrum(
     if spectrum is None:
         raise ValueError("Spectrum is None.")
 
-    filter_class = available_filters[filter_name]
-    filtered_intensity = filter_class.process_intensity(spectrum.intensity)
+    filtered_intensity = available_filters[filter_name].process_intensity(
+        spectrum.intensity
+    )
     label = f"{filter_name}_{spectrum.label}"
     filtered_spectrum = spectrum.model_copy(
         update={"intensity": filtered_intensity, "label": label}
     )
+    filtered_spectrum.add_processing_step(filter_name)
     return filtered_spectrum
 
 

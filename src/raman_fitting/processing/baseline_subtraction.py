@@ -1,61 +1,52 @@
 import numpy as np
 from scipy.stats import linregress
 
+from ..models.deconvolution.spectrum_regions import SpectrumRegionsLimitsSet
 from ..models.splitter import SplitSpectrum
 from ..models.spectrum import SpectrumData
 
 from loguru import logger
 
 
-def subtract_baseline_per_region(spec: SpectrumData, split_spectrum: SplitSpectrum):
-    ramanshift = spec.ramanshift
-    intensity = spec.intensity
-    if not (ramanshift.any() and intensity.any()):
-        return intensity, None
-    if spec.region_name is None:
-        raise ValueError("Missing spectrum region name.")
-    if split_spectrum.spec_regions is None:
-        raise ValueError("Missing spectrum regions data.")
-
-    region_name = spec.region_name
-    label = spec.label
-    regions_data = split_spectrum.spec_regions
-    region_limits = split_spectrum.region_limits
-    selected_intensity = intensity
-    region_config = region_limits[region_name]
-    region_name_first_order = list(
-        filter(lambda x: "first_order" in x, regions_data.keys())
-    )
-    if (
-        any((i in region_name or i in label) for i in ("full", "norm"))
-        and region_name_first_order
+def subtract_baseline_per_region(
+    spec: SpectrumData,
+    split_spectrum: SplitSpectrum,
+    region_limits: SpectrumRegionsLimitsSet,
+):
+    if (  # override the selected region with first order for full and norm
+        any((i in spec.region_name or i in spec.label) for i in ("full", "norm"))
     ):
-        selected_intensity = regions_data[region_name_first_order[0]].intensity
+        selected_intensity = split_spectrum.get_spec_for_region("first_order").intensity
         region_config = region_limits["first_order"]
+    else:
+        selected_intensity = spec.intensity
+        region_config = region_limits[spec.region_name]
+
     bl_linear = linregress(
-        ramanshift[[0, -1]],
+        spec.ramanshift[[0, -1]],
         [
             np.mean(selected_intensity[0 : region_config.extra_margin]),
             np.mean(selected_intensity[-region_config.extra_margin : :]),
         ],
     )
-    i_blcor = intensity - (bl_linear[0] * ramanshift + bl_linear[1])
+    i_blcor = spec.intensity - (bl_linear[0] * spec.ramanshift + bl_linear[1])
+
     return i_blcor, bl_linear
 
 
 def subtract_baseline_from_split_spectrum(
-    split_spectrum: SplitSpectrum | None = None, label=None
+    split_spectrum: SplitSpectrum, label=None
 ) -> SplitSpectrum:
-    if split_spectrum is None:
-        raise ValueError("Missing split spectrum.")
-    if split_spectrum.spec_regions is None:
+    if split_spectrum.split_spectra is None:
         raise ValueError("Missing regions of split spectrum.")
 
-    _bl_spec_regions: dict[str, SpectrumData] = {}
+    spec_blcorr_regions: list[SpectrumData] = []
     _info: dict = {}
     label = "blcorr" if label is None else label
-    for region_name, spec in split_spectrum.spec_regions.items():
-        blcorr_int, blcorr_lin = subtract_baseline_per_region(spec, split_spectrum)
+    for region_name, spec in split_spectrum:
+        blcorr_int, blcorr_lin = subtract_baseline_per_region(
+            spec, split_spectrum, split_spectrum.region_limits
+        )
         if any(np.isnan(i) for i in blcorr_int):
             logger.warning(
                 f"Subtract baseline failed for {region_name} because of nan."
@@ -63,18 +54,21 @@ def subtract_baseline_from_split_spectrum(
             continue
 
         new_label = f"{label}_{spec.label}" if label not in spec.label else spec.label
-        spec = SpectrumData(
+        spec_blcorr = SpectrumData(
             **{
                 "ramanshift": spec.ramanshift,
                 "intensity": blcorr_int,
                 "label": new_label,
                 "region_name": region_name,
                 "source": spec.source,
+                "processing_steps": spec.processing_steps.copy(),
             }
         )
-        _bl_spec_regions.update(**{region_name: spec})
+        spec_blcorr.add_processing_step(f"baseline subtracted with {label}")
+
+        spec_blcorr_regions.append(spec_blcorr)
         _info.update(**{region_name: blcorr_lin})
-    bl_corrected_spectra = split_spectrum.model_copy(
-        update={"spec_regions": _bl_spec_regions, "info": _info}
+
+    return split_spectrum.model_copy(
+        update={"spec_regions": spec_blcorr_regions, "info": _info}
     )
-    return bl_corrected_spectra

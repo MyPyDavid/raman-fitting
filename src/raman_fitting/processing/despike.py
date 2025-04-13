@@ -4,7 +4,7 @@ Created on Mon May  3 11:10:59 2021
 @author: dw
 """
 
-from typing import Dict, Tuple, Any, Optional
+from typing import Dict, Tuple, Any
 import copy
 import logging
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class SpectrumDespiker(BaseModel):
-    spectrum: Optional[SpectrumData] = None
+    spectrum: SpectrumData
     threshold_z_value: int = 4
     moving_region_size: int = 1
     ignore_lims: Tuple[int, int] = (20, 46)
@@ -26,14 +26,13 @@ class SpectrumDespiker(BaseModel):
 
     @model_validator(mode="after")
     def process_spectrum(self) -> "SpectrumDespiker":
-        if self.spectrum is None:
-            raise ValueError("SpectrumDespiker, spectrum is None")
         despiked_intensity, result_info = self.call_despike_spectrum(
             self.spectrum.intensity
         )
         despiked_spec = self.spectrum.model_copy(
             update={"intensity": despiked_intensity}, deep=True
         )
+        despiked_spec.add_processing_step(self.__class__.__name__)
         SpectrumData.model_validate(despiked_spec, from_attributes=True)
         self._processed_spectrum = despiked_spec
         self.info.update(**result_info)

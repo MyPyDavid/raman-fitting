@@ -12,7 +12,7 @@ from raman_fitting.delegators.models import AggregatedSampleSpectrumFitResult
 from raman_fitting.delegators.pre_processing import (
     prepare_aggregated_spectrum_from_files,
 )
-from raman_fitting.imports.models import RamanFileInfo
+from raman_fitting.imports.files.models import RamanFileInfo
 from raman_fitting.models.deconvolution.spectrum_regions import RegionNames
 from raman_fitting.models.fit_models import SpectrumFitModel
 

@@ -3,7 +3,7 @@ from typing import Dict, Sequence
 
 from pydantic import BaseModel
 
-from raman_fitting.imports.models import RamanFileInfo
+from raman_fitting.imports.files.models import RamanFileInfo
 
 from raman_fitting.models.spectrum import SpectrumData
 from raman_fitting.models.fit_models import SpectrumFitModel

@@ -1,5 +1,7 @@
 import numpy as np
 
+from .deconvolution.spectrum_regions import RegionNames
+
 from pydantic import (
     BaseModel,
     FilePath,
@@ -15,7 +17,8 @@ class SpectrumData(BaseModel):
     intensity: pnd.Np1DArrayFp32 = Field(repr=False)
     label: str
     source: FilePath | str | set[FilePath] | set[str] = Field(repr=False)
-    region_name: str | None = None
+    region_name: RegionNames
+    processing_steps: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def validate_equal_length(self):
@@ -32,9 +35,17 @@ class SpectrumData(BaseModel):
             raise ValueError("Intensity contains NaN")
         return self
 
+    def add_processing_step(self, step_name) -> None:
+        """Helper method to add a processing step to the spectrum."""
+        self.processing_steps.append(step_name)
+
     # length is derived property
     def __len__(self):
         return len(self.ramanshift)
+
+
+class SpectrumDataSet(BaseModel):
+    spectra: list[SpectrumData]
 
 
 class SpectrumMetaData(BaseModel):

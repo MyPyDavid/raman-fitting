@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Protocol, Dict
+from typing import Protocol
 
 
 from raman_fitting.models.spectrum import SpectrumData
@@ -7,7 +7,9 @@ from raman_fitting.models.spectrum import SpectrumData
 from .baseline_subtraction import subtract_baseline_from_split_spectrum
 from .filter import filter_spectrum
 from .despike import despike_spectrum_data
-from ..models.deconvolution.spectrum_regions import SpectrumRegionLimits
+from ..models.deconvolution.spectrum_regions import (
+    SpectrumRegionsLimitsSet,
+)
 from ..models.splitter import SplitSpectrum
 from .normalization import normalize_split_spectrum
 
@@ -25,43 +27,36 @@ class SpectrumProcessor:
     """performs  pre-processing, post-, and"""
 
     spectrum: SpectrumData
-    region_limits: Dict[str, SpectrumRegionLimits] | None
+    region_limits: SpectrumRegionsLimitsSet
     processed: bool = False
-    clean_spectrum: SplitSpectrum | None = None
+    processed_spectra: SplitSpectrum | None = None
 
     def __post_init__(self):
-        processed_spectrum = self.process_spectrum()
-        self.clean_spectrum = processed_spectrum
-        self.processed = True
+        try:
+            self.processed_spectra = self.process_spectrum()
+            self.processed = True
+        except ValueError as e:
+            raise e from e
 
     def process_spectrum(self) -> SplitSpectrum:
-        pre_processed_spectrum = self.pre_process_intensity(spectrum=self.spectrum)
-        split_spectrum = self.split_spectrum(spectrum=pre_processed_spectrum)
-        post_processed_spectra = self.post_process_spectrum(
-            split_spectrum=split_spectrum
+        return post_process_spectrum(
+            split_process_spectrum(
+                pre_process_intensity(spectrum=self.spectrum), self.region_limits
+            )
         )
-        return post_processed_spectra
 
-    def pre_process_intensity(
-        self, spectrum: SpectrumData | None = None
-    ) -> SpectrumData:
-        if spectrum is None:
-            raise ValueError("Can not pre-process, spectrum is None")
-        return despike_spectrum_data(filter_spectrum(spectrum=spectrum))
 
-    def split_spectrum(self, spectrum: SpectrumData | None = None) -> SplitSpectrum:
-        split_spectrum = SplitSpectrum(
-            spectrum=spectrum, region_limits=self.region_limits
-        )
-        return split_spectrum
+def pre_process_intensity(spectrum: SpectrumData) -> SpectrumData:
+    return despike_spectrum_data(filter_spectrum(spectrum=spectrum))
 
-    def post_process_spectrum(
-        self, split_spectrum: SplitSpectrum | None = None
-    ) -> SplitSpectrum:
-        baseline_subtracted = subtract_baseline_from_split_spectrum(
-            split_spectrum=split_spectrum
-        )
-        normalized_spectra = normalize_split_spectrum(
-            split_spectrum=baseline_subtracted
-        )
-        return normalized_spectra
+
+def split_process_spectrum(
+    spectrum: SpectrumData, region_limits: SpectrumRegionsLimitsSet
+) -> SplitSpectrum:
+    return SplitSpectrum(spectrum=spectrum, region_limits=region_limits)
+
+
+def post_process_spectrum(split_spectrum: SplitSpectrum) -> SplitSpectrum:
+    return normalize_split_spectrum(
+        subtract_baseline_from_split_spectrum(split_spectrum)
+    )
