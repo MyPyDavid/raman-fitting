@@ -160,11 +160,3 @@ def parmeter_to_dict(parameter: Parameter) -> dict:
 DEFAULT_GAMMA_PARAM_HINT = LMFitParameterHints(
     name="gamma", value=1, min=1e-05, max=70, vary=False
 )
-
-
-def main():
-    pass
-
-
-if __name__ == "__main__":
-    main()

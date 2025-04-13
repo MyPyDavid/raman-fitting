@@ -17,12 +17,14 @@ def get_default_spectrum_region_limits(
 ) -> SpectrumRegionsLimitsSet:
     if regions_mapping is None:
         regions_mapping = get_default_regions_from_toml_files()
-    regions = {}
+    regions = []
     for region_name, region_config in regions_mapping:
-        regions[region_name] = SpectrumRegionLimits(
-            name=region_name, **region_config.model_dump(exclude={"name"})
+        regions.append(
+            SpectrumRegionLimits(
+                name=region_name, **region_config.model_dump(exclude={"name"})
+            )
         )
-    return regions
+    return SpectrumRegionsLimitsSet(regions=regions)
 
 
 class SplitSpectrum(BaseModel):
@@ -54,8 +56,7 @@ class SplitSpectrum(BaseModel):
             if region is region_name:
                 return spec
             _regions.add(region)
-        else:
-            raise ValueError(f"Key {region_name} not in {_regions}")
+        raise ValueError(f"Key {region_name} not in {_regions}")
 
     def __iter__(self) -> tuple[RegionNames, SpectrumData]:
         if self.computed_split_spectra_from_spectrum is None:

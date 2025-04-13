@@ -14,7 +14,6 @@ def select_samples_from_index(
     if not raman_files:
         raise ValueError("Index file is empty.")
 
-    raman_files
     if not any([select_sample_groups, select_sample_ids]):
         selection = raman_files
         logger.debug(

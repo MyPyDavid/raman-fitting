@@ -32,7 +32,6 @@ def fit_spectrum_plot(
 ) -> ExportResultSet:  # pragma: no cover
     export_results = ExportResultSet()
     for region_name, region_aggregated_spectrum in aggregated_spectra.items():
-        # sources = region_aggregated_spectrum.sources
         sample_id = region_aggregated_spectrum.sample_id
         second_model = None
         if (

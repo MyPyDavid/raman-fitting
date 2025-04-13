@@ -43,7 +43,7 @@ class AggregatedSampleSpectrum(BaseModel):
 
     @computed_field
     @property
-    def samples(self) -> str:
+    def samples(self) -> set[str]:
         samples = set()
         for source in set(self.prepared_sources):
             samples.add(source.file_info.sample)

@@ -23,8 +23,6 @@ def test_run_command_with_arguments():
     assert result.exit_code == 0
     assert "Index is empty" in result.stdout
 
-    # assert "Starting raman_fitting with CLI run mode:" in result.stdout
-
 
 def test_make_command():
     result = runner.invoke(app, ["make", "--help"])

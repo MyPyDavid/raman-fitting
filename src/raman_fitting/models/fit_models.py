@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 import time
 from functools import cached_property
-from typing import Mapping
 
 from pydantic import (
     BaseModel,
@@ -96,13 +95,13 @@ class SpectrumFitModel(BaseModel):
 
 @dataclass
 class SpectrumFitModelRegistry:
-    spec_fit_model: Mapping[str, SpectrumFitModel] = field(default_factory=dict)
+    spec_fit_model_registry: dict[str, SpectrumFitModel] = field(default_factory=dict)
 
     def add_fit(
         self, spec_fit_model: SpectrumFitModel, name: str | None = None
     ) -> None:
         name = name if name is not None else spec_fit_model.model.name
-        self.spec_fit_model[name] = spec_fit_model
+        self.spec_fit_model_registry[name] = spec_fit_model
 
 
 def run_fit(

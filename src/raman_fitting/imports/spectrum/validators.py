@@ -10,12 +10,12 @@ logger = logging.getLogger(__name__)
 
 
 def validate_min(spectrum_data, min_value: float):
-    if not min_value <= min(spectrum_data):
+    if min(spectrum_data) < min_value:
         raise ValueError(f"Minium value {min(spectrum_data)} is lower than {min_value}")
 
 
 def validate_max(spectrum_data, max_value: float):
-    if not max(spectrum_data) <= max_value:
+    if max(spectrum_data) > max_value:
         raise ValueError(
             f"Maximum value {max(spectrum_data)} is greater than {max_value}"
         )

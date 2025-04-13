@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Protocol
 
-from pydantic import ValidationError
+from loguru import logger
 
 from raman_fitting.models.spectrum import SpectrumData
 
@@ -37,8 +37,7 @@ class SpectrumProcessor:
             self.processed_spectra = self.process_spectrum()
             self.processed = True
         except ValueError as e:
-            raise e from e
-        except ValidationError as e:
+            logger.error(f"Error in spectrum processor, {e}")
             raise e from e
 
     def process_spectrum(self) -> SplitSpectrum:

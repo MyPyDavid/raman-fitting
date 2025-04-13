@@ -48,11 +48,11 @@ def test_empty_base_class_with_kwargs_raises():
 
     # add in field validation str_length
     with pytest.raises(ValueError) as excinfo:
-        eb = BasePeak(peak_name=10 * "emptytest", peak_type="Voigt")
+        _eb = BasePeak(peak_name=10 * "emptytest", peak_type="Voigt")
     assert _error_message_contains(excinfo, "value for peak_name is too long 90")
 
     with pytest.raises(KeyError) as excinfo:
-        eb = BasePeak(peak_name=10 * "emptytest", peak_type="XY-Voigt")
+        _eb = BasePeak(peak_name=10 * "emptytest", peak_type="XY-Voigt")
     assert _error_message_contains(
         excinfo,
         "peak_type is not in XY-Voigt",
