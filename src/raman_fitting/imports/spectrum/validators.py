@@ -9,6 +9,25 @@ from raman_fitting.imports.spectrum.datafile_schema import SpectrumDataKeys
 logger = logging.getLogger(__name__)
 
 
+def validate_min(spectrum_data, min_value: float):
+    if not min_value <= min(spectrum_data):
+        raise ValueError(f"Minium value {min(spectrum_data)} is lower than {min_value}")
+
+
+def validate_max(spectrum_data, max_value: float):
+    if not max(spectrum_data) <= max_value:
+        raise ValueError(
+            f"Maximum value {max(spectrum_data)} is greater than {max_value}"
+        )
+
+
+def validate_len(spectrum_data, len_value: int):
+    if not np.isclose(len(spectrum_data), len_value, rtol=0.1):
+        raise ValueError(
+            f"Length {len(spectrum_data)} differs from expected {len_value}"
+        )
+
+
 @dataclass
 class ValidateSpectrumValues:
     spectrum_key: str
@@ -16,25 +35,22 @@ class ValidateSpectrumValues:
     max: float
     len: int | None = None
 
-    def validate_min(self, spectrum_data):
-        data_min = min(spectrum_data[self.spectrum_key])
-        return np.isclose(data_min, self.min, rtol=0.2)
+    def validate(self, spectrum_data) -> tuple[bool, list]:
+        errors = []
+        for validator, expected_value in [
+            (validate_min, self.min),
+            (validate_max, self.max),
+            (validate_len, self.len),
+        ]:
+            if expected_value is None:
+                continue
 
-    def validate_max(self, spectrum_data):
-        data_max = max(spectrum_data[self.spectrum_key])
-        return data_max <= self.max
+            try:
+                validator(spectrum_data, expected_value)
+            except ValueError as e:
+                errors.append(e)
 
-    def validate_len(self, spectrum_data):
-        if self.len is None:
-            return True
-        data_len = len(spectrum_data)
-        return np.isclose(data_len, self.len, rtol=0.1)
-
-    def validate(self, spectrum_data):
-        ret = []
-        for _func in [self.validate_min, self.validate_max, self.validate_len]:
-            ret.append(_func(spectrum_data))
-        return all(ret)
+        return not errors, errors
 
 
 def validate_spectrum_keys_expected_values(
@@ -56,11 +72,11 @@ def validate_spectrum_keys_expected_values(
         )
 
 
-spectrum_keys_expected_values = {
-    SpectrumDataKeys.ramanshift: ValidateSpectrumValues(
-        spectrum_key=SpectrumDataKeys.ramanshift, min=-95, max=3650
+SPECTRUM_KEYS_EXPECTED_VALUES = {
+    SpectrumDataKeys.RAMANSHIFT: ValidateSpectrumValues(
+        spectrum_key=SpectrumDataKeys.RAMANSHIFT, min=-95, max=3750
     ),
-    SpectrumDataKeys.intensity: ValidateSpectrumValues(
-        spectrum_key=SpectrumDataKeys.intensity, min=0, max=1e5
+    SpectrumDataKeys.INTENSITY: ValidateSpectrumValues(
+        spectrum_key=SpectrumDataKeys.INTENSITY, min=0, max=1e5
     ),
 }

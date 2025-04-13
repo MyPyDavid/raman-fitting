@@ -6,10 +6,10 @@ from tablib import Dataset, detect_format
 
 from loguru import logger
 
-from raman_fitting.imports.spectrum.datafile_schema import SpectrumDataKeys
-
-
-DEFAULT_SORT_BY = SpectrumDataKeys.ramanshift
+from raman_fitting.imports.spectrum.datafile_schema import (
+    SpectrumDataKeys,
+    DEFAULT_SORT_BY_DATA_KEY,
+)
 
 
 def filter_split_row_for_numeric(data: Dataset):
@@ -38,6 +38,16 @@ def load_dataset_from_file(filepath, **kwargs) -> Dataset:
     return imported_data
 
 
+def write_dataset_to_file(file: Path, dataset: Dataset) -> None:
+    if file.suffix == ".csv":
+        with open(file, "w", newline="") as f:
+            f.write(dataset.export("csv"))
+    else:
+        with open(file, "wb", encoding="utf-8") as f:
+            f.write(dataset.export(file.suffix))
+    logger.debug(f"Wrote dataset of len {len(dataset)} to {file}")
+
+
 def ignore_extra_columns(dataset: Dataset, header_keys: Sequence[str]) -> Dataset:
     new_dataset = tablib.Dataset()
     for n, i in enumerate(header_keys):
@@ -47,9 +57,9 @@ def ignore_extra_columns(dataset: Dataset, header_keys: Sequence[str]) -> Datase
 
 
 def split_single_rows_into_columns(
-    dataset: Dataset, header_keys: SpectrumDataKeys
+    dataset: Dataset, header_keys: list[SpectrumDataKeys]
 ) -> Dataset:
-    if dataset.width != 1:
+    if dataset.width != 1 and len(header_keys) > 1:
         raise ValueError(f"Dataset width should to be 1, not {dataset.width}.")
     col0 = dataset.get_col(0)
     col0_split_rows = list(map(lambda x: x.split(), col0))
@@ -62,17 +72,19 @@ def split_single_rows_into_columns(
     return new_dataset
 
 
-def validate_columns_with_header_keys(
-    dataset: Dataset, header_keys: SpectrumDataKeys
+def transform_dataset_to_columns_with_header_keys(
+    dataset: Dataset, header_keys: list[SpectrumDataKeys]
 ) -> Dataset | None:
     if not dataset:
         return dataset
-    if dataset.width == 1:
+
+    if dataset.width < len(header_keys):
         logger.warning(
             f"data has only a single columns {dataset.width}, splitting into {len(header_keys)}"
         )
         dataset = split_single_rows_into_columns(dataset, header_keys)
-    elif dataset.width > len(header_keys):
+
+    if dataset.width > len(header_keys):
         logger.warning(
             f"data has too many columns {dataset.width}, taking first {len(header_keys)}"
         )
@@ -94,11 +106,11 @@ def read_file_with_tablib(
     sort_by: str | None = None,
 ) -> Dataset:
     data = load_dataset_from_file(filepath)
-    data = validate_columns_with_header_keys(data, header_keys)
+    data = transform_dataset_to_columns_with_header_keys(data, header_keys)
     data = check_header_keys(data, header_keys)
     numeric_data = filter_split_row_for_numeric(data)
-    if sort_by is None and DEFAULT_SORT_BY in header_keys:
-        sort_by = DEFAULT_SORT_BY
+    if sort_by is None and DEFAULT_SORT_BY_DATA_KEY in header_keys:
+        sort_by = DEFAULT_SORT_BY_DATA_KEY
 
     if sort_by is not None:
         numeric_data = numeric_data.sort(sort_by)
@@ -120,4 +132,5 @@ def read_text(filepath, max_bytes=10**6, encoding="utf-8", errors=None) -> str:
         # IDEA specify which Exceptions are expected
         _text += "\nread_error"
         logger.warning(f"file read text error => skipped.\n{exc}")
+
     return _text

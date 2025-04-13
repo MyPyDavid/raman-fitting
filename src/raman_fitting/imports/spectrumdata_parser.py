@@ -33,26 +33,20 @@ class SpectrumReader:
     label: str = "raw"
     region_name: str = "full"
     spectrum_hash: str | None = field(default=None, repr=False)
-    spectrum_length: int = field(default=0, init=False)
+    spectrum_length: int = field(default=0)
 
     def __post_init__(self):
         super().__init__()
 
         self.filepath = validate_filepath(self.filepath)
-        self.spectrum_length = 0
 
-        if self.filepath is None:
-            raise ValueError(f"File is not valid. {self.filepath}")
-
-        spectrum = parse_spectrum_from_file(
+        self.spectrum = parse_spectrum_from_file(
             file=self.filepath,
             label=self.label,
             region_name=self.region_name,
         )
-        self.spectrum = spectrum
 
         self.spectrum_hash = self.get_hash_text(self.spectrum)
-        self.spectrum_length = len(self.spectrum)
 
     @staticmethod
     def get_hash_text(data, hash_text_encoding="utf-8"):
@@ -61,7 +55,7 @@ class SpectrumReader:
         return text_hash
 
     def __repr__(self):
-        _txt = f"Spectrum({self.filepath.name}, len={self.spectrum_length})"
+        _txt = f"Spectrum({self.filepath.name}, len={len(self.spectrum)})"
         return _txt
 
     def quickplot(self):

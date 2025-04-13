@@ -1,0 +1,2 @@
+class IndexValidationError(ValueError):
+    pass
