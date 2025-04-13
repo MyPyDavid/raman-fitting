@@ -42,8 +42,6 @@ USER_INDEX_FILE_PATH: Path = USER_HOME_PACKAGE / INDEX_FILE_NAME
 TEMP_DIR = Path(tempfile.mkdtemp(prefix="raman-fitting-"))
 TEMP_RESULTS_DIR: Path = TEMP_DIR / "results"
 
-CLEAN_SPEC_REGION_NAME_PREFIX = "savgol_filter_raw_region_"
-
 ERROR_MSG_TEMPLATE = "{sample_group} {sampleid}: {msg}"
 
 

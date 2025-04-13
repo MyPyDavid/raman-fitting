@@ -43,11 +43,12 @@ class ExportManager:
                 export_results = ExportResultSet()
                 try:
                     raw_data_spectra_plot_results = raw_data_spectra_plot(
-                        sample_results["fit_results"], export_paths=export_paths
+                        sample_results, export_paths=export_paths
                     )
                     export_results += raw_data_spectra_plot_results
                 except Exception as exc:
                     logger.error(f"Plotting error, raw_data_spectra_plot: {exc}")
+                    raise exc from exc
 
                 try:
                     fit_spectrum_plot_results = fit_spectrum_plot(

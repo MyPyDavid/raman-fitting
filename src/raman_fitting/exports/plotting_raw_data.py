@@ -13,12 +13,13 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 from raman_fitting.exports.plot_formatting import get_plot_region_axes
-from raman_fitting.models.deconvolution.spectrum_regions import SpectrumRegionLimits
+from raman_fitting.models.deconvolution.spectrum_regions import (
+    SpectrumRegionsLimitsSet,
+)
 from raman_fitting.models.spectrum import SpectrumData
 from raman_fitting.models.splitter import RegionNames
 from raman_fitting.config import settings
 from raman_fitting.config.path_settings import (
-    CLEAN_SPEC_REGION_NAME_PREFIX,
     ExportPathSettings,
 )
 from raman_fitting.delegators.models import AggregatedSampleSpectrumFitResult
@@ -30,20 +31,23 @@ from .plot_formatting import RAW_MEAN_SPEC_FMT, RAW_SOURCES_SPEC_FMT
 
 matplotlib.rcParams.update({"font.size": 14})
 
+EXCLUDE_REGIONS_RAW_DATA_PLOT = ["low_first_order"]
+
 
 def filter_regions_for_spectrum(
-    regions: Dict[str, SpectrumRegionLimits], spectrum: SpectrumData
-):
-    ramanshift_min = spectrum.ramanshift.min()
-    ramanshift_max = spectrum.ramanshift.max()
-    valid_regions = {}
-    for region_name, region in regions.items():
-        if ramanshift_min > region.min:
+    regions: SpectrumRegionsLimitsSet, spectrum: SpectrumData
+) -> SpectrumRegionsLimitsSet:
+    valid_regions = []
+    for region in regions:
+        if spectrum.ramanshift.min() > region.min:
             continue
-        if ramanshift_max < region.max:
+        if spectrum.ramanshift.max() < region.max:
             continue
-        valid_regions[region_name] = region
-    return valid_regions
+        if region.name in EXCLUDE_REGIONS_RAW_DATA_PLOT:
+            continue
+        valid_regions.append(region)
+
+    return SpectrumRegionsLimitsSet(regions=valid_regions)
 
 
 def raw_data_spectra_plot(
@@ -62,32 +66,30 @@ def raw_data_spectra_plot(
     destfile = export_paths.plots_dir.joinpath(f"{sample_id}_mean.png")
     destfile.parent.mkdir(exist_ok=True, parents=True)
 
-    nrows = 3
+    nrows = 2
     plot_region_axes = get_plot_region_axes(nrows=nrows, regions=valid_regions)
-    _, ax = plt.subplots(2, nrows, figsize=(18, 12))
+    ncols = 3
+    _, ax = plt.subplots(nrows, ncols, figsize=(18, 12))
 
     for spec_source in sources:
         for (
-            source_region_label,
-            source_region,
-        ) in spec_source.processed.clean_spectrum.spec_regions.items():
-            _source_region_name = source_region.region_name.split(
-                CLEAN_SPEC_REGION_NAME_PREFIX
-            )[-1]
-            if _source_region_name not in valid_regions:
+            region_name,
+            spec_region,
+        ) in spec_source.processed.processed_spectra:
+            if region_name not in valid_regions:
                 continue
-            ax_ = ax[plot_region_axes[_source_region_name]]
+            if region_name not in plot_region_axes:
+                continue
+            ax_ = ax[*plot_region_axes[region_name]]
             ax_.plot(
-                source_region.ramanshift,
-                source_region.intensity,
+                spec_region.ramanshift,
+                spec_region.intensity,
                 label=f"{spec_source.file_info.file.stem}",
                 **RAW_SOURCES_SPEC_FMT,
             )
-            ax_.set_title(_source_region_name)
-            if _source_region_name in aggregated_spectra:
-                mean_spec = aggregated_spectra[
-                    _source_region_name
-                ].aggregated_spectrum.spectrum
+            ax_.set_title(region_name)
+            if region_name in aggregated_spectra:
+                mean_spec = aggregated_spectra[region_name].aggregated_spectrum.spectrum
                 # plot the mean aggregated spectrum
                 ax_.plot(
                     mean_spec.ramanshift,

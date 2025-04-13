@@ -2,8 +2,8 @@ from typing import Sequence, Tuple, Dict
 
 from raman_fitting.models.deconvolution.spectrum_regions import (
     get_default_regions_from_toml_files,
-    SpectrumRegionLimits,
     RegionNames,
+    SpectrumRegionsLimitsSet,
 )
 
 import matplotlib.pyplot as plt
@@ -22,17 +22,17 @@ RAW_SOURCES_SPEC_FMT = dict(alpha=0.4, lw=2)
 
 
 def get_plot_region_axes(
-    nrows: int | None = None, regions: Dict[str, SpectrumRegionLimits] | None = None
+    nrows: int | None = None, regions: SpectrumRegionsLimitsSet | None = None
 ) -> Dict[RegionNames, Tuple[int, int]]:
     if regions is None:
         regions = get_default_regions_from_toml_files()
     horizontal_axis = 0
     nrows = PLOT_AXES_WIDTH if nrows is None else nrows
     regions_axes = {}
-    for n, region in enumerate(regions.values()):
+    for n, region in enumerate(regions):
         if "normalization" in region.name:
             continue
-        _i = n + 1
+        _i = n
         vertical_axis = _i if _i <= nrows else _i % nrows
         regions_axes[region.name] = (vertical_axis, horizontal_axis)
         if not _i % nrows:
@@ -43,9 +43,9 @@ def get_plot_region_axes(
 
 def get_cmap_list(
     length: int,
-    cmap_options: Tuple = CMAP_OPTIONS_DEFAULT,
-    default_color: Tuple = DEFAULT_COLOR,
-) -> Tuple | None:
+    cmap_options: tuple = CMAP_OPTIONS_DEFAULT,
+    default_color: tuple = DEFAULT_COLOR,
+) -> tuple | None:
     lst = list(range(length))
     if not lst:
         return None
