@@ -31,5 +31,24 @@ def test_delegator_index(delegator):
 
 
 @pytest.mark.slow
-def test_main_run(delegator):
+def test_main_run(delegator, test_sample_id):
     assert delegator.results
+    assert delegator.run_mode_paths.results_dir.exists()
+    assert delegator.results["test"][test_sample_id]["first_order"]
+
+    test_results = delegator.results["test"][test_sample_id]
+    first_order = test_results["first_order"]
+    assert first_order.sample_id == test_sample_id
+    for model, spec_fit in first_order.fit_model_results.items():
+        assert spec_fit.fit_result.success
+        assert spec_fit.elapsed_seconds < 50
+
+    second_order = test_results["second_order"]
+    assert second_order.sample_id == test_sample_id
+    for model, spec_fit in second_order.fit_model_results.items():
+        assert spec_fit.fit_result.success
+        assert spec_fit.elapsed_seconds < 50
+
+    for exports in delegator.export_manager.export_results:
+        for exp_result in exports["export_results"].results:
+            assert exp_result.target.exists()

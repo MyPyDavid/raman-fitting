@@ -5,8 +5,8 @@ from typing import List
 
 @dataclass
 class ExportResult:
-    target: Path | None = None
-    message: str | None = None
+    target: Path
+    message: str
 
 
 @dataclass

@@ -67,7 +67,7 @@ def prepare_combined_spectrum_fit_result_plot(
     export_paths: ExportPathSettings,
     plot_annotation=True,
     plot_residuals=True,
-) -> ExportResult:
+) -> ExportResult | None:
     first_model_name = first_model.model.name
 
     plt.figure(figsize=(28, 24))

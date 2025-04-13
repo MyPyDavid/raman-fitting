@@ -26,7 +26,7 @@ from raman_fitting.delegators.models import AggregatedSampleSpectrumFitResult
 
 from loguru import logger
 
-from .models import ExportResultSet, ExportResult
+from .models import ExportResult
 from .plot_formatting import RAW_MEAN_SPEC_FMT, RAW_SOURCES_SPEC_FMT
 
 matplotlib.rcParams.update({"font.size": 14})
@@ -58,7 +58,7 @@ def plot_spectrum(
     aggregated_spectra,
     valid_regions,
     plot_region_axes,
-):
+) -> None:
     if region_name not in valid_regions or region_name not in plot_region_axes:
         return
 
@@ -87,11 +87,7 @@ def plot_spectrum(
 def raw_data_spectra_plot(
     aggregated_spectra: Dict[RegionNames, AggregatedSampleSpectrumFitResult],
     export_paths: ExportPathSettings,
-) -> ExportResultSet:
-    export_results = ExportResultSet()
-    if not aggregated_spectra:
-        return export_results
-
+) -> ExportResult:
     regions = settings.default_regions
     sources = list(
         set(source for i in aggregated_spectra.values() for source in i.sources)
@@ -130,7 +126,4 @@ def raw_data_spectra_plot(
 
     _msg = f"raw_data_spectra_plot saved:\n{destfile}"
     logger.debug(_msg)
-    _result = ExportResult(target=destfile, message=_msg)
-    export_results.results.append(_result)
-
-    return export_results
+    return ExportResult(target=destfile, message=_msg)

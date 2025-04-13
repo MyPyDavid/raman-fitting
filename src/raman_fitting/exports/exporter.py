@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Dict, Any
+from dataclasses import dataclass, field
+from typing import Any
 from raman_fitting.config.path_settings import (
     RunModes,
     initialize_run_mode_paths,
@@ -22,15 +22,15 @@ class ExporterError(Exception):
 @dataclass
 class ExportManager:
     run_mode: RunModes
-    fit_results: Dict[str, Any] | None = None
-    exports: ExportResultSet | None = None
+    fit_results: dict[str, Any] = field(default_factory=dict, repr=False)
+    export_results: list[dict[str, Any]] = field(default_factory=list)
 
     def __post_init__(self):
         self.paths = initialize_run_mode_paths(
             self.run_mode, user_package_home=settings.destination_dir
         )
 
-    def export_files(self) -> list[Dict[str, Any]]:
+    def export_files(self) -> None:
         exports = []
         if self.fit_results is None:
             raise ExporterError("No fit results to export")
@@ -40,12 +40,12 @@ class ExportManager:
                 export_dir = self.paths.results_dir / group_name / sample_id
                 export_paths = ExportPathSettings(results_dir=export_dir)
 
-                export_results = ExportResultSet()
+                export_results_set = ExportResultSet()
                 try:
                     raw_data_spectra_plot_results = raw_data_spectra_plot(
                         sample_results, export_paths=export_paths
                     )
-                    export_results += raw_data_spectra_plot_results
+                    export_results_set += raw_data_spectra_plot_results
                 except Exception as exc:
                     logger.error(f"Plotting error, raw_data_spectra_plot: {exc}")
                     raise exc from exc
@@ -54,7 +54,7 @@ class ExportManager:
                     fit_spectrum_plot_results = fit_spectrum_plot(
                         sample_results, export_paths=export_paths
                     )
-                    export_results += fit_spectrum_plot_results
+                    export_results_set += fit_spectrum_plot_results
                 except Exception as exc:
                     logger.error(f"Plotting error, fit_spectrum_plot: {exc}")
                     raise exc from exc
@@ -63,7 +63,14 @@ class ExportManager:
                     {
                         "sample": sample_results,
                         "export_paths": export_paths,
-                        "results": export_results,
+                        "export_results": export_results_set,
                     }
                 )
-        return exports
+        self.export_results.extend(exports)
+
+
+def call_export_manager(run_mode: RunModes, results: dict[str, Any]) -> ExportManager:
+    """Call the export manager to export the results."""
+    export_manager = ExportManager(run_mode, results)
+    export_manager.export_files()
+    return export_manager

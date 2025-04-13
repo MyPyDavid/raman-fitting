@@ -57,3 +57,8 @@ def default_models_first_order(default_models):
 @pytest.fixture(autouse=True)
 def default_models_second_order(default_models):
     return default_models.get("second_order")
+
+
+@pytest.fixture(autouse=True)
+def test_sample_id() -> str:
+    return "testDW38C"

@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import Sequence
 
+from pydantic import FilePath
+
+from raman_fitting.config.path_settings import RunModePaths
 from raman_fitting.imports.files.file_finder import FileFinder
 from raman_fitting.imports.files.collectors import (
     collect_raman_file_index_info_from_files,
@@ -81,3 +84,30 @@ def get_or_create_index(
         return index
     else:
         raise TypeError(f"can not handle index of type {type(index)} ")
+
+
+def initialize_index(
+    index: RamanFileIndex | FilePath | None = None,
+    exclusions: Sequence[str] = (),
+    suffixes: Sequence[str] = (),
+    run_mode_paths: RunModePaths | None = None,
+    force_reindex: bool = False,
+    persist_index: bool = False,
+) -> RamanFileIndex:
+    """Initialize the index for Raman spectra files."""
+    if isinstance(index, RamanFileIndex):
+        return index
+
+    if run_mode_paths is None:
+        raise ValueError("Run mode paths are not initialized.")
+
+    index = get_or_create_index(
+        index,
+        directory=run_mode_paths.dataset_dir,
+        suffixes=suffixes,
+        exclusions=exclusions,
+        index_file=run_mode_paths.index_file,
+        force_reindex=force_reindex,
+        persist_index=persist_index,
+    )
+    return index

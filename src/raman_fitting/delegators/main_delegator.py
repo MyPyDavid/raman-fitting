@@ -6,24 +6,23 @@ from pydantic import FilePath
 
 from raman_fitting.config.path_settings import (
     RunModes,
-    ERROR_MSG_TEMPLATE,
     initialize_run_mode_paths,
     RunModePaths,
 )
 from raman_fitting.config import settings
-from raman_fitting.imports.files.index.factory import get_or_create_index
+from raman_fitting.delegators.processors import process_selection
+from raman_fitting.delegators.utils import log_results
+from raman_fitting.imports.files.index.factory import initialize_index
 
 from raman_fitting.imports.files.models import RamanFileInfo
 from raman_fitting.imports.files.selectors import (
     select_samples_from_index,
-    group_by_sample_group,
-    group_by_sample_id,
 )
 
 from raman_fitting.models.deconvolution.base_model import BaseLMFitModel
 from raman_fitting.models.selectors import select_models_from_provided_models
 from raman_fitting.models.splitter import RegionNames
-from raman_fitting.exports.exporter import ExportManager
+from raman_fitting.exports.exporter import ExportManager, call_export_manager
 from raman_fitting.imports.files.index.models import RamanFileIndex
 
 from raman_fitting.delegators.models import (
@@ -33,7 +32,6 @@ from raman_fitting.delegators.pre_processing import (
     prepare_aggregated_spectrum_from_files,
 )
 from raman_fitting.models.deconvolution.base_model import LMFitModelCollection
-from raman_fitting.delegators.run_fit_spectrum import run_fit_over_selected_models
 
 from loguru import logger
 
@@ -78,8 +76,9 @@ class MainDelegator:
     index: RamanFileIndex | FilePath | None = field(default=None, repr=False)
     suffixes: List[str] = field(default_factory=lambda: [".txt"])
     exclusions: List[str] = field(default_factory=lambda: ["."])
-    export: bool = True
     results: Dict[str, Any] = field(default_factory=dict, init=False)
+    export: bool = True
+    export_manager: ExportManager | None = None
 
     def __post_init__(self):
         self.index = initialize_index(
@@ -94,10 +93,10 @@ class MainDelegator:
         self.selection = select_samples_from_index(
             self.index.raman_files, self.select_sample_groups, self.select_sample_ids
         )
-        self.selected_models = initialize_models(
-            self.fit_model_region_names,
-            self.fit_model_specific_names,
-            self.lmfit_models,
+        self.selected_models = select_models_from_provided_models(
+            region_names=self.fit_model_region_names,
+            model_names=self.fit_model_specific_names,
+            provided_models=self.lmfit_models,
         )
         self.results = main_run(
             self.index,
@@ -108,7 +107,7 @@ class MainDelegator:
             self.fit_model_region_names,
         )
         if self.export:
-            call_export_manager(
+            self.export_manager = call_export_manager(
                 self.run_mode,
                 self.results,
             )
@@ -159,132 +158,6 @@ def main_run(
     return results
 
 
-def log_results(
-    results: dict[str, dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]]],
-    errors: list[str],
-) -> None:
-    """Log the results of the processing."""
-    if results:
-        logger.debug(f"Results: {results.keys()}")
-    else:
-        logger.warning("No results generated.")
-    if errors:
-        logger.error(f"Errors: {errors}")
-
-
-def initialize_index(
-    index: RamanFileIndex | FilePath | None = None,
-    exclusions: Sequence[str] = (),
-    suffixes: Sequence[str] = (),
-    run_mode_paths: RunModePaths | None = None,
-    force_reindex: bool = False,
-    persist_index: bool = False,
-) -> RamanFileIndex:
-    """Initialize the index for Raman spectra files."""
-    if isinstance(index, RamanFileIndex):
-        return index
-
-    if run_mode_paths is None:
-        raise ValueError("Run mode paths are not initialized.")
-
-    index = get_or_create_index(
-        index,
-        directory=run_mode_paths.dataset_dir,
-        suffixes=suffixes,
-        exclusions=exclusions,
-        index_file=run_mode_paths.index_file,
-        force_reindex=force_reindex,
-        persist_index=persist_index,
-    )
-    return index
-
-
-def initialize_models(
-    region_names: Sequence[RegionNames],
-    model_names: Sequence[str],
-    provided_models: LMFitModelCollection,
-) -> LMFitModelCollection:
-    """Initialize the models for fitting."""
-    return select_models_from_provided_models(
-        region_names=region_names,
-        model_names=model_names,
-        provided_models=provided_models,
-    )
-
-
-def process_selection(
-    selection: Sequence[RamanFileInfo],
-    selected_models: LMFitModelCollection,
-    use_multiprocessing: bool,
-) -> tuple[
-    dict[str, dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]]],
-    list[str],
-]:
-    """Process the selection of samples."""
-    selection_results, errors = {}, []
-    for group_name, grp in group_by_sample_group(selection):
-        group_result, _errors = process_group(
-            group_name, grp, selected_models, use_multiprocessing
-        )
-        selection_results[group_name] = group_result
-        if _errors:
-            errors.append({group_name: _errors})
-    return selection_results, errors
-
-
-def process_group(
-    group_name: str,
-    grp: Sequence[RamanFileInfo],
-    selected_models: LMFitModelCollection,
-    use_multiprocessing: bool,
-) -> tuple[dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]], list[str]]:
-    """Process a group of samples."""
-    group_results = {}
-    errors = []
-    for sample_id, sample_id_grp in group_by_sample_id(grp):
-        sample_result, _errors = process_sample(
-            group_name,
-            sample_id,
-            sample_id_grp,
-            selected_models,
-            use_multiprocessing,
-        )
-        group_results[sample_id] = sample_result
-        if _errors:
-            errors.append({sample_id: _errors})
-    return group_results, errors
-
-
-def process_sample(
-    group_name: str,
-    sample_id: str,
-    sample_id_grp: Sequence[RamanFileInfo],
-    selected_models: LMFitModelCollection,
-    use_multiprocessing: bool,
-) -> tuple[dict[RegionNames, AggregatedSampleSpectrumFitResult], list[str]]:
-    """Process a single sample."""
-    errors = []
-    if not sample_id_grp:
-        _error_msg = ERROR_MSG_TEMPLATE.format(group_name, sample_id, "group is empty")
-        logger.debug(_error_msg)
-        errors.append(_error_msg)
-
-    sample_id_grp = sorted(sample_id_grp, key=lambda x: x.sample.position)
-    unique_positions = {i.sample.position for i in sample_id_grp}
-
-    if len(unique_positions) < len(sample_id_grp):
-        _error_msg = f"Handle multiple source files for a single position on a sample, {group_name} {sample_id}"
-        logger.debug(_error_msg)
-        errors.append(_error_msg)
-
-    model_result = run_fit_over_selected_models(
-        sample_id_grp,
-        selected_models,
-        use_multiprocessing=use_multiprocessing,
-    )
-    return model_result, errors
-
-
 def get_results_over_selected_models(
     raman_files: List[RamanFileInfo],
     models: LMFitModelCollection,
@@ -311,14 +184,6 @@ def get_results_over_selected_models(
         )
         results[region_name] = fit_region_results
     return results
-
-
-def call_export_manager(
-    run_mode: RunModes, results: Dict[str, Any]
-) -> List[Dict[str, Any]]:
-    """Call the export manager to export the results."""
-    export_manager = ExportManager(run_mode, results)
-    return export_manager.export_files()
 
 
 def make_examples(
