@@ -1,6 +1,6 @@
 import pytest
 
-from raman_fitting.imports.models import RamanFileInfo
+from raman_fitting.imports.files.models import RamanFileInfo
 from raman_fitting.imports.samples.sample_id_helpers import (
     overwrite_sample_id_from_mapper,
     overwrite_sample_group_id_from_parts,

@@ -9,21 +9,17 @@ from raman_fitting.processing.post_processing import SpectrumProcessor
 def test_fit_model(example_files, default_models_first_order):
     file = [i for i in example_files if "_pos4" in i.stem][0]
 
-    specread = SpectrumReader(file)
-    region_limits = get_default_regions_from_toml_files()
-
     spectrum_processor = SpectrumProcessor(
-        specread.spectrum, region_limits=region_limits
+        SpectrumReader(file).spectrum,
+        region_limits=get_default_regions_from_toml_files(),
     )
-    clean_spec_1st_order = spectrum_processor.clean_spectrum.spec_regions[
-        "savgol_filter_raw_region_first_order"
-    ]
-    clean_spec_1st_order.region_name = "first_order"
+    clean_spec_1st_order = spectrum_processor.processed_spectra.get_spec_for_region(
+        "first_order"
+    )
 
-    model_2peaks = default_models_first_order["2peaks"]
     spec_fit = SpectrumFitModel(
         spectrum=clean_spec_1st_order,
-        model=model_2peaks,
+        model=default_models_first_order["2peaks"],
         region=clean_spec_1st_order.region_name,
     )
     spec_fit.run()

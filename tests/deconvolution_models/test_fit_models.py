@@ -10,16 +10,11 @@ from raman_fitting.processing.post_processing import SpectrumProcessor
 @pytest.fixture
 def clean_spec(example_files, default_regions) -> None:
     file = [i for i in example_files if "_pos4" in i.stem][0]
-    specread = SpectrumReader(file)
 
     spectrum_processor = SpectrumProcessor(
-        spectrum=specread.spectrum, region_limits=default_regions
+        spectrum=SpectrumReader(file).spectrum, region_limits=default_regions
     )
-    clean_spec_1st_order = spectrum_processor.clean_spectrum.spec_regions[
-        "savgol_filter_raw_region_first_order"
-    ]
-    clean_spec_1st_order.region_name = "first_order"
-    return clean_spec_1st_order
+    return spectrum_processor.processed_spectra.get_spec_for_region("first_order")
 
 
 def test_fit_first_order(clean_spec, default_models):

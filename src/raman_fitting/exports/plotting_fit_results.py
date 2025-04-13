@@ -49,7 +49,7 @@ def fit_spectrum_plot(
             model_name,
             current_model,
         ) in region_aggregated_spectrum.fit_model_results.items():
-            logger.warning(
+            logger.info(
                 f"Starting to plot for {sample.id}, {region_name} {model_name}."
             )
 
@@ -121,8 +121,8 @@ def prepare_combined_spectrum_fit_result_plot(
                 bbox_extra_artists=_bbox_artists,
                 bbox_inches="tight",
             )
-            _msg = f"Plot saved with prepare_combined_spectrum_fit_result_plot to {savepath}"
-            logger.debug(_msg)
+            _msg = f"Plot with combined fit results saved to {savepath}"
+            logger.info(_msg)
             result = ExportResult(target=savepath, message=_msg)
         except FileNotFoundError as e:
             logger.error(

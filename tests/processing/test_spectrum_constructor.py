@@ -5,7 +5,7 @@ from raman_fitting.models.deconvolution.spectrum_regions import RegionNames
 
 
 def test_spectrum_data_loader_empty():
-    with pytest.raises(ValueError):
+    with pytest.raises(FileNotFoundError):
         SpectrumReader("empty.txt")
 
 
