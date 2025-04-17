@@ -34,16 +34,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}  # Use matrix.python-version for multiple versions
 
-      - name: Use PowerShell on Windows
+      # Disable ANSI colors on Windows
+      - name: Set NO_COLOR environment variable
         if: matrix.os == 'windows-latest'
-        shell: pwsh
         run: |
-          $OutputEncoding = [System.Text.Encoding]::UTF8
-          uv sync --all-extras --dev || echo "Dependency installation failed"
-          uv run pytest --verbose --cov --cov-report=xml --cov-report=term-missing || echo "Tests failed"
+          echo "NO_COLOR=1" >> $GITHUB_ENV
 
       - name: Install the project
-        if: matrix.os != 'windows-latest'
         run: |
           uv sync --all-extras --dev || echo "Dependency installation failed"
 
@@ -52,7 +49,6 @@ jobs:
           uv run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
       - name: Run tests and generate coverage report
-        if: matrix.os != 'windows-latest'
         run: |
           uv run pytest --verbose --cov --cov-report=xml --cov-report=term-missing || echo "Tests failed"
 
