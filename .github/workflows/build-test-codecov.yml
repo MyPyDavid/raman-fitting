@@ -34,11 +34,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}  # Use matrix.python-version for multiple versions
 
-      # Disable ANSI colors on Windows
-      - name: Set NO_COLOR environment variable
+      # Disable ANSI colors and styled output on Windows
+      - name: Set FORCE_COLOR=0 for Typer CLI
         if: matrix.os == 'windows-latest'
         run: |
-          echo "NO_COLOR=1" >> $GITHUB_ENV
+          echo "FORCE_COLOR=0" >> $GITHUB_ENV
 
       - name: Install the project
         run: |
