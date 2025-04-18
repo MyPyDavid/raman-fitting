@@ -1,6 +1,8 @@
+from enum import auto
 from pathlib import Path
 import tempfile
-from enum import StrEnum, auto
+
+from raman_fitting.utils.compat import StrEnum
 
 
 from pydantic import (

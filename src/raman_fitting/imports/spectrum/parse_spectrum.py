@@ -43,5 +43,4 @@ def parse_spectrum_from_file(
                 f"The values of key {spectrum_key} of this spectrum are invalid."
                 f"{', '.join(_errors)}"
             )
-
     return SpectrumData(**spectrum_kwargs)

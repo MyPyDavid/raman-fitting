@@ -1,5 +1,5 @@
 from __future__ import annotations
-from enum import StrEnum
+from raman_fitting.utils.compat import StrEnum
 
 from pydantic import computed_field
 

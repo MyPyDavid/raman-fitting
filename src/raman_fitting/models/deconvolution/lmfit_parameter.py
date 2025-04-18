@@ -1,5 +1,5 @@
 import math
-from enum import StrEnum
+from raman_fitting.utils.compat import StrEnum
 from typing import List, Optional, Dict
 from warnings import warn
 

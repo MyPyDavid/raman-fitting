@@ -1,4 +1,5 @@
-from enum import StrEnum, auto
+from enum import auto
+from raman_fitting.utils.compat import StrEnum
 
 
 class SpectrumDataKeys(StrEnum):

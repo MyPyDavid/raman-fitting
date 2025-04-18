@@ -2,7 +2,8 @@ import sys
 from typing import List, Optional
 from typing_extensions import Annotated
 from pathlib import Path
-from enum import StrEnum, auto
+from enum import auto
+from raman_fitting.utils.compat import StrEnum
 
 from raman_fitting.config.load_config_from_toml import dump_default_config
 from raman_fitting.config.path_settings import RunModes, INDEX_FILE_NAME

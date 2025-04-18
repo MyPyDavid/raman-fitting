@@ -1,10 +1,16 @@
 from pathlib import Path
 from types import MappingProxyType
-import tomllib
 from typing import Any
 
-import tomli_w
 from loguru import logger
+
+import sys
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
+import tomli_w
 
 from .path_settings import INTERNAL_DEFAULT_MODELS
 
