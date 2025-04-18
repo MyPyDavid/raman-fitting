@@ -96,9 +96,9 @@ jobs:
 
       - name: Run Windows-specific tests
         run: |
-          uv pip install ansi2html
+          uv pip install ansi2html  # Ensure ansi2html is installed
           echo "from ansi2html.parser import Ansi2HTMLParser; import sys; sys.stdout.write(Ansi2HTMLParser().parse(input()))" > strip_ansi.py
-          uv run pytest --capture=sys --tb=short | python strip_ansi.py
+          uv run pytest --capture=sys --tb=short | uv run strip_ansi.py  # Use uv run to execute strip_ansi.py
 
       - name: Run examples
         run: |
