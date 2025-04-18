@@ -20,6 +20,11 @@ class FileMetaData(BaseModel):
     modification_datetime: PastDatetime
     size: int
 
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "frozen": True,  # Make the model immutable
+    }
+
 
 def get_file_metadata(filepath: Path) -> Dict[str, Any]:
     """converting creation time and last mod time to datetime object"""

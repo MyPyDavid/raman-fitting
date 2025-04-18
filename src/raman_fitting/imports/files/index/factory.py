@@ -30,6 +30,7 @@ def initialize_index_from_source_files(
         force_reindex=force_reindex,
         persist_to_file=persist_to_file,
     )
+    raman_index.read_or_load_data()
     if len(raman_index) == 0:
         logger.warning("Index is empty, no raman files were found.")
     else:
@@ -95,6 +96,7 @@ def initialize_index(
     persist_index: bool = False,
 ) -> RamanFileIndex:
     """Initialize the index for Raman spectra files."""
+
     if isinstance(index, RamanFileIndex):
         return index
 

@@ -60,9 +60,6 @@ class RamanFileIndex(BaseModel):
             write_dataset_to_file(self.index_file, self.dataset)
 
     def read_or_load_data(self) -> None:
-        if not any([self.index_file, self.raman_files, self.dataset]):
-            raise ValueError("Not all fields should be empty.")
-
         can_reload_from_file = validate_index_file_path(
             self.index_file, self.force_reindex
         )
