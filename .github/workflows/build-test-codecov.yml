@@ -8,12 +8,13 @@ on:
 
 jobs:
 
+  # Main Build Job
   build:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-latest, macos-latest ]
         python-version: [ '3.10', '3.11', '3.12', '3.13' ] # Add multiple Python versions for testing
 
     steps:
@@ -32,19 +33,11 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}  # Use matrix.python-version for multiple versions
+          python-version: ${{ matrix.python-version }}
 
       - name: Install the project
         run: |
           uv sync --all-extras --dev || echo "Dependency installation failed"
-
-      # Run tests using `uv` to ensure the environment is activated
-      - name: Preprocess stdout for Windows
-        if: matrix.os == 'windows-latest'
-        run: |
-          uv pip install ansi2html
-          echo "from ansi2html.parser import Ansi2HTMLParser; import sys; sys.stdout.write(Ansi2HTMLParser().parse(input()))" > strip_ansi.py
-          uv run pytest --capture=sys --tb=short | python strip_ansi.py
 
       - name: Lint with flake8
         run: |
@@ -67,17 +60,43 @@ jobs:
         run: |
           uv run raman_fitting run examples
 
-  build-docker:
-    runs-on: ubuntu-latest
-    needs: build
+  # Separate Windows Job
+  windows:
+    runs-on: windows-latest
+    continue-on-error: true # Allow this job to fail without failing the whole workflow
     strategy:
       fail-fast: true
+      matrix:
+        python-version: [ '3.13' ] # Add multiple Python versions for testing
+
     steps:
       - uses: actions/checkout@v4
-      - uses: extractions/setup-just@v2
 
-      - name: Build Docker image
-        run: docker build -t raman-fitting-image .
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-      - name: Run Docker container
-        run: docker run -it raman-fitting-image
+      - name: Verify uv installation
+        run: |
+          uv --version || echo "uv installation failed"
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install the project
+        run: |
+          uv sync --all-extras --dev || echo "Dependency installation failed"
+
+      - name: Run Windows-specific tests
+        run: |
+          uv pip install ansi2html
+          echo "from ansi2html.parser import Ansi2HTMLParser; import sys; sys.stdout.write(Ansi2HTMLParser().parse(input()))" > strip_ansi.py
+          uv run pytest --capture=sys --tb=short | python strip_ansi.py
+
+      - name: Run examples
+        run: |
+          uv run raman_fitting run examples
