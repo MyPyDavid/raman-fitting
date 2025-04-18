@@ -66,14 +66,12 @@ class SpectrumFitModel(BaseModel):
             )
         return self
 
-    def run(self):
-        fit_result, elapsed_seconds = run_fit(
-            self.spectrum, self.model.lmfit_model, **self.fit_kwargs
+    def run(self) -> None:
+        self._fit_result, self._elapsed_seconds, self._param_result = (
+            run_fit_and_process_results(
+                self.spectrum, self.model.lmfit_model, self.fit_kwargs
+            )
         )
-        param_result = post_process(fit_result, elapsed_seconds=elapsed_seconds)
-        self._fit_result = fit_result
-        self._elapsed_seconds = elapsed_seconds
-        self._param_result = param_result
 
     @computed_field
     @cached_property
@@ -104,6 +102,16 @@ class SpectrumFitModelRegistry:
         self.spec_fit_model_registry[name] = spec_fit_model
 
 
+def call_fit_on_model(
+    model: LMFitModel, spectrum: SpectrumData, method="leastsq", **kwargs
+) -> ModelResult:
+    # ideas: improve fitting loop so that starting parameters from modelX and modelX+Si are shared, faster...
+    init_params = model.make_params()
+    x, y = spectrum.ramanshift, spectrum.intensity
+    out = model.fit(y, init_params, x=x, method=method, **kwargs)  # 'leastsq'
+    return out
+
+
 def run_fit(
     spectrum: SpectrumData, lmfit_model: LMFitModel, method: str = "leastsq", **kwargs
 ) -> tuple[ModelResult, float]:
@@ -114,21 +122,13 @@ def run_fit(
     return fit_result, elapsed_seconds
 
 
-def post_process(fit_result: ModelResult, elapsed_seconds: float | None = None) -> dict:
+def run_fit_and_process_results(
+    spectrum: SpectrumData, lmfit_model: LMFitModel, fit_kwargs: dict
+) -> tuple[ModelResult, float, dict]:
+    fit_result, elapsed_seconds = run_fit(spectrum, lmfit_model, **fit_kwargs)
     param_results = fit_result.params.valuesdict()
-    params_ratio_vars = calculate_ratio_of_unique_vars_in_results(
-        param_results, raise_exception=False
+    param_results["ratios"] = calculate_ratio_of_unique_vars_in_results(
+        fit_result.params.valuesdict(), raise_exception=False
     )
-    param_results["ratios"] = params_ratio_vars
     param_results["elapsed_time_s"] = elapsed_seconds
-    return param_results
-
-
-def call_fit_on_model(
-    model: LMFitModel, spectrum: SpectrumData, method="leastsq", **kwargs
-) -> ModelResult:
-    # ideas: improve fitting loop so that starting parameters from modelX and modelX+Si are shared, faster...
-    init_params = model.make_params()
-    x, y = spectrum.ramanshift, spectrum.intensity
-    out = model.fit(y, init_params, x=x, method=method, **kwargs)  # 'leastsq'
-    return out
+    return fit_result, elapsed_seconds, param_results
