@@ -21,9 +21,9 @@ def prepare_aggregated_spectrum_from_files(
     clean_data_for_region = []
     data_sources = []
     for i in raman_files:
-        read = SpectrumReader(i.file)
-
-        if read.spectrum is None:
+        try:
+            read = SpectrumReader(filepath=i.file)
+        except ValueError:
             logger.error(f"Could not read {i.file}")
             continue
 

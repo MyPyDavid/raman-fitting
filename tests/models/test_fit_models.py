@@ -10,7 +10,7 @@ def test_fit_model(example_files, default_models_first_order):
     file = [i for i in example_files if "_pos4" in i.stem][0]
 
     spectrum_processor = SpectrumProcessor(
-        SpectrumReader(file).spectrum,
+        SpectrumReader(filepath=file).spectrum,
         region_limits=get_default_regions_from_toml_files(),
     )
     clean_spec_1st_order = spectrum_processor.processed_spectra.get_spec_for_region(

@@ -3,6 +3,8 @@ Configuration file for pytest and commonly used fixtures
 """
 
 import sys
+from pathlib import Path
+
 import pytest
 from raman_fitting.config import settings
 from raman_fitting.config.path_settings import InternalPathSettings
@@ -29,9 +31,8 @@ def internal_paths():
 
 
 @pytest.fixture(autouse=True)
-def example_files(internal_paths):
-    example_files = list(internal_paths.example_fixtures.rglob("*txt"))
-    return example_files
+def example_files(internal_paths) -> list[Path]:
+    return list(internal_paths.example_fixtures.rglob("*txt"))
 
 
 @pytest.fixture(autouse=True)

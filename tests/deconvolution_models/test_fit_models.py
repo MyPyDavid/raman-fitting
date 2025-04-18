@@ -4,15 +4,16 @@ import pytest
 
 from raman_fitting.models.fit_models import SpectrumFitModel
 from raman_fitting.imports.spectrumdata_parser import SpectrumReader
+from raman_fitting.models.spectrum import SpectrumData
 from raman_fitting.processing.post_processing import SpectrumProcessor
 
 
 @pytest.fixture
-def clean_spec(example_files, default_regions) -> None:
+def clean_spec(example_files, default_regions) -> SpectrumData:
     file = [i for i in example_files if "_pos4" in i.stem][0]
 
     spectrum_processor = SpectrumProcessor(
-        spectrum=SpectrumReader(file).spectrum, region_limits=default_regions
+        spectrum=SpectrumReader(filepath=file).spectrum, region_limits=default_regions
     )
     return spectrum_processor.processed_spectra.get_spec_for_region("first_order")
 
