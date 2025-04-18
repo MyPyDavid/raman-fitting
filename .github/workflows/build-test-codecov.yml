@@ -63,6 +63,12 @@ jobs:
         run: |
           uv run raman_fitting run examples
 
+      - name: Upload raman_fitting examples as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: raman-fitting-examples
+          path: ~/raman_fitting/examples/
+
   # Separate Windows Job
   windows:
     runs-on: windows-latest
