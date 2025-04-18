@@ -16,14 +16,17 @@ classifiers = [
 	"Natural Language :: English",
 	"Programming Language :: Python",
 	"Programming Language :: Python :: 3 :: Only",
+	"Programming Language :: Python :: 3.10",
+	"Programming Language :: Python :: 3.11",
 	"Programming Language :: Python :: 3.12",
+	"Programming Language :: Python :: 3.13",
 	"Programming Language :: Python :: Implementation :: CPython",
 	"Programming Language :: Python :: Implementation :: PyPy",
 	"Intended Audience :: Science/Research",
 	"Topic :: Scientific/Engineering :: Physics",
 	"Topic :: Scientific/Engineering :: Chemistry",
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 dynamic = ["version"]
 dependencies = [
 	"scipy~=1.15.1",
