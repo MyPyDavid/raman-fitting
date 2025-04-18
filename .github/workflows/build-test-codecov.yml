@@ -34,11 +34,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}  # Use matrix.python-version for multiple versions
 
-      # Disable ANSI colors and styled output on Windows
-      - name: Set FORCE_COLOR=0 for Typer CLI
+      # Strip ANSI escape sequences for tests on Windows
+      - name: Preprocess stdout for Windows
         if: matrix.os == 'windows-latest'
         run: |
-          echo "FORCE_COLOR=0" >> $GITHUB_ENV
+          pip install ansi2html  # Install a tool to handle ANSI escape sequences
+          echo "from ansi2html.parser import Ansi2HTMLParser; import sys; sys.stdout.write(Ansi2HTMLParser().parse(input()))" > strip_ansi.py
+          pytest --capture=sys --tb=short | python strip_ansi.py
 
       - name: Install the project
         run: |
