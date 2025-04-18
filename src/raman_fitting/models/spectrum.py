@@ -7,6 +7,7 @@ from pydantic import (
     FilePath,
     model_validator,
     Field,
+    computed_field,
 )
 import pydantic_numpy.typing as pnd
 
@@ -18,6 +19,11 @@ class SpectrumData(BaseModel):
     source: FilePath | str | set[FilePath] | set[str] = Field(repr=False)
     region_name: RegionNames
     processing_steps: list[str] = Field(default_factory=list)
+
+    @computed_field
+    @property
+    def length(self) -> int:
+        return len(self)
 
     @model_validator(mode="after")
     def validate_equal_length(self):

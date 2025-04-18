@@ -44,6 +44,9 @@ def subtract_baseline_from_split_spectrum(
     blcorr_info: dict = {}
     label = "blcorr" if label is None else label
     for region_name, spec in split_spectrum:
+        if not len(spec):
+            continue
+
         blcorr_int, blcorr_lin = subtract_baseline_per_region(
             spec, split_spectrum, split_spectrum.region_limits
         )

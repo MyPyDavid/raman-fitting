@@ -66,7 +66,7 @@ def plot_spectrum(
     ax_.plot(
         spec_region.ramanshift,
         spec_region.intensity,
-        label=f"{spec_source.file_info.file.stem}",
+        label=f"{spec_source.file_info.filepath.stem}",
         **RAW_SOURCES_SPEC_FMT,
     )
     ax_.set_title(region_name)

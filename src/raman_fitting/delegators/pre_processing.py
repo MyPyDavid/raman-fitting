@@ -22,9 +22,9 @@ def prepare_aggregated_spectrum_from_files(
     data_sources = []
     for i in raman_files:
         try:
-            read = SpectrumReader(filepath=i.file)
+            read = SpectrumReader(filepath=i.filepath)
         except ValueError:
-            logger.error(f"Could not read {i.file}")
+            logger.error(f"Could not read {i.filepath}")
             continue
 
         processed = SpectrumProcessor(
@@ -41,7 +41,7 @@ def prepare_aggregated_spectrum_from_files(
             )
         except ValueError:
             logger.warning(
-                f"Could not get region {region_name} from processing {i.file}"
+                f"Could not get region {region_name} from processing {i.filepath}"
             )
 
     if not clean_data_for_region:

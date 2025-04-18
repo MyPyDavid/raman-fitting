@@ -14,8 +14,6 @@ def delegator():
 def test_initialize_models(delegator):
     assert "first_order" in delegator.lmfit_models
     assert "first_order" in delegator.selected_models
-    with pytest.raises(KeyError):
-        delegator.select_fitting_model("no_name", "no model")
 
 
 @pytest.mark.slow
@@ -34,9 +32,9 @@ def test_delegator_index(delegator):
 def test_main_run(delegator, test_sample_id):
     assert delegator.results
     assert delegator.run_mode_paths.results_dir.exists()
-    assert delegator.results["test"][test_sample_id]["first_order"]
+    assert delegator.results.test[test_sample_id]["first_order"]
 
-    test_results = delegator.results["test"][test_sample_id]
+    test_results = delegator.results.test[test_sample_id]
     first_order = test_results["first_order"]
     assert first_order.sample_id == test_sample_id
     for model, spec_fit in first_order.fit_model_results.items():

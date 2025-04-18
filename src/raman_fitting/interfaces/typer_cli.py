@@ -100,24 +100,31 @@ def run(
 ):
     run_mode = RunModes(run_mode)
 
-    kwargs = {"run_mode": run_mode, "use_multiprocessing": multiprocessing}
+    kwargs = {
+        "run_mode": run_mode,
+        "use_multiprocessing": multiprocessing,
+        "index": None,
+    }
     if run_mode == RunModes.CURRENT_DIR:
         source_files, index_file, force_reindex = current_dir_prepare_index_kwargs()
         raman_index = initialize_index_from_source_files(
-            files=source_files, index_file=index_file, force_reindex=force_reindex
+            files=source_files,
+            index_file=index_file,
+            force_reindex=force_reindex,
+            persist_to_file=force_reindex,
         )
         if not raman_index.dataset:
             console.print(
                 f"No Raman files could be indexed in {Path.cwd()}", style="bold red"
             )
-            typer.Exit(code=1)
+            raise typer.Exit(code=1)
 
-        kwargs.update({"index": index_file})
+        kwargs.update({"index": raman_index})
+        index_file = raman_index.index_file
         # make config cwd
         dump_default_config(LOCAL_CONFIG_FILE)
         fit_models = RegionNames
-        # make index cwd
-        # run fitting cwd
+
     elif run_mode == RunModes.EXAMPLES:
         kwargs.update(
             {
@@ -131,14 +138,14 @@ def run(
             }
         )
 
-    if index_file is not None:
+    if index_file is not None and not kwargs["index"]:
         index_file = Path(index_file).resolve()
         if not index_file.exists():
             console.print(
                 f"Index file does not exist but is required. {index_file}",
                 style="bold red",
             )
-            typer.Exit(code=1)
+            raise typer.Exit(code=1)
 
         kwargs.update({"index": index_file})
     if fit_models:
@@ -163,8 +170,17 @@ def run(
     console.print(
         f"Starting raman_fitting with CLI run mode: {run_mode}\nand kwargs: {kwargs}"
     )
-    _main_run = MainDelegator(**kwargs)
-    logger.disable("raman_fitting")
+
+    try:
+        delegator = MainDelegator(**kwargs)
+        results = delegator.run()
+        console.print("Processing completed successfully!", style="bold green")
+        return results
+    except (ValueError, KeyError) as e:
+        console.print(f"Error during processing: {str(e)}", style="bold red")
+        raise typer.Exit(code=1)
+    finally:
+        logger.disable("raman_fitting")
 
 
 @app.command()
