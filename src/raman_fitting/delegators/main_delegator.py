@@ -36,8 +36,10 @@ from raman_fitting.models.deconvolution.base_model import (
 from loguru import logger
 
 from typing import Optional
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 import attr
+
+UTC = timezone.utc
 
 
 # Using attrs with modern patterns
