@@ -5,7 +5,6 @@ from .deconvolution.spectrum_regions import RegionNames
 from pydantic import (
     BaseModel,
     FilePath,
-    AwareDatetime,
     model_validator,
     Field,
 )
@@ -42,15 +41,3 @@ class SpectrumData(BaseModel):
     # length is derived property
     def __len__(self):
         return len(self.ramanshift)
-
-
-class SpectrumDataSet(BaseModel):
-    spectra: list[SpectrumData]
-
-
-class SpectrumMetaData(BaseModel):
-    sample_id: str
-    sample_group: str
-    sample_position: str
-    creation_date: AwareDatetime
-    source_file: FilePath  # FileStem is derived

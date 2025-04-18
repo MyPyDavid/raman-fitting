@@ -2,7 +2,6 @@ from dataclasses import dataclass
 import logging
 
 import numpy as np
-from tablib import Dataset
 
 from raman_fitting.imports.spectrum.datafile_schema import SpectrumDataKeys
 
@@ -28,48 +27,32 @@ def validate_len(spectrum_data, len_value: int):
         )
 
 
-@dataclass
+@dataclass(frozen=True)
 class ValidateSpectrumValues:
     spectrum_key: str
     min: float
     max: float
     len: int | None = None
 
-    def validate(self, spectrum_data) -> tuple[bool, list]:
-        errors = []
-        for validator, expected_value in [
-            (validate_min, self.min),
-            (validate_max, self.max),
-            (validate_len, self.len),
-        ]:
-            if expected_value is None:
-                continue
 
-            try:
-                validator(spectrum_data, expected_value)
-            except ValueError as e:
-                errors.append(e)
+def validate_values(
+    spectrum_data: list[float | int], expected_values: ValidateSpectrumValues
+) -> tuple[bool, list]:
+    errors = []
+    for validator, expected_value in [
+        (validate_min, expected_values.min),
+        (validate_max, expected_values.max),
+        (validate_len, expected_values.len),
+    ]:
+        if expected_value is None:
+            continue
 
-        return not errors, errors
+        try:
+            validator(spectrum_data, expected_value)
+        except ValueError as e:
+            errors.append(e)
 
-
-def validate_spectrum_keys_expected_values(
-    spectrum_data: Dataset, expected_values: ValidateSpectrumValues
-):
-    if expected_values.spectrum_key not in spectrum_data.columns:
-        logger.error(
-            f"The expected value type {expected_values.spectrum_key} is not in the columns {spectrum_data.columns}"
-        )
-    if spectrum_data.empty:
-        logger.error("Spectrum data is empty")
-        return
-
-    validation = expected_values.validate(spectrum_data)
-
-    if not validation:
-        logger.warning(
-            f"The {expected_values.spectrum_key} of this spectrum does not match the expected values {expected_values}"
-        )
+    return bool(not errors), errors
 
 
 SPECTRUM_KEYS_EXPECTED_VALUES = {

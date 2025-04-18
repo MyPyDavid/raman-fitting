@@ -6,7 +6,10 @@ from loguru import logger
 
 from .datafile_parsers import get_parser_method_for_filetype
 from .datafile_schema import get_default_expected_header_keys
-from .validators import SPECTRUM_KEYS_EXPECTED_VALUES
+from .validators import (
+    SPECTRUM_KEYS_EXPECTED_VALUES,
+    validate_values,
+)
 
 
 def parse_spectrum_from_file(
@@ -28,18 +31,18 @@ def parse_spectrum_from_file(
         "source": file,
         "processing_steps": [f"parsed from:{file.name}. with {parser}"],
     }
-
     for spectrum_key in parsed_spectrum.headers:
         if spectrum_key not in header_keys:
             continue
 
-        valid, _errors = SPECTRUM_KEYS_EXPECTED_VALUES[spectrum_key].validate(
-            parsed_spectrum[spectrum_key]
+        spectrum_values = parsed_spectrum[spectrum_key]
+        valid, _errors = validate_values(
+            spectrum_values, SPECTRUM_KEYS_EXPECTED_VALUES[spectrum_key]
         )
         if valid:
-            spectrum_kwargs[spectrum_key] = parsed_spectrum[spectrum_key]
+            spectrum_kwargs[spectrum_key] = spectrum_values
         else:
-            logger.warning(
+            logger.error(
                 f"The values of key {spectrum_key} of this spectrum are invalid."
                 f"{', '.join(_errors)}"
             )

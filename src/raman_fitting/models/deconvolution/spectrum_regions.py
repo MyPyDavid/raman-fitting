@@ -19,6 +19,8 @@ class SpectrumRegionLimits(BaseModel):
     max: int
     extra_margin: int = 20
 
+    model_config = {"frozen": True}
+
 
 class SpectrumRegionsLimitsSet(BaseModel):
     regions: list[SpectrumRegionLimits]
