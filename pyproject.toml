@@ -40,7 +40,8 @@ dependencies = [
 	"loguru>=0.7",
 	"typer>=0.13.1",
 	"mpire[dill]~=2.10.0",
-	"tomli-w>=1.0.0"
+	"tomli-w>=1.0.0",
+	"attrs>=25.3.0",
 ]
 
 [dependency-groups]
