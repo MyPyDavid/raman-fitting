@@ -20,8 +20,8 @@ def test_run_command_with_arguments():
     result = runner.invoke(
         app, ["run", "--models", "model1", "--sample-ids", "sample1"]
     )
-    assert result.exit_code == 0
-    assert "Index is empty" in result.stdout
+    assert result.exit_code == 1
+    assert "No samples were selected" in result.stdout
 
 
 def test_make_command():
