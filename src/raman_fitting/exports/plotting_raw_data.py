@@ -6,6 +6,8 @@ Created on Wed Jan 29 14:49:50 2020
 @author: DW
 """
 
+from typing_extensions import Unpack
+
 from typing import Dict
 
 
@@ -62,7 +64,7 @@ def plot_spectrum(
     if region_name not in valid_regions or region_name not in plot_region_axes:
         return
 
-    ax_ = ax[*plot_region_axes[region_name]]
+    ax_ = ax[Unpack[plot_region_axes[region_name]]]
     ax_.plot(
         spec_region.ramanshift,
         spec_region.intensity,
