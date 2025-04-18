@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: raman-fitting-examples
-          path: ~/raman_fitting/examples/
+          path: $HOME/raman_fitting/examples/
 
   # Separate Windows Job
   windows:
