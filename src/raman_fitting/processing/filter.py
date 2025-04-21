@@ -40,17 +40,27 @@ available_filters = {
 
 
 def filter_spectrum(
-    spectrum: SpectrumData = None, filter_name="savgol_filter"
+    spectrum: SpectrumData | None = None, filter_name="savgol_filter"
 ) -> SpectrumData:
     if filter_name not in available_filters:
         raise ValueError(f"Chosen filter {filter_name} not available.")
+    if spectrum is None:
+        raise ValueError("Spectrum is None.")
 
-    filter_class = available_filters[filter_name]
-    filtered_intensity = filter_class.process_intensity(spectrum.intensity)
-    label = f"{filter_name}_{spectrum.label}"
-    filtered_spectrum = spectrum.model_copy(
-        update={"intensity": filtered_intensity, "label": label}
+    filtered_intensity = available_filters[filter_name].process_intensity(
+        spectrum.intensity
     )
+    label = f"{filter_name}_{spectrum.label}"
+    # Create a new instance of SpectrumData with the updated intensity and label
+    filtered_spectrum = SpectrumData(
+        ramanshift=spectrum.ramanshift,
+        intensity=filtered_intensity,
+        label=label,
+        source=spectrum.source,
+        region=spectrum.region,
+        processing_steps=spectrum.processing_steps.copy(),
+    )
+    filtered_spectrum.add_processing_step(filter_name)
     return filtered_spectrum
 
 

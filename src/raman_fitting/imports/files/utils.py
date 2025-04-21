@@ -1,28 +1,24 @@
+import hashlib
 from pathlib import Path
 
-import tablib.exceptions
-from tablib import Dataset
 
-from loguru import logger
+def get_filename_id_from_path(path: Path) -> str:
+    """
+    Makes the ID from a filepath
 
+    Parameters
+    ----------
+    path : Path
+        DESCRIPTION.
 
-def write_dataset_to_file(file: Path, dataset: Dataset) -> None:
-    if file.suffix == ".csv":
-        with open(file, "w", newline="") as f:
-            f.write(dataset.export("csv"))
-    else:
-        with open(file, "wb", encoding="utf-8") as f:
-            f.write(dataset.export(file.suffix))
-    logger.debug(f"Wrote dataset {len(dataset)} to {file}")
+    Returns
+    -------
+    str: which contains hash(parent+suffix)_stem of path
 
+    """
 
-def load_dataset_from_file(file) -> Dataset:
-    with open(file, "r", encoding="utf-8") as fh:
-        try:
-            imported_data = Dataset().load(fh)
-        except tablib.exceptions.UnsupportedFormat as e:
-            logger.warning(f"Read dataset {e} from {file}")
-            imported_data = Dataset()
-
-    logger.debug(f"Read dataset {len(imported_data)} from {file}")
-    return imported_data
+    _parent_suffix_hash = hashlib.sha512(
+        (str(path.parent) + path.suffix).encode("utf-8")
+    ).hexdigest()
+    filename_id = f"{_parent_suffix_hash}_{path.stem}"
+    return filename_id

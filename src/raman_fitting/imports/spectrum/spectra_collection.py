@@ -1,17 +1,48 @@
-from typing import List
-
 import numpy as np
 
-from pydantic import BaseModel, ValidationError, model_validator
+from pydantic import BaseModel, ValidationError, model_validator, Field, computed_field
 
 from raman_fitting.models.deconvolution.spectrum_regions import RegionNames
 from raman_fitting.models.spectrum import SpectrumData
 
 
+def aggregate_mean_spectrum_from_spectra(spectra: list[SpectrumData]) -> SpectrumData:
+    # wrap this in a ProcessedSpectraCollection model
+    mean_int = np.mean(np.vstack([i.intensity for i in spectra]), axis=0)
+    mean_ramanshift = np.mean(np.vstack([i.ramanshift for i in spectra]), axis=0)
+
+    region_name = list(set(i.region for i in spectra))
+    if len(region_name) > 1:
+        raise ValueError(
+            f"The spectra have different region names where they should be the same.{region_name}"
+        )
+    region_name = region_name[0]
+
+    # check that all spectra have the same processing steps
+    new_processing_steps = []
+    for spec in spectra:
+        for i in spec.processing_steps:
+            if i not in new_processing_steps:
+                new_processing_steps.append(i)
+    new_processing_steps.append(
+        f"aggregated {region_name} with np.mean of {len(spectra)} spectra"
+    )
+
+    mean_spec = SpectrumData(
+        ramanshift=mean_ramanshift,
+        intensity=mean_int,
+        label=f"clean_{region_name}_mean",
+        region=region_name,
+        source=[i.source for i in spectra],
+        processing_steps=new_processing_steps,
+    )
+    return mean_spec
+
+
 class SpectraDataCollection(BaseModel):
-    spectra: List[SpectrumData]
+    spectra: list[SpectrumData] = Field(min_length=1, repr=False)
     region_name: RegionNames
-    mean_spectrum: SpectrumData | None = None
+    # mean_spectrum: SpectrumData = Field(init=False)
 
     @model_validator(mode="after")
     def check_spectra_have_same_label(self) -> "SpectraDataCollection":
@@ -24,7 +55,7 @@ class SpectraDataCollection(BaseModel):
     @model_validator(mode="after")
     def check_spectra_have_same_region(self) -> "SpectraDataCollection":
         """checks member of lists"""
-        region_names = set(i.region_name for i in self.spectra)
+        region_names = set(i.region for i in self.spectra)
         if len(region_names) > 1:
             raise ValidationError(f"Spectra have different region_names {region_names}")
         return self
@@ -35,29 +66,16 @@ class SpectraDataCollection(BaseModel):
         unique_lengths_int = set(len(i.intensity) for i in self.spectra)
         if len(unique_lengths_rs) > 1:
             raise ValidationError(
-                f"The spectra have different ramanshift lengths where they should be the same.\n\t{unique_lengths_rs}"
+                f"The spectra have different ramanshift lengths where they should be the same.{unique_lengths_rs}"
             )
         if len(unique_lengths_int) > 1:
             raise ValidationError(
-                f"The spectra have different intensity lengths where they should be the same.\n\t{unique_lengths_int}"
+                f"The spectra have different intensity lengths where they should be the same. {unique_lengths_int}"
             )
 
         return self
 
-    @model_validator(mode="after")
-    def set_mean_spectrum(self) -> "SpectraDataCollection":
-        # wrap this in a ProcessedSpectraCollection model
-        mean_int = np.mean(np.vstack([i.intensity for i in self.spectra]), axis=0)
-        mean_ramanshift = np.mean(
-            np.vstack([i.ramanshift for i in self.spectra]), axis=0
-        )
-        source_files = list(set(i.source for i in self.spectra))
-        _label = "".join(map(str, set(i.label for i in self.spectra)))
-        mean_spec = SpectrumData(
-            ramanshift=mean_ramanshift,
-            intensity=mean_int,
-            label=f"clean_{self.region_name}_mean",
-            region_name=self.region_name,
-            source=source_files,
-        )
-        self.mean_spectrum = mean_spec
+    @computed_field
+    @property
+    def mean_spectrum(self) -> SpectrumData:
+        return aggregate_mean_spectrum_from_spectra(self.spectra)

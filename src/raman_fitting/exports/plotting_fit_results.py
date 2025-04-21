@@ -8,19 +8,20 @@ from matplotlib.axes import Axes
 from matplotlib.text import Text
 from matplotlib.ticker import AutoMinorLocator
 
-from raman_fitting.imports.samples.models import SampleMetaData
 from raman_fitting.models.fit_models import SpectrumFitModel
 
 
 from raman_fitting.config.path_settings import ExportPathSettings
 from raman_fitting.models.splitter import RegionNames
-from raman_fitting.delegating.models import AggregatedSampleSpectrumFitResult
+from raman_fitting.delegators.models import AggregatedSampleSpectrumFitResult
 
 from loguru import logger
 
+from .models import ExportResultSet, ExportResult
 
 matplotlib.rcParams.update({"font.size": 14})
 FIT_REPORT_MIN_CORREL = 0.7
+DEFAULT_SECOND_ORDER_MODEL = "2nd_4peaks"
 
 
 def fit_spectrum_plot(
@@ -28,40 +29,52 @@ def fit_spectrum_plot(
     export_paths: ExportPathSettings | None = None,
     plot_annotation=True,
     plot_residuals=True,
-):  # pragma: no cover
-    first_order = aggregated_spectra[RegionNames.first_order]
-    second_order = aggregated_spectra[RegionNames.second_order]
-
-    sources = first_order.aggregated_spectrum.sources
-    sample = sources[0].file_info.sample
-    second_model_name = "2nd_4peaks"
-    second_model = second_order.fit_model_results.get(second_model_name)
-    for first_model_name, first_model in first_order.fit_model_results.items():
-        prepare_combined_spectrum_fit_result_plot(
-            first_model,
-            second_model,
-            sample,
-            export_paths,
-            plot_annotation=plot_annotation,
-            plot_residuals=plot_residuals,
-        )
+) -> ExportResultSet:  # pragma: no cover
+    export_results = ExportResultSet()
+    for region_name, region_aggregated_spectrum in aggregated_spectra.items():
+        sample_id = region_aggregated_spectrum.sample_id
+        second_model = None
+        if (
+            region_name == RegionNames.FIRST_ORDER
+            and RegionNames.SECOND_ORDER in aggregated_spectra
+        ):
+            second_order = aggregated_spectra[RegionNames.SECOND_ORDER]
+            second_model = second_order.get_fit_model(DEFAULT_SECOND_ORDER_MODEL)
+        for (
+            model_name,
+            current_model,
+        ) in region_aggregated_spectrum.fit_model_results.items():
+            logger.info(
+                f"Starting to plot fit result for {sample_id}, {region_name} {model_name}."
+            )
+            export_result = prepare_combined_spectrum_fit_result_plot(
+                current_model,
+                second_model,
+                sample_id,
+                export_paths,
+                plot_annotation=plot_annotation,
+                plot_residuals=plot_residuals,
+            )
+            if export_result is not None:
+                export_results += export_result
+    return export_results
 
 
 def prepare_combined_spectrum_fit_result_plot(
     first_model: SpectrumFitModel,
-    second_model: SpectrumFitModel,
-    sample: SampleMetaData,
+    second_model: SpectrumFitModel | None,
+    sample_id: str,
     export_paths: ExportPathSettings,
     plot_annotation=True,
     plot_residuals=True,
-):
+) -> ExportResult | None:
+    first_model_name = first_model.model.name
+
     plt.figure(figsize=(28, 24))
     gs = gridspec.GridSpec(4, 1, height_ratios=[4, 1, 4, 1])
     ax = plt.subplot(gs[0])
     ax_res = plt.subplot(gs[1])
-    ax.set_title(f"{sample.id}")
-
-    first_model_name = first_model.model.name
+    ax.set_title(f"{sample_id}, {first_model_name}")
 
     fit_plot_first(ax, ax_res, first_model, plot_residuals=plot_residuals)
     _bbox_artists = None
@@ -86,23 +99,39 @@ def prepare_combined_spectrum_fit_result_plot(
     set_axes_labels_and_legend(ax)
 
     plot_special_si_components(ax, first_model)
+    result = None
     if export_paths is not None:
-        savepath = export_paths.plots.joinpath(f"Model_{first_model_name}").with_suffix(
-            ".png"
-        )
-        plt.savefig(
-            savepath,
-            dpi=100,
-            bbox_extra_artists=_bbox_artists,
-            bbox_inches="tight",
-        )
-        logger.debug(f"Plot saved to {savepath}")
-    plt.close()
+        savepath = export_paths.plots_dir.joinpath(
+            f"Model_{first_model_name}"
+        ).with_suffix(".png")
+
+        # Ensure the directory exists
+        savepath.parent.mkdir(parents=True, exist_ok=True)
+
+        try:
+            plt.savefig(
+                savepath,
+                dpi=100,
+                bbox_extra_artists=_bbox_artists,
+                bbox_inches="tight",
+            )
+            _msg = f"Plot with combined fit results saved to {savepath}"
+            logger.info(_msg)
+            result = ExportResult(target=savepath, message=_msg)
+        except FileNotFoundError as e:
+            logger.error(
+                f"Could not save plot with prepare_combined_spectrum_fit_result_plot: {e}"
+            )
+            raise e
+        finally:
+            plt.close()
+
+    return result
 
 
 def fit_plot_first(
     ax, ax_res, first_model: SpectrumFitModel, plot_residuals: bool = True
-) -> matplotlib.text.Text | None:
+) -> None:
     first_result = first_model.fit_result
     first_components = first_model.fit_result.components
     first_eval_comps = first_model.fit_result.eval_components()
@@ -155,7 +184,7 @@ def fit_plot_first(
         )
         center_col = _component.prefix + "center"
         ax.annotate(
-            f"{peak_name}:\n {first_result.best_values[center_col]:.0f}",
+            f"{peak_name}: {first_result.best_values[center_col]:.0f}",
             xy=(
                 first_result.best_values[center_col] * 0.97,
                 0.7 * first_result.params[_component.prefix + "height"].value,
@@ -225,7 +254,7 @@ def fit_plot_second(
         )
         center_col = _component.prefix + "center"
         ax2nd.annotate(
-            f"{peak_name}\n {second_result.best_values[center_col]:.0f}",
+            f"{peak_name} {second_result.best_values[center_col]:.0f}",
             xy=(
                 second_result.best_values[center_col] * 0.97,
                 0.8 * second_result.params[_component.prefix + "height"].value,
@@ -252,7 +281,7 @@ def prepare_annotate_fit_report_second(ax2nd, second_result) -> Text:
     return annotate_report_second
 
 
-def prepare_annotate_fit_report_first(ax, first_result):
+def prepare_annotate_fit_report_first(ax, first_result) -> Text:
     fit_report = first_result.fit_report(min_correl=FIT_REPORT_MIN_CORREL)
     if len(fit_report) > -1:
         fit_report = fit_report.replace("prefix='D3_'", "prefix='D3_' \n")
@@ -285,7 +314,7 @@ def plot_special_si_components(ax, first_model):
         )
         if si_result.params[si_comp.prefix + "fwhm"] > 1:
             ax.annotate(
-                "Si_substrate:\n %.0f" % si_result.params["Si1_center"].value,
+                "Si_substrate: %.0f" % si_result.params["Si1_center"].value,
                 xy=(
                     si_result.params["Si1_center"].value * 0.97,
                     0.8 * si_result.params["Si1_height"].value,

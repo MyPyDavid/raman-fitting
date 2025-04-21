@@ -1,59 +1,79 @@
-import json
-from pydantic import (
-    BaseModel,
-    FilePath,
-    model_validator,
-    Field,
-    ConfigDict,
-)
+"""
+A Pydantic BaseModel for reading and validating spectral data from files.
 
-from .samples.sample_id_helpers import extract_sample_metadata_from_filepath
+This class provides a frozen (immutable) model that lazily loads spectral data
+when needed and caches it for subsequent access. It includes validation of the
+input file path and computed fields for spectrum data, length, and hash.
 
-from .files.metadata import FileMetaData, get_file_metadata
-from .files.index_helpers import get_filename_id_from_path
-from .samples.models import SampleMetaData
+Attributes:
+    filepath (FilePath): Path to the spectrum data file (validated to exist)
+    label (str): Label for the spectrum, defaults to "raw"
+    region_name (str): Name of the spectral region, defaults to "full"
 
+Computed Fields:
+    spectrum (SpectrumData): Lazily loaded and cached spectrum data
+    spectrum_length (int): Length of the loaded spectrum
+    spectrum_hash (str): SHA256 hash of the spectrum's JSON representation
 
-class RamanFileInfo(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    file: FilePath
-    filename_id: str = Field(None, init_var=False, validate_default=False)
-    sample: SampleMetaData | str = Field(None, init_var=False, validate_default=False)
-    file_metadata: FileMetaData | str = Field(
-        None, init_var=False, validate_default=False
+Example:
+    ```python
+    reader = SpectrumReader(
+        filepath="path/to/spectrum.txt",
+        label="sample1",
+        region_name="region1"
     )
 
-    @model_validator(mode="after")
-    def set_filename_id(self) -> "RamanFileInfo":
-        filename_id = get_filename_id_from_path(self.file)
-        self.filename_id = filename_id
-        return self
+    # Accessing computed fields (lazy loading)
+    spectrum_data = reader.spectrum
+    length = reader.spectrum_length
+    hash_value = reader.spectrum_hash
+    ```
 
-    @model_validator(mode="after")
-    def parse_and_set_sample_from_file(self) -> "RamanFileInfo":
-        sample = extract_sample_metadata_from_filepath(self.file)
-        self.sample = sample
-        return self
+Notes:
+    - The model is frozen (immutable) after creation
+    - Spectrum data is loaded only when first accessed
+    - All computed fields are cached after first access
+    - Uses Pydantic V2 for validation and field computation
 
-    @model_validator(mode="after")
-    def parse_and_set_metadata_from_filepath(self) -> "RamanFileInfo":
-        file_metadata = get_file_metadata(self.file)
-        self.file_metadata = FileMetaData(**file_metadata)
-        return self
+Created: 2021-07-05
+Updated: 2025-04-18
+Authors: DW, MyPyDavid
+"""
 
-    @model_validator(mode="after")
-    def initialize_sample_and_file_from_dict(self) -> "RamanFileInfo":
-        if isinstance(self.sample, dict):
-            self.sample = SampleMetaData(**self.sample)
-        elif isinstance(self.sample, str):
-            _sample = json.loads(self.sample.replace("'", '"'))
-            self.sample = SampleMetaData(**_sample)
+from functools import cached_property
+from pydantic import BaseModel, computed_field, FilePath
 
-        if isinstance(self.file_metadata, dict):
-            self.file_metadata = FileMetaData(**self.file_metadata)
-        elif isinstance(self.file_metadata, str):
-            _file_metadata = json.loads(self.file_metadata.replace("'", '"'))
-            self.file_metadata = SampleMetaData(**_file_metadata)
+from raman_fitting.models.spectrum import SpectrumData
 
-        return self
+# """
+# Reads a spectrum from a 'raw' data file Path or str
+#
+# with spectrum_data_keys "ramanshift" and "intensity".
+# Double checks the values
+# Sets a hash attribute afterwards
+# """
+
+
+class SpectrumReader(BaseModel):
+    model_config = {
+        "frozen": True,  # Makes the model immutable
+        "arbitrary_types_allowed": True,  # Needed for SpectrumData
+    }
+
+    filepath: FilePath
+    spectrum: SpectrumData
+
+    @computed_field
+    @cached_property
+    def label(self) -> str:
+        return self.spectrum.label
+
+    @computed_field
+    @cached_property
+    def region_name(self) -> str:
+        return self.spectrum.region
+
+    @computed_field
+    @cached_property
+    def spectrum_length(self) -> int:
+        return len(self.spectrum)

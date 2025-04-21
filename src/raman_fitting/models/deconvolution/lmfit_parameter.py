@@ -1,5 +1,5 @@
 import math
-from enum import StrEnum
+from raman_fitting.utils.compat import StrEnum
 from typing import List, Optional, Dict
 from warnings import warn
 
@@ -160,12 +160,3 @@ def parmeter_to_dict(parameter: Parameter) -> dict:
 DEFAULT_GAMMA_PARAM_HINT = LMFitParameterHints(
     name="gamma", value=1, min=1e-05, max=70, vary=False
 )
-
-
-def main():
-    pass
-    # breakpoint()
-
-
-if __name__ == "__main__":
-    main()

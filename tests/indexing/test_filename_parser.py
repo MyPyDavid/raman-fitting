@@ -1,6 +1,6 @@
 import pytest
 
-from raman_fitting.imports.models import RamanFileInfo
+from raman_fitting.imports.files.models import RamanFileInfo
 from raman_fitting.imports.samples.sample_id_helpers import (
     overwrite_sample_id_from_mapper,
     overwrite_sample_group_id_from_parts,
@@ -35,7 +35,7 @@ sGrp_name_mapper = {}
 def path_parsers(example_files):
     path_parsers_ = []
     for fn in example_files:
-        path_parsers_.append(RamanFileInfo(**{"file": fn}))
+        path_parsers_.append(RamanFileInfo(filepath=fn))
     return path_parsers_
 
 
@@ -52,7 +52,7 @@ def test_sample_id_name_mapper():
 def test_overwrite_sample_id_from_mapper():
     assert "TEST" == overwrite_sample_group_id_from_parts([], "TEST", sGrp_name_mapper)
     for k, val in sGrp_name_mapper.items():
-        empty_path_parts = RamanFileInfo(file=f"{k}/TEST.txt")
+        empty_path_parts = RamanFileInfo(filepath=f"{k}/TEST.txt")
         assert val == overwrite_sample_group_id_from_parts(
             empty_path_parts.parts, "TEST", sGrp_name_mapper
         )

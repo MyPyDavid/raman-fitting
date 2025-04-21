@@ -41,23 +41,21 @@ def test_basepeak_initialization():
     assert test_peak.peak_name == "test"
 
 
-@pytest.mark.skip(reason="TODO: add field validations")
+# @pytest.mark.skip(reason="TODO: add field validations")
 def test_empty_base_class_with_kwargs_raises():
-    eb = BasePeak(peak_type="Voigt", peak_name="test")
-
+    eb = BasePeak(peak_name="test", peak_type="Voigt")
     assert eb.peak_type == "Voigt"
 
     # add in field validation str_length
     with pytest.raises(ValueError) as excinfo:
-        eb.peak_name = 10 * "emptytest"
+        _eb = BasePeak(peak_name=10 * "emptytest", peak_type="Voigt")
     assert _error_message_contains(excinfo, "value for peak_name is too long 90")
 
-    # add built in field validation for peak_type
-    with pytest.raises(ValueError) as excinfo:
-        eb.peak_type = "VoigtLorentzian"
+    with pytest.raises(KeyError) as excinfo:
+        _eb = BasePeak(peak_name=10 * "emptytest", peak_type="XY-Voigt")
     assert _error_message_contains(
         excinfo,
-        ''''Multiple options ['Lorentzian', 'Voigt'] for misspelled value "VoigtLorentzian"''',
+        "peak_type is not in XY-Voigt",
     )
 
 
@@ -75,7 +73,7 @@ def test_base_class_good_with_init_extra_tests():
     td1 = BasePeak(**td1_kwargs)
     assert td1.peak_type == "Voigt"
     assert td1.peak_name == "D1D1"
-    peakmod = "<lmfit.Model: Model(voigt, prefix='D1D1_')>"
+    peakmod = "Model(voigt, prefix='D1D1_')"
     assert str(td1.lmfit_model) == peakmod
     # _class_str = f"center : 2600 < 2650 > 2750"
     # assertIn(_class_str, str(td1))

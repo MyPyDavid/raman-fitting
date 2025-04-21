@@ -4,11 +4,9 @@ from raman_fitting.config.path_settings import (
     get_run_mode_paths,
     RunModes,
 )
-from raman_fitting.imports.files.file_indexer import (
-    RamanFileIndex,
-    initialize_index_from_source_files,
-)
-from raman_fitting.imports.models import RamanFileInfo
+from raman_fitting.imports.files.index.factory import initialize_index_from_source_files
+from raman_fitting.imports.files.index.models import RamanFileIndex
+from raman_fitting.imports.files.models import RamanFileInfo
 
 run_mode = RunModes.PYTEST
 run_paths = get_run_mode_paths(run_mode)

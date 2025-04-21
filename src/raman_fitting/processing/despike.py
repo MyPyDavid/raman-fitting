@@ -4,13 +4,13 @@ Created on Mon May  3 11:10:59 2021
 @author: dw
 """
 
-from typing import Dict, Tuple, Any, Optional
+from typing import Dict, Tuple, Any
 import copy
 import logging
 
 import numpy as np
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, computed_field
 
 from raman_fitting.models.spectrum import SpectrumData
 
@@ -18,34 +18,33 @@ logger = logging.getLogger(__name__)
 
 
 class SpectrumDespiker(BaseModel):
-    spectrum: Optional[SpectrumData] = None
+    spectrum: SpectrumData
     threshold_z_value: int = 4
     moving_region_size: int = 1
     ignore_lims: Tuple[int, int] = (20, 46)
     info: Dict = Field(default_factory=dict)
-    processed_spectrum: SpectrumData = Field(None)
 
-    @model_validator(mode="after")
-    def process_spectrum(self) -> "SpectrumDespiker":
-        if self.spectrum is None:
-            raise ValueError("SpectrumDespiker, spectrum is None")
-        despiked_intensity, result_info = self.call_despike_spectrum(
+    @computed_field
+    @property
+    def despiked_spectrum(self) -> SpectrumData:
+        despiked_intensity, result_info = self.run_despiking_algorithm(
             self.spectrum.intensity
         )
-        despiked_spec = self.spectrum.model_copy(
-            update={"intensity": despiked_intensity}, deep=True
+        # Create a new instance of SpectrumData with the updated intensity
+        despiked_spec = SpectrumData(
+            ramanshift=self.spectrum.ramanshift,
+            intensity=despiked_intensity,
+            label=self.spectrum.label,
+            source=self.spectrum.source,
+            region=self.spectrum.region,
+            processing_steps=self.spectrum.processing_steps.copy(),
         )
-        SpectrumData.model_validate(despiked_spec, from_attributes=True)
-        self.processed_spectrum = despiked_spec
+        despiked_spec.add_processing_step(f"Despiked: {self.__class__.__name__}")
         self.info.update(**result_info)
-        return self
+        return despiked_spec
 
-    def process_intensity(self, intensity: np.ndarray) -> np.ndarray:
-        despiked_intensity, _ = self.call_despike_spectrum(intensity)
-        return despiked_intensity
-
-    def call_despike_spectrum(self, intensity: np.ndarray) -> Tuple[np.ndarray, Dict]:
-        despiked_intensity, result_info = despike_spectrum(
+    def run_despiking_algorithm(self, intensity: np.ndarray) -> Tuple[np.ndarray, Dict]:
+        despiked_intensity, result_info = despike_spectrum_intensity(
             intensity,
             self.threshold_z_value,
             self.moving_region_size,
@@ -54,7 +53,7 @@ class SpectrumDespiker(BaseModel):
         return despiked_intensity, result_info
 
 
-def despike_spectrum(
+def despike_spectrum_intensity(
     intensity: np.ndarray,
     threshold_z_value: int,
     moving_region_size: int,
@@ -99,15 +98,23 @@ def calc_z_value_intensity(intensity: np.ndarray) -> np.ndarray:
     diff_intensity = np.append(np.diff(intensity), 0)  # dYt
     median_diff_intensity = np.median(diff_intensity)  # dYt_Median
     median_abs_deviation = np.median(abs(diff_intensity - median_diff_intensity))
+
+    # Handle the case where median_abs_deviation is zero
+    if median_abs_deviation == 0:
+        logger.warning(
+            "median_abs_deviation is zero, setting intensity_values_z to zero."
+        )
+        return np.zeros_like(diff_intensity)
+
     intensity_values_z = (
         0.6745 * (diff_intensity - median_diff_intensity)
     ) / median_abs_deviation
     return intensity_values_z
 
 
-def filter_z_intensity_values(z_intensity, z_intensityhreshold):
-    filtered_z_intensity = copy.deepcopy(z_intensity)
-    filtered_z_intensity[np.abs(z_intensity) > z_intensityhreshold] = np.nan
+def filter_z_intensity_values(z_intensity, z_intensitythreshold):
+    filtered_z_intensity = z_intensity.astype(float)
+    filtered_z_intensity[np.abs(z_intensity) > z_intensitythreshold] = np.nan
     filtered_z_intensity[0] = filtered_z_intensity[-1] = 0
     return filtered_z_intensity
 
@@ -132,3 +139,7 @@ def despike_filter(
             else:
                 i_despiked[i] = intensity[i]
     return i_despiked
+
+
+def despike_spectrum_data(spectrum: SpectrumData) -> SpectrumData:
+    return SpectrumDespiker(spectrum=spectrum).despiked_spectrum

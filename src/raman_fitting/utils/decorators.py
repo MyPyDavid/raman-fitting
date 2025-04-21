@@ -54,7 +54,7 @@ def decorator_with_kwargs(decorator: Callable) -> Callable:
 
     if len(signature_args) != 1:
         raise TypeError(
-            f"{decorator.__name__} signature should be of the form:\n"
+            f"{decorator.__name__} signature should be of the form:"
             f"{decorator.__name__}(function: typing.Callable, "
             "kwarg_1=default_1, kwarg_2=default_2, ...) -> Callable"
         )
