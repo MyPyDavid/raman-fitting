@@ -241,9 +241,7 @@ def get_results_over_selected_models(
             logger.error(f"Region name {region_name} not found. {exc}")
             continue
 
-        aggregated_spectrum = prepare_aggregated_spectrum_from_files(
-            region_name, raman_files
-        )
+        aggregated_spectrum = prepare_aggregated_spectrum_from_files(raman_files)
         if aggregated_spectrum is None:
             continue
         fit_region_results = AggregatedSampleSpectrumFitResult(
