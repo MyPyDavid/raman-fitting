@@ -10,10 +10,10 @@ def test_call_version_on_package():
 
 @pytest.mark.slow
 def test_call_make_examples_on_package():
-    import raman_fitting
+    from raman_fitting.delegators.examples import make_examples
     from lmfit.model import ModelResult
 
-    example_run = raman_fitting.make_examples()
+    example_run = make_examples()
     assert example_run
     fit_result = (
         example_run["test"]["testDW38C"]["first_order"]
@@ -30,9 +30,10 @@ def test_logging_disabled_when_importing_package(caplog):
 
     # Import your package (this should not trigger any logging)
     import raman_fitting
+    # Check if no log message is captured in the caplog
+    assert caplog.text == ""
 
     # Emit a log message (this should not be captured)
     raman_fitting.utils.version()
 
-    # Check if no log message is captured in the caplog
-    assert caplog.text == ""
+    assert "DEBUG" in caplog.text

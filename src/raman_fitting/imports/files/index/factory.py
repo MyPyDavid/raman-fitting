@@ -19,10 +19,14 @@ def initialize_index_from_source_files(
     force_reindex: bool = False,
     persist_to_file: bool = False,
 ) -> RamanFileIndex:
-    raman_files = collect_raman_file_index_info_from_files(raman_files=files)
-    if not raman_files:
-        logger.warning("No raman files were found.")
-        return RamanFileIndex(raman_files=None, index_file=None)
+    if files is not None:
+        raman_files = collect_raman_file_index_info_from_files(raman_files=files)
+    else:
+        raman_files = None
+
+    if not raman_files and index_file is None:
+        logger.warning("No raman files and no index file were found.")
+        return RamanFileIndex(index_file=index_file, raman_files=None)
 
     raman_index = RamanFileIndex(
         index_file=index_file,
@@ -45,18 +49,21 @@ def find_files_and_initialize_index(
     exclusions: Sequence[str],
     index_file: Path,
     persist_to_file: bool = False,
-) -> RamanFileIndex:
+) -> RamanFileIndex | None:
     file_finder = FileFinder(
         directory=directory,
         suffixes=suffixes,
         exclusions=exclusions,
     )
-    return initialize_index_from_source_files(
-        files=file_finder.files,
-        index_file=index_file,
-        force_reindex=True,
-        persist_to_file=persist_to_file,
-    )
+    if file_finder.files:
+        return initialize_index_from_source_files(
+            files=file_finder.files,
+            index_file=index_file,
+            force_reindex=True,
+            persist_to_file=persist_to_file,
+        )
+    else:
+        logger.info(f"Could not find any files. {file_finder}")
 
 
 def get_or_create_index(
@@ -67,7 +74,7 @@ def get_or_create_index(
     index_file: Path | None = None,
     force_reindex: bool = False,
     persist_index: bool = False,
-) -> RamanFileIndex:
+) -> RamanFileIndex | None:
     if index is None and directory is not None:
         return find_files_and_initialize_index(
             directory=directory,
@@ -79,7 +86,7 @@ def get_or_create_index(
 
     elif isinstance(index, Path):
         return initialize_index_from_source_files(
-            index_file=index, force_reindex=force_reindex, persist_to_file=persist_index
+            index_file=index,
         )
     elif isinstance(index, RamanFileIndex):
         return index
@@ -94,7 +101,7 @@ def initialize_index(
     run_mode_paths: RunModePaths | None = None,
     force_reindex: bool = False,
     persist_index: bool = False,
-) -> RamanFileIndex:
+) -> RamanFileIndex | None:
     """Initialize the index for Raman spectra files."""
 
     if isinstance(index, RamanFileIndex):

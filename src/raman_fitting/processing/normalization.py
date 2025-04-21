@@ -53,7 +53,7 @@ def normalize_regions_in_split_spectrum(
             intensity=spec.intensity * norm_factor,
             label=norm_label,
             source=spec.source,
-            region_name=spec.region_name,
+            region=spec.region,
             processing_steps=spec.processing_steps.copy(),
         )
         new_spec_region.add_processing_step(f"normalization with {norm_factor}")

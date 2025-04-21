@@ -1,3 +1,4 @@
+from functools import cached_property
 from pathlib import Path
 from typing import Sequence
 from pydantic import BaseModel, DirectoryPath, Field, computed_field
@@ -10,10 +11,12 @@ class FileFinder(BaseModel):
     suffixes: Sequence[str] = Field(default_factory=lambda: [".txt"])
     exclusions: Sequence[str] = Field(default_factory=lambda: ["."])
 
-    @computed_field
-    @property
+    @computed_field(repr=False)
+    @cached_property
     def files(self) -> list[Path]:
-        files = find_files(self.directory, self.suffixes, self.exclusions)
+        files = list(
+            sorted(set(find_files(self.directory, self.suffixes, self.exclusions)))
+        )
         if not files:
             logger.warning(
                 f"FileFinder warning: no files were found in the chosen data file dir.\n{self.directory}\nPlease choose another directory which contains your data files."

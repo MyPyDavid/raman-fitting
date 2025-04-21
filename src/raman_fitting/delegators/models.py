@@ -1,14 +1,17 @@
 # pylint: disable=W0614,W0401,W0611,W0622,C0103,E0401,E0402
+from functools import cached_property
+from pathlib import Path
 from typing import Dict, Sequence
 
 from pydantic import BaseModel, Field, computed_field
 
 from raman_fitting.imports.files.models import RamanFileInfo
+from raman_fitting.imports.samples.models import SampleMetaData
 
 from raman_fitting.models.spectrum import SpectrumData
 from raman_fitting.models.fit_models import SpectrumFitModel
 from raman_fitting.models.splitter import RegionNames
-from raman_fitting.imports.spectrumdata_parser import SpectrumReader
+from raman_fitting.imports.models import SpectrumReader
 from raman_fitting.processing.post_processing import SpectrumProcessor
 
 
@@ -26,6 +29,16 @@ class PreparedSampleSpectrum(BaseModel):
             return self.file_info == other.file_info
         return False
 
+    @computed_field
+    @property
+    def sample(self) -> SampleMetaData:
+        self.file_info.sample
+
+    @computed_field
+    @property
+    def source(self) -> Path:
+        self.read.filepath
+
 
 class AggregatedSampleSpectrum(BaseModel):
     """Contains the processed sample spectrum data from several files"""
@@ -34,7 +47,7 @@ class AggregatedSampleSpectrum(BaseModel):
     spectrum: SpectrumData
 
     @computed_field
-    @property
+    @cached_property
     def file_info(self) -> set[RamanFileInfo]:
         file_infos = set()
         for source in self.prepared_sources:
@@ -42,7 +55,7 @@ class AggregatedSampleSpectrum(BaseModel):
         return file_infos
 
     @computed_field
-    @property
+    @cached_property
     def samples(self) -> set[str]:
         samples = set()
         for source in set(self.prepared_sources):
@@ -50,7 +63,7 @@ class AggregatedSampleSpectrum(BaseModel):
         return samples
 
     @computed_field
-    @property
+    @cached_property
     def sample_id(self) -> str:
         sample_ids = {i.id for i in self.samples}
         if len(sample_ids) > 1:
@@ -59,7 +72,7 @@ class AggregatedSampleSpectrum(BaseModel):
 
 
 class AggregatedSampleSpectrumFitResult(BaseModel):
-    region_name: RegionNames
+    region: RegionNames
     aggregated_spectrum: AggregatedSampleSpectrum = Field(repr=False)
     fit_model_results: Dict[str, SpectrumFitModel]
 

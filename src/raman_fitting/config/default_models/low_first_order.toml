@@ -3,7 +3,7 @@
 [spectrum.regions.low_first_order]
 
 [spectrum.regions.low_first_order.limits]
-min = 220
+min = 200
 max = 500
 extra_margin = 10
 

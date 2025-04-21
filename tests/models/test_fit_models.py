@@ -1,4 +1,4 @@
-from raman_fitting.imports.spectrumdata_parser import SpectrumReader
+from raman_fitting.imports.spectrum.parser import load_and_parse_spectrum_from_file
 from raman_fitting.models.deconvolution.spectrum_regions import (
     get_default_regions_from_toml_files,
 )
@@ -9,8 +9,16 @@ from raman_fitting.processing.post_processing import SpectrumProcessor
 def test_fit_model(example_files, default_models_first_order):
     file = [i for i in example_files if "_pos4" in i.stem][0]
 
+    parsed_spectrum_or_error = load_and_parse_spectrum_from_file(
+        file=file,
+    )
+    # if isinstance(parsed_spectrum_or_error, FileProcessingError):
+    #     processing_errors.add_error(parsed_spectrum_or_error)
+    #     return None
+
+
     spectrum_processor = SpectrumProcessor(
-        SpectrumReader(filepath=file).spectrum,
+        spectrum=parsed_spectrum_or_error,
         region_limits=get_default_regions_from_toml_files(),
     )
     clean_spec_1st_order = spectrum_processor.processed_spectra.get_spec_for_region(
@@ -20,7 +28,7 @@ def test_fit_model(example_files, default_models_first_order):
     spec_fit = SpectrumFitModel(
         spectrum=clean_spec_1st_order,
         model=default_models_first_order["2peaks"],
-        region=clean_spec_1st_order.region_name,
+        region=clean_spec_1st_order.region,
     )
     spec_fit.run()
     assert spec_fit.fit_result.success

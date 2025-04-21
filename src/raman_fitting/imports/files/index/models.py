@@ -1,11 +1,11 @@
+from functools import cached_property
+
 from raman_fitting.imports.files.index.validators import (
     validate_and_set_dataset,
     validate_index_file_path,
 )
-from raman_fitting.imports.spectrum.datafile_parser_utils import (
-    load_dataset_from_file,
-    write_dataset_to_file,
-)
+from raman_fitting.utils.writers import write_dataset_to_file
+from raman_fitting.utils.loaders import load_dataset_from_file
 from raman_fitting.imports.files.models import RamanFileInfoSet
 
 from pydantic import (
@@ -14,6 +14,8 @@ from pydantic import (
     Field,
     FilePath,
     NewPath,
+    computed_field,
+    PrivateAttr,
 )
 
 from loguru import logger
@@ -28,17 +30,24 @@ class RamanFileIndex(BaseModel):
     force_reindex: bool = Field(default=False, validate_default=False)
     persist_to_file: bool = Field(default=True, validate_default=False)
 
-    @property
+    # Add the private attribute
+    _dataset: Dataset | None = PrivateAttr(default=None)
+
+    @computed_field
+    @cached_property
     def dataset(self) -> Dataset | None:
-        if self.raman_files is None or not self.raman_files:
-            logger.debug("No raman files provided for index.")
+        if self._dataset is None and (self.raman_files is None or not self.raman_files):
+            logger.debug("Can not construct dataset without raman files.")
             return None
+        if self._dataset is not None and not self.force_reindex:
+            return self._dataset
 
         if validate_index_file_path(self.index_file, self.force_reindex):
             dataset = load_dataset_from_file(self.index_file)
+            self._dataset = dataset
             return dataset
-
-        return self.raman_files.cast_to_dataset()
+        self._dataset = self.raman_files.cast_to_dataset()
+        return self._dataset
 
     def __len__(self) -> int:
         if self.raman_files is None:
@@ -64,8 +73,7 @@ class RamanFileIndex(BaseModel):
             self.index_file, self.force_reindex
         )
         if can_reload_from_file:
-            self.dataset = load_dataset_from_file(self.index_file)
-            return
+            self._dataset = load_dataset_from_file(self.index_file)
 
         validate_and_set_dataset(self.dataset, self.raman_files)
 

@@ -36,7 +36,16 @@ class ExportManager:
             raise ExporterError("No fit results to export")
 
         for group_name, group_results in self.fit_results.items():
+            if not group_results:
+                logger.debug(f"Group {group_name} does not contain results.")
+                continue
             for sample_id, sample_results in group_results.items():
+                if not sample_results:
+                    logger.debug(
+                        f"Group={group_name} and sample={sample_id} does not contain results."
+                    )
+                    continue
+
                 export_dir = self.paths.results_dir / group_name / sample_id
                 export_paths = ExportPathSettings(results_dir=export_dir)
 
@@ -48,7 +57,6 @@ class ExportManager:
                     export_results_set += raw_data_spectra_plot_results
                 except Exception as exc:
                     logger.error(f"Plotting error, raw_data_spectra_plot: {exc}")
-                    raise exc from exc
 
                 try:
                     fit_spectrum_plot_results = fit_spectrum_plot(

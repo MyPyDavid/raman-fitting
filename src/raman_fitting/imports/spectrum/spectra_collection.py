@@ -11,7 +11,7 @@ def aggregate_mean_spectrum_from_spectra(spectra: list[SpectrumData]) -> Spectru
     mean_int = np.mean(np.vstack([i.intensity for i in spectra]), axis=0)
     mean_ramanshift = np.mean(np.vstack([i.ramanshift for i in spectra]), axis=0)
 
-    region_name = list(set(i.region_name for i in spectra))
+    region_name = list(set(i.region for i in spectra))
     if len(region_name) > 1:
         raise ValueError(
             f"The spectra have different region names where they should be the same.\n\t{region_name}"
@@ -32,7 +32,7 @@ def aggregate_mean_spectrum_from_spectra(spectra: list[SpectrumData]) -> Spectru
         ramanshift=mean_ramanshift,
         intensity=mean_int,
         label=f"clean_{region_name}_mean",
-        region_name=region_name,
+        region=region_name,
         source=[i.source for i in spectra],
         processing_steps=new_processing_steps,
     )
@@ -55,7 +55,7 @@ class SpectraDataCollection(BaseModel):
     @model_validator(mode="after")
     def check_spectra_have_same_region(self) -> "SpectraDataCollection":
         """checks member of lists"""
-        region_names = set(i.region_name for i in self.spectra)
+        region_names = set(i.region for i in self.spectra)
         if len(region_names) > 1:
             raise ValidationError(f"Spectra have different region_names {region_names}")
         return self

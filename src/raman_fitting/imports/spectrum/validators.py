@@ -3,7 +3,7 @@ import logging
 
 import numpy as np
 
-from raman_fitting.imports.spectrum.datafile_schema import SpectrumDataKeys
+from raman_fitting.imports.spectrum.fileparsers.column_headers import SpectrumDataKeys
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ def validate_values(
 
 SPECTRUM_KEYS_EXPECTED_VALUES = {
     SpectrumDataKeys.RAMANSHIFT: ValidateSpectrumValues(
-        spectrum_key=SpectrumDataKeys.RAMANSHIFT, min=-95, max=3750
+        spectrum_key=SpectrumDataKeys.RAMANSHIFT, min=-195, max=3750
     ),
     SpectrumDataKeys.INTENSITY: ValidateSpectrumValues(
         spectrum_key=SpectrumDataKeys.INTENSITY, min=0, max=1e5

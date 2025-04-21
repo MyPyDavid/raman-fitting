@@ -75,9 +75,6 @@ class MainDelegatorResult:
         factory=lambda: datetime.now(UTC),
         metadata={"description": "UTC timestamp when results were created"},
     )
-    created_by: str = attr.field(
-        default="MyPyDavid", metadata={"description": "Username of result creator"}
-    )
 
     def __getattr__(self, name: str) -> GroupResult:
         """Enable dot notation access for groups."""
@@ -197,9 +194,7 @@ class MainDelegator:
                 results,
             )
 
-        return MainDelegatorResult(
-            results=results, created_at=datetime.now(UTC), created_by="MyPyDavid"
-        )
+        return MainDelegatorResult(results=results, created_at=datetime.now(UTC))
 
 
 def main_run(
@@ -252,36 +247,9 @@ def get_results_over_selected_models(
         if aggregated_spectrum is None:
             continue
         fit_region_results = AggregatedSampleSpectrumFitResult(
-            region_name=region_name,
+            region=region_name,
             aggregated_spectrum=aggregated_spectrum,
             fit_model_results=fit_model_results,
         )
         results[region_name] = fit_region_results
     return results
-
-
-def make_examples(
-    **kwargs,
-) -> dict[str, dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]]]:
-    """Create example instances of MainDelegator for testing."""
-    delegator = MainDelegator(
-        run_mode=RunModes.PYTEST,
-        fit_model_specific_names=["2peaks", "2nd_4peaks"],
-        export=False,
-        **kwargs,
-    )
-    assert isinstance(delegator.index, RamanFileIndex)
-    assert isinstance(delegator.run_mode_paths, RunModePaths)
-    results = main_run(
-        delegator.index,
-        delegator.select_sample_groups,
-        delegator.select_sample_ids,
-        delegator.selected_models,
-        delegator.use_multiprocessing,
-        delegator.fit_model_region_names,
-    )
-    return results
-
-
-if __name__ == "__main__":
-    example_run = make_examples()

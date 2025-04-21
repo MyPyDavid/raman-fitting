@@ -40,51 +40,40 @@ Updated: 2025-04-18
 Authors: DW, MyPyDavid
 """
 
-import hashlib
 from functools import cached_property
 from pydantic import BaseModel, computed_field, FilePath
 
-from raman_fitting.imports.spectrum.parse_spectrum import parse_spectrum_from_file
 from raman_fitting.models.spectrum import SpectrumData
+
+# """
+# Reads a spectrum from a 'raw' data file Path or str
+#
+# with spectrum_data_keys "ramanshift" and "intensity".
+# Double checks the values
+# Sets a hash attribute afterwards
+# """
 
 
 class SpectrumReader(BaseModel):
-    """
-    Reads a spectrum from a 'raw' data file Path or str
-
-    with spectrum_data_keys "ramanshift" and "intensity".
-    Double checks the values
-    Sets a hash attribute afterwards
-    """
-
     model_config = {
         "frozen": True,  # Makes the model immutable
         "arbitrary_types_allowed": True,  # Needed for SpectrumData
     }
 
     filepath: FilePath
-    label: str = "raw"
-    region_name: str = "full"
+    spectrum: SpectrumData
 
     @computed_field
     @cached_property
-    def spectrum(self) -> SpectrumData:
-        """Lazily load and cache the spectrum data"""
-        return parse_spectrum_from_file(
-            file=self.filepath,
-            label=self.label,
-            region_name=self.region_name,
-        )
+    def label(self) -> str:
+        return self.spectrum.label
+
+    @computed_field
+    @cached_property
+    def region_name(self) -> str:
+        return self.spectrum.region
 
     @computed_field
     @cached_property
     def spectrum_length(self) -> int:
         return len(self.spectrum)
-
-    @computed_field
-    @cached_property
-    def spectrum_hash(self) -> str:
-        """Computed hash of the spectrum data"""
-        return hashlib.sha256(
-            self.spectrum.model_dump_json().encode("utf-8")
-        ).hexdigest()

@@ -4,12 +4,19 @@ from operator import itemgetter
 from typing import Sequence
 from pydantic import ValidationError
 
-
+from raman_fitting.delegators.errors import processing_errors
 from raman_fitting.models.spectrum import SpectrumData
-from raman_fitting.models.deconvolution.base_model import LMFitModelCollection
-from raman_fitting.delegators.models import AggregatedSampleSpectrumFitResult
+from raman_fitting.models.deconvolution.base_model import (
+    LMFitModelCollection,
+    BaseLMFitModel,
+)
+from raman_fitting.delegators.models import (
+    AggregatedSampleSpectrumFitResult,
+    PreparedSampleSpectrum,
+)
 from raman_fitting.delegators.pre_processing import (
     prepare_aggregated_spectrum_from_files,
+    select_and_prepare_aggregated_spectrum_for_region,
 )
 from raman_fitting.imports.files.models import RamanFileInfo
 from raman_fitting.models.deconvolution.spectrum_regions import RegionNames
@@ -21,52 +28,98 @@ from loguru import logger
 def run_fit_over_selected_models(
     raman_files: Sequence[RamanFileInfo],
     models: LMFitModelCollection,
-    use_multiprocessing: bool = False,
     reuse_params: bool = True,
-) -> dict[RegionNames, AggregatedSampleSpectrumFitResult]:
+    use_multiprocessing: bool = False,
+) -> dict[RegionNames, AggregatedSampleSpectrumFitResult] | None:
     if use_multiprocessing:
-        from raman_fitting.delegators.run_fit_multi import run_fit_multiprocessing
+        pass
 
     results = {}
-    for region_name, model_region_grp in models.items():
+    # First load in the data from files
+    # Check and validate data
+    # Then run
+
+    prepared_spectra = prepare_aggregated_spectrum_from_files(raman_files)
+
+    if not prepared_spectra:
+        logger.error(
+            "These files do not contain any valid data."
+            f"\n{'\n'.join(
+                    map(str,processing_errors.get_errors_for_files(raman_files)
+                    )
+                )
+            }"
+        )
+        return None
+
+    for region, models_for_region in models.items():
         try:
-            region_name = RegionNames(region_name)
+            region = RegionNames(region)
         except ValueError as exc:
-            logger.error(f"Region name {region_name} not found. {exc}")
+            logger.error(f"Region name {region}  not found. {exc}")
+            continue
+        if not models_for_region:
+            logger.info(f"There are no models defined for region {region}.")
             continue
 
-        aggregated_spectrum = prepare_aggregated_spectrum_from_files(
-            region_name, raman_files
+        region_fit_result = run_fit_for_region_on_prepared_spectra(
+            region, models_for_region, prepared_spectra
+        )
+        if region_fit_result:
+            results[region] = region_fit_result
+        else:
+            logger.debug(f"Region {region} did not yield any fit results.")
+
+    return results
+
+
+def run_fit_for_region_on_prepared_spectra(
+    region: RegionNames,
+    models: dict[str, BaseLMFitModel],
+    spectra: list[PreparedSampleSpectrum],
+    reuse_params: bool = True,
+    use_multiprocessing=False,
+) -> AggregatedSampleSpectrumFitResult:
+    try:
+        aggregated_spectrum = select_and_prepare_aggregated_spectrum_for_region(
+            region, spectra
         )
         if aggregated_spectrum is None:
-            continue
-        spec_fits, fit_prep_errors = prepare_spec_fit_regions(
-            aggregated_spectrum.spectrum, model_region_grp, reuse_params=reuse_params
-        )
+            logger.debug(f"Aggregated spectrum is None, {region}")
+            return
+    except ValueError:
+        logger.error(f"Can not prepare aggregated_spectrum for: {region}")
+        return
 
-        try:
-            handle_fit_errors(fit_prep_errors, raise_errors=True)
-        except ValueError as e:
-            logger.error(f"Errors in preparing fits for {region_name}. {e}")
-            continue
+    spectrum_fit_models, fit_prep_errors = create_fit_models_with_spectrum_for_models(
+        aggregated_spectrum.spectrum, models, reuse_params=reuse_params
+    )
 
-        if not spec_fits:
-            logger.info(f"No spectra selected for {region_name}")
+    try:
+        handle_fit_errors(fit_prep_errors, raise_errors=True)
+    except ValueError as e:
+        logger.error(f"Errors in preparing fits for {region}. {e}")
+        return
 
-        if use_multiprocessing:
-            fit_model_results = run_fit_multiprocessing(spec_fits)
-        else:
-            fit_model_results, fit_errors = run_fit_loop_single(spec_fits)
+    if not spectrum_fit_models:
+        logger.info(f"No spectra selected for {region}")
 
-        handle_fit_errors(fit_errors, raise_errors=False)
+    if use_multiprocessing:
+        raise NotImplementedError("Multiprocessing not implemented yet.")
+    else:
+        fit_model_results, fit_errors = run_fit_loop_single(spectrum_fit_models)
+        if fit_errors:
+            handle_fit_errors(fit_errors, raise_errors=False)
 
-        fit_region_results = AggregatedSampleSpectrumFitResult(
-            region_name=region_name,
+    try:
+        return AggregatedSampleSpectrumFitResult(
+            region=region,
             aggregated_spectrum=aggregated_spectrum,
             fit_model_results=fit_model_results,
         )
-        results[region_name] = fit_region_results
-    return results
+    except ValueError as e:
+        breakpoint()
+        print(e)
 
 
 @dataclass
@@ -77,21 +130,25 @@ class FitError:
     error: Exception
 
 
-def prepare_spec_fit_regions(
-    spectrum: SpectrumData, model_region_grp, reuse_params=False, **fit_kwargs
+def create_fit_models_with_spectrum_for_models(
+    spectrum: SpectrumData,
+    models: dict[str, BaseLMFitModel],
+    reuse_params=False,
+    **fit_kwargs,
 ) -> tuple[list[SpectrumFitModel], list[FitError]]:
     spec_fits = []
     errors = []
-    for model_name, model in model_region_grp.items():
+    for model_name, model in models.items():
         try:
-            spec_fit = SpectrumFitModel(
-                spectrum=spectrum,
-                model=model,
-                region=model.region_name,
-                reuse_params=reuse_params,
-                fit_kwargs=fit_kwargs,
+            spec_fits.append(
+                SpectrumFitModel(
+                    spectrum=spectrum,
+                    model=model,
+                    region=model.region_name,
+                    reuse_params=reuse_params,
+                    fit_kwargs=fit_kwargs,
+                )
             )
-            spec_fits.append(spec_fit)
         except ValidationError as e:
             logger.error(
                 f"Could not initialize fit model {model_name} to spectrum {model.region_name}.{e}"
@@ -102,7 +159,7 @@ def prepare_spec_fit_regions(
 
 
 def run_fit_loop_single(
-    spec_fits: Sequence[SpectrumFitModel],
+    spec_fits: list[SpectrumFitModel],
 ) -> tuple[dict[str, SpectrumFitModel], list[FitError]]:
     fit_model_results = {}
     errors: list[FitError] = []

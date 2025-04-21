@@ -36,7 +36,7 @@ class SpectrumDespiker(BaseModel):
             intensity=despiked_intensity,
             label=self.spectrum.label,
             source=self.spectrum.source,
-            region_name=self.spectrum.region_name,
+            region=self.spectrum.region,
             processing_steps=self.spectrum.processing_steps.copy(),
         )
         despiked_spec.add_processing_step(f"Despiked: {self.__class__.__name__}")

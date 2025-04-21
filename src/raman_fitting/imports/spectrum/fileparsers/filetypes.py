@@ -4,8 +4,8 @@ from typing import Callable
 
 from tablib import Dataset
 
-from .datafile_parser_utils import read_file_with_tablib
-from .datafile_schema import get_default_expected_header_keys
+from .reader import read_file_with_tablib
+from .column_headers import get_default_expected_header_keys
 
 SPECTRUM_FILETYPE_PARSERS = {
     ".txt": {

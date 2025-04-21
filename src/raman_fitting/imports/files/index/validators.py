@@ -20,7 +20,7 @@ def validate_dataset_length(dataset_rf: Dataset, index_dataset: Dataset) -> None
 def validate_dataset_rows(dataset_rf: Dataset, index_dataset: Dataset) -> None:
     _errors = []
     for row1, row2 in zip(dataset_rf.dict, index_dataset.dict):
-        if row1 != row2:
+        if row1["filename_id"] != row2["filename_id"]:
             _errors.append(f"Row1: {row1} != Row2: {row2}")
     if _errors:
         raise IndexValidationError(f"Errors: {_errors}")

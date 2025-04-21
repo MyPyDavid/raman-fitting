@@ -14,13 +14,13 @@ def subtract_baseline_per_region(
     region_limits: SpectrumRegionsLimitsSet,
 ):
     if (  # override the selected region with first order for full and norm
-        any((i in spec.region_name or i in spec.label) for i in ("full", "norm"))
+        any((i in spec.region or i in spec.label) for i in ("full", "norm"))
     ):
         selected_intensity = split_spectrum.get_spec_for_region("first_order").intensity
         region_config = region_limits["first_order"]
     else:
         selected_intensity = spec.intensity
-        region_config = region_limits[spec.region_name]
+        region_config = region_limits[spec.region]
 
     bl_linear = linregress(
         spec.ramanshift[[0, -1]],
@@ -63,7 +63,7 @@ def subtract_baseline_from_split_spectrum(
             intensity=blcorr_int,
             label=new_label,
             source=spec.source,
-            region_name=spec.region_name,
+            region=spec.region,
             processing_steps=spec.processing_steps.copy(),
         )
         spec_blcorr.add_processing_step(

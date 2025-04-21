@@ -61,8 +61,12 @@ def plot_spectrum(
 ) -> None:
     if region_name not in valid_regions or region_name not in plot_region_axes:
         return
+    try:
+        ax_ = ax[tuple(plot_region_axes[region_name])]
+    except IndexError:
+        logger.error(f"Could not find axis for region {region_name}")
+        return
 
-    ax_ = ax[tuple(plot_region_axes[region_name])]
     ax_.plot(
         spec_region.ramanshift,
         spec_region.intensity,

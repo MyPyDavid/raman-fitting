@@ -13,7 +13,9 @@ import sys
 from functools import partial
 
 from raman_fitting.imports.files.models import RamanFileInfo, RamanFileInfoSet
-from raman_fitting.imports.spectrum.datafile_parsers import SPECTRUM_FILETYPE_PARSERS
+from raman_fitting.imports.spectrum.fileparsers.filetypes import (
+    SPECTRUM_FILETYPE_PARSERS,
+)
 
 logger = logging.getLogger(__name__)
 

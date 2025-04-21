@@ -1,5 +1,7 @@
+from functools import cached_property
 from typing import Dict, Any
 import numpy as np
+from attrs import define
 
 from pydantic import BaseModel, Field, computed_field, ConfigDict
 
@@ -10,6 +12,13 @@ from .deconvolution.spectrum_regions import (
     get_default_regions_from_toml_files,
     SpectrumRegionsLimitsSet,
 )
+from ..imports.files.models import RamanFileInfo
+
+
+@define
+class SpectrumFileRegionSelection:
+    file: RamanFileInfo
+    region: RegionNames
 
 
 def get_default_spectrum_region_limits(
@@ -38,7 +47,7 @@ class SplitSpectrum(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     @computed_field
-    @property
+    @cached_property
     def computed_split_spectra_from_spectrum(self) -> list[SpectrumData]:
         if self.split_spectra is not None:
             return self.split_spectra
@@ -62,7 +71,7 @@ class SplitSpectrum(BaseModel):
         if self.computed_split_spectra_from_spectrum is None:
             raise ValueError("Missing split spectra.")
         for spectrum in self.computed_split_spectra_from_spectrum:
-            yield spectrum.region_name, spectrum
+            yield spectrum.region, spectrum
 
 
 def split_spectrum_data_in_regions(
@@ -89,14 +98,14 @@ def split_spectrum_data_in_regions(
             region_lbl = f"{spectrum.label}_{region_lbl}"
 
         new_processing_step = (
-            f"spectrum region {region.name} split from {spectrum.region_name} "
+            f"spectrum region {region.name} split from {spectrum.region} "
             f"with limits {region.min} - {region.max}"
         )
         spectrum_region = SpectrumData(
             ramanshift=ramanshift[ind],
             intensity=intensity[ind],
             label=region_lbl,
-            region_name=region.name,
+            region=region.name,
             source=spectrum.source,
             processing_steps=spectrum.processing_steps.copy(),
         )

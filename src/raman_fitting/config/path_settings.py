@@ -36,10 +36,12 @@ USER_HOME_PACKAGE: Path = Path.home() / PACKAGE_NAME
 
 # Optional local configuration file
 USER_LOCAL_CONFIG_FILE: Path = USER_HOME_PACKAGE / f"{PACKAGE_NAME}/toml"
+LOCAL_CONFIG_FILE = Path.cwd().joinpath("raman_fitting.toml")
 
 INDEX_FILE_NAME = f"{PACKAGE_NAME}_index.csv"
 # Storage file of the index
 USER_INDEX_FILE_PATH: Path = USER_HOME_PACKAGE / INDEX_FILE_NAME
+LOCAL_INDEX_FILE = Path.cwd().joinpath(INDEX_FILE_NAME)
 
 TEMP_DIR = Path(tempfile.mkdtemp(prefix="raman-fitting-"))
 TEMP_RESULTS_DIR: Path = TEMP_DIR / "results"

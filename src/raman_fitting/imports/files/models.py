@@ -83,6 +83,9 @@ class RamanFileInfo(BaseModel):
             return self.filepath == other.filepath
         return False
 
+    def __str__(self):
+        return f"{self.sample} in {self.filepath.name}"
+
 
 class RamanFileInfoSet(BaseModel):
     """

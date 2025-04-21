@@ -57,7 +57,7 @@ def filter_spectrum(
         intensity=filtered_intensity,
         label=label,
         source=spectrum.source,
-        region_name=spectrum.region_name,
+        region=spectrum.region,
         processing_steps=spectrum.processing_steps.copy(),
     )
     filtered_spectrum.add_processing_step(filter_name)

@@ -39,9 +39,9 @@ class SpectrumFitModel(BaseModel):
 
     @model_validator(mode="after")
     def match_region_names(self) -> "SpectrumFitModel":
-        if self.model.region_name != self.spectrum.region_name:
+        if self.model.region_name != self.spectrum.region:
             raise ValueError(
-                f"Region names do not match {self.model.region_name} and {self.spectrum.region_name}"
+                f"Region names do not match {self.model.region_name} and {self.spectrum.region}"
             )
         return self
 
@@ -49,21 +49,44 @@ class SpectrumFitModel(BaseModel):
     def test_if_spectrum_has_model_region(self) -> "SpectrumFitModel":
         model_region = self.model.region_name
         region_limits = settings.default_regions[model_region]
+
+        # Check if the spectrum data is not empty
+        if not (self.spectrum.ramanshift.size > 0 and self.spectrum.intensity.size > 0):
+            raise ValueError("Spectrum is empty.")
+
         center_params = [
             i.param_hints.get("center", {}).get("value", 0)
             for i in self.model.lmfit_model.components
         ]
-        if not all(region_limits.min <= i <= region_limits.max for i in center_params):
-            raise ValueError("Not all model params fall in the region limits.")
-        if not (self.spectrum.ramanshift.any() and self.spectrum.intensity.any()):
-            raise ValueError("Spectrum is empty.")
-        if not all(
-            self.spectrum.ramanshift.min() <= i <= self.spectrum.ramanshift.max()
-            for i in center_params
-        ):
+
+        # Collect invalid center parameters
+        invalid_region_params = [
+            param
+            for param in center_params
+            if not (region_limits.min <= param <= region_limits.max)
+        ]
+        if invalid_region_params:
             raise ValueError(
-                "Not all model params are covered by the spectrum ramanshift data."
+                f"Model parameters {invalid_region_params} do not fall within the region limits "
+                f"({region_limits.min}, {region_limits.max})."
             )
+
+        # Collect center parameters not covered by the spectrum's Raman shift data
+        invalid_spectrum_params = [
+            param
+            for param in center_params
+            if not (
+                self.spectrum.ramanshift.min()
+                <= param
+                <= self.spectrum.ramanshift.max()
+            )
+        ]
+        if invalid_spectrum_params:
+            raise ValueError(
+                f"Model parameters {invalid_spectrum_params} are not covered by the spectrum's "
+                f"Raman shift data range ({self.spectrum.ramanshift.min()}, {self.spectrum.ramanshift.max()})."
+            )
+
         return self
 
     def run(self) -> None:
@@ -76,8 +99,6 @@ class SpectrumFitModel(BaseModel):
     @computed_field
     @cached_property
     def fit_result(self) -> ModelResult:
-        if self._fit_result is None:
-            self.run()
         return self._fit_result
 
     @computed_field
