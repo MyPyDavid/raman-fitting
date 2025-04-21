@@ -17,7 +17,6 @@ from raman_fitting.models.deconvolution.spectrum_regions import RegionNames
 def process_selection(
     selection: Sequence[RamanFileInfo],
     selected_models: LMFitModelCollection,
-    use_multiprocessing: bool,
 ) -> tuple[
     dict[str, dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]]],
     list[str],
@@ -25,9 +24,7 @@ def process_selection(
     """Process the selection of samples."""
     selection_results, errors = {}, []
     for group_name, grp in group_by_sample_group(selection):
-        group_result, _errors = process_group(
-            group_name, grp, selected_models, use_multiprocessing
-        )
+        group_result, _errors = process_group(group_name, grp, selected_models)
         selection_results[group_name] = group_result
         if _errors:
             errors.append({group_name: _errors})
@@ -38,7 +35,6 @@ def process_group(
     group_name: str,
     grp: Sequence[RamanFileInfo],
     selected_models: LMFitModelCollection,
-    use_multiprocessing: bool,
 ) -> tuple[dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]], list[str]]:
     """Process a group of samples."""
     group_results = {}
@@ -49,7 +45,6 @@ def process_group(
             sample_id,
             sample_id_grp,
             selected_models,
-            use_multiprocessing,
         )
         group_results[sample_id] = sample_result
         if _errors:
@@ -62,7 +57,6 @@ def process_sample(
     sample_id: str,
     sample_id_grp: Sequence[RamanFileInfo],
     selected_models: LMFitModelCollection,
-    use_multiprocessing: bool,
 ) -> tuple[dict[RegionNames, AggregatedSampleSpectrumFitResult], list[str]]:
     """Process a single sample."""
     errors = []
@@ -82,6 +76,5 @@ def process_sample(
     model_result = run_fit_over_selected_models(
         sample_id_grp,
         selected_models,
-        use_multiprocessing=use_multiprocessing,
     )
     return model_result, errors

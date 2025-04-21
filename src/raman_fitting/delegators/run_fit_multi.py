@@ -1,7 +1,6 @@
 from typing import Dict, List
 
 from loguru import logger
-from mpire import WorkerPool
 
 from raman_fitting.models.fit_models import SpectrumFitModel
 
@@ -31,10 +30,11 @@ def run_fit_multi(**kwargs) -> SpectrumFitModel:
     return out
 
 
-def run_fit_multiprocessing(
+def _run_fit_multiprocessing(
     spec_fits: List[SpectrumFitModel],
 ) -> Dict[str, SpectrumFitModel]:
     spec_fits_dumps = [i.model_dump() for i in spec_fits]
+    from mpire import WorkerPool
 
     with WorkerPool(n_jobs=4, use_dill=True) as pool:
         results = pool.map(

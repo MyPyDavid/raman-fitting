@@ -1278,7 +1278,6 @@ dependencies = [
     { name = "lmfit" },
     { name = "loguru" },
     { name = "matplotlib" },
-    { name = "mpire", extra = ["dill"] },
     { name = "numpy" },
     { name = "pydantic" },
     { name = "pydantic-numpy" },
@@ -1326,6 +1325,9 @@ dev = [
     { name = "ruff" },
     { name = "wheel" },
 ]
+multi = [
+    { name = "mpire", extra = ["dill"] },
+]
 pytest = [
     { name = "coverage" },
     { name = "mock" },
@@ -1342,7 +1344,6 @@ requires-dist = [
     { name = "lmfit", specifier = "~=1.3.2" },
     { name = "loguru", specifier = ">=0.7" },
     { name = "matplotlib", specifier = "~=3.8.0" },
-    { name = "mpire", extras = ["dill"], specifier = "~=2.10.0" },
     { name = "numpy", specifier = "~=1.26.1" },
     { name = "pydantic", specifier = ">=2.5" },
     { name = "pydantic-numpy", specifier = ">=4.1" },
@@ -1390,6 +1391,7 @@ dev = [
     { name = "ruff" },
     { name = "wheel" },
 ]
+multi = [{ name = "mpire", extras = ["dill"], specifier = "~=2.10.0" }]
 pytest = [
     { name = "coverage" },
     { name = "mock" },

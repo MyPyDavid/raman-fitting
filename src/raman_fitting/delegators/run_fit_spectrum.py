@@ -69,7 +69,6 @@ def run_fit_for_region_on_prepared_spectra(
     models: dict[str, BaseLMFitModel],
     spectra: list[PreparedSampleSpectrum],
     reuse_params: bool = True,
-    use_multiprocessing=False,
 ) -> AggregatedSampleSpectrumFitResult | None:
     try:
         aggregated_spectrum = select_and_prepare_aggregated_spectrum_for_region(
@@ -95,12 +94,9 @@ def run_fit_for_region_on_prepared_spectra(
     if not spectrum_fit_models:
         logger.info(f"No spectra selected for {region}")
 
-    if use_multiprocessing:
-        raise NotImplementedError("Multiprocessing not implemented yet.")
-    else:
-        fit_model_results, fit_errors = run_fit_loop_single(spectrum_fit_models)
-        if fit_errors:
-            handle_fit_errors(fit_errors, raise_errors=False)
+    fit_model_results, fit_errors = run_fit_loop_single(spectrum_fit_models)
+    if fit_errors:
+        handle_fit_errors(fit_errors, raise_errors=False)
 
     try:
         return AggregatedSampleSpectrumFitResult(

@@ -39,7 +39,6 @@ dependencies = [
 	"pydantic_numpy>=4.1",
 	"loguru>=0.7",
 	"typer>=0.13.1",
-	"mpire[dill]~=2.10.0",
 	"tomli-w>=1.0.0",
 	"attrs>=25.3.0",
 ]
@@ -66,6 +65,9 @@ dev = [
 	"bump-my-version",
 	{include-group = "pytest"}
 	]
+multi = [
+	"mpire[dill]~=2.10.0",
+]
 all = [
 	{include-group = "dev"},
 ]

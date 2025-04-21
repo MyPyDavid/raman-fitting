@@ -22,7 +22,6 @@ def make_examples(
         delegator.select_sample_groups,
         delegator.select_sample_ids,
         delegator.selected_models,
-        delegator.use_multiprocessing,
         delegator.fit_model_region_names,
     )
     return results

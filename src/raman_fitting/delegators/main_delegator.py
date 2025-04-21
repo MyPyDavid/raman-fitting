@@ -116,7 +116,6 @@ class MainDelegatorResult:
 @attr.define
 class MainDelegator:
     run_mode: Optional[RunModes] = attr.field(default=None)
-    use_multiprocessing: bool = attr.field(default=False, repr=False)
     lmfit_models: LMFitModelCollection = attr.field(
         factory=lambda: settings.default_models, repr=False
     )
@@ -184,7 +183,6 @@ class MainDelegator:
             self.select_sample_groups,
             self.select_sample_ids,
             self.selected_models,
-            self.use_multiprocessing,
             self.fit_model_region_names,
         )
 
@@ -202,7 +200,6 @@ def main_run(
     select_sample_groups: Sequence[str],
     select_sample_ids: Sequence[str],
     selected_models: LMFitModelCollection,
-    use_multiprocessing: bool,
     fit_model_region_names: Sequence[RegionNames],
 ) -> dict[str, dict[str, dict[RegionNames, AggregatedSampleSpectrumFitResult]]]:
     """Main function to run the processing of Raman spectra."""
@@ -222,7 +219,7 @@ def main_run(
     else:
         logger.debug(f"Selected models {len(selected_models)}")
 
-    results, errors = process_selection(selection, selected_models, use_multiprocessing)
+    results, errors = process_selection(selection, selected_models)
     log_results(results, errors)
     return results
 

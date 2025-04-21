@@ -54,7 +54,6 @@ def run_command(
     group_ids: Optional[list[str]] = None,
     fit_models: Optional[list[str]] = None,
     run_mode: RunModes = RunModes.NORMAL,
-    multiprocessing: bool = False,
     index_file: Optional[Path] = None,
     log_file: Optional[Path] = None,
     log_level: str = "INFO",
@@ -62,7 +61,6 @@ def run_command(
 ):
     kwargs = {
         "run_mode": run_mode,
-        "use_multiprocessing": multiprocessing,
         "index": None,
         "fit_model_region_names": fit_models or RegionNames,
         "select_sample_ids": sample_ids,
@@ -150,7 +148,6 @@ def current_dir(
             help="Selection of names of the Region that are to used for fitting.",
         ),
     ],
-    multiprocessing: Annotated[bool, typer.Option("--multiprocessing")] = False,
     index_file: Annotated[Optional[Path], typer.Option()] = None,
     log_file: Annotated[Optional[Path], typer.Option("--log-file")] = None,
     log_level: Annotated[str, typer.Option("--log-level")] = "INFO",
@@ -162,7 +159,6 @@ def current_dir(
         group_ids=group_ids,
         fit_models=fit_models,
         run_mode=RunModes.CURRENT_DIR,
-        multiprocessing=multiprocessing,
         index_file=index_file,
         log_file=log_file,
         log_level=log_level,
@@ -171,14 +167,12 @@ def current_dir(
 
 @run_app.command()
 def examples(
-    multiprocessing: Annotated[bool, typer.Option("--multiprocessing")] = False,
     log_file: Annotated[Optional[Path], typer.Option("--log-file")] = None,
     log_level: Annotated[str, typer.Option("--log-level")] = "DEBUG",
 ):
     """Run the application in examples mode."""
     run_command(
         run_mode=RunModes.EXAMPLES,
-        multiprocessing=multiprocessing,
         log_file=log_file,
         log_level=log_level,
     )
@@ -213,7 +207,6 @@ def normal(
             help="Selection of names of the Region that are to used for fitting.",
         ),
     ],
-    multiprocessing: Annotated[bool, typer.Option("--multiprocessing")] = False,
     index_file: Annotated[Optional[Path], typer.Option()] = None,
     log_file: Annotated[Optional[Path], typer.Option("--log-file")] = None,
     log_level: Annotated[str, typer.Option("--log-level")] = "INFO",
@@ -225,7 +218,6 @@ def normal(
         group_ids=group_ids,
         fit_models=fit_models,
         run_mode=RunModes.NORMAL,
-        multiprocessing=multiprocessing,
         index_file=index_file,
         log_file=log_file,
         log_level=log_level,
@@ -261,7 +253,6 @@ def pytest(
             help="Selection of names of the Region that are to used for fitting.",
         ),
     ],
-    multiprocessing: Annotated[bool, typer.Option("--multiprocessing")] = False,
     index_file: Annotated[Optional[Path], typer.Option()] = None,
     log_file: Annotated[Optional[Path], typer.Option("--log-file")] = None,
     log_level: Annotated[str, typer.Option("--log-level")] = "INFO",
@@ -273,7 +264,6 @@ def pytest(
         group_ids=group_ids,
         fit_models=fit_models,
         run_mode=RunModes.PYTEST,
-        multiprocessing=multiprocessing,
         index_file=index_file,
         log_file=log_file,
         log_level=log_level,
@@ -309,7 +299,6 @@ def debug(
             help="Selection of names of the Region that are to used for fitting.",
         ),
     ],
-    multiprocessing: Annotated[bool, typer.Option("--multiprocessing")] = False,
     index_file: Annotated[Optional[Path], typer.Option()] = None,
     log_file: Annotated[Optional[Path], typer.Option("--log-file")] = None,
     log_level: Annotated[str, typer.Option("--log-level")] = "INFO",
@@ -321,7 +310,6 @@ def debug(
         group_ids=group_ids,
         fit_models=fit_models,
         run_mode=RunModes.DEBUG,
-        multiprocessing=multiprocessing,
         index_file=index_file,
         log_file=log_file,
         log_level=log_level,
