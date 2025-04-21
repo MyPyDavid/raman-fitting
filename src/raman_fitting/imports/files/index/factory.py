@@ -72,7 +72,6 @@ def get_or_create_index(
     suffixes: Sequence[str] = (),
     exclusions: Sequence[str] = (),
     index_file: Path | None = None,
-    force_reindex: bool = False,
     persist_index: bool = False,
 ) -> RamanFileIndex | None:
     if index is None and directory is not None:
@@ -116,7 +115,6 @@ def initialize_index(
         suffixes=suffixes,
         exclusions=exclusions,
         index_file=run_mode_paths.index_file,
-        force_reindex=force_reindex,
         persist_index=persist_index,
     )
     return index

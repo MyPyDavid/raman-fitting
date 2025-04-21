@@ -29,11 +29,7 @@ def run_fit_over_selected_models(
     raman_files: Sequence[RamanFileInfo],
     models: LMFitModelCollection,
     reuse_params: bool = True,
-    use_multiprocessing: bool = False,
 ) -> dict[RegionNames, AggregatedSampleSpectrumFitResult] | None:
-    if use_multiprocessing:
-        pass
-
     results = {}
     # First load in the data from files
     # Check and validate data
@@ -63,7 +59,7 @@ def run_fit_over_selected_models(
             continue
 
         region_fit_result = run_fit_for_region_on_prepared_spectra(
-            region, models_for_region, prepared_spectra
+            region, models_for_region, prepared_spectra, reuse_params=reuse_params
         )
         if region_fit_result:
             results[region] = region_fit_result
@@ -79,7 +75,7 @@ def run_fit_for_region_on_prepared_spectra(
     spectra: list[PreparedSampleSpectrum],
     reuse_params: bool = True,
     use_multiprocessing=False,
-) -> AggregatedSampleSpectrumFitResult:
+) -> AggregatedSampleSpectrumFitResult | None:
     try:
         aggregated_spectrum = select_and_prepare_aggregated_spectrum_for_region(
             region, spectra

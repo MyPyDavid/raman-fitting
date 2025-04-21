@@ -84,14 +84,14 @@ def process_and_prepare_spectrum_from_file(
 ) -> PreparedSampleSpectrum | FileProcessingError:
     if file in processing_errors:
         logger.debug(f"Skipped due to errors: {file}")
-        return None
+        return processing_errors.get_errors_for_files(file)
 
     parsed_spectrum_or_error = load_and_parse_spectrum_from_file(
         file=file.filepath,
     )
     if isinstance(parsed_spectrum_or_error, FileProcessingError):
         processing_errors.add_error(parsed_spectrum_or_error)
-        return None
+        return parsed_spectrum_or_error
 
     parsed_spectrum = parsed_spectrum_or_error
 

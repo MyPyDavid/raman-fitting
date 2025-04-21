@@ -12,10 +12,6 @@ def test_fit_model(example_files, default_models_first_order):
     parsed_spectrum_or_error = load_and_parse_spectrum_from_file(
         file=file,
     )
-    # if isinstance(parsed_spectrum_or_error, FileProcessingError):
-    #     processing_errors.add_error(parsed_spectrum_or_error)
-    #     return None
-
 
     spectrum_processor = SpectrumProcessor(
         spectrum=parsed_spectrum_or_error,
