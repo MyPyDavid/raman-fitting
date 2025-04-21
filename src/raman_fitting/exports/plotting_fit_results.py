@@ -184,7 +184,7 @@ def fit_plot_first(
         )
         center_col = _component.prefix + "center"
         ax.annotate(
-            f"{peak_name}:\n {first_result.best_values[center_col]:.0f}",
+            f"{peak_name}: {first_result.best_values[center_col]:.0f}",
             xy=(
                 first_result.best_values[center_col] * 0.97,
                 0.7 * first_result.params[_component.prefix + "height"].value,
@@ -254,7 +254,7 @@ def fit_plot_second(
         )
         center_col = _component.prefix + "center"
         ax2nd.annotate(
-            f"{peak_name}\n {second_result.best_values[center_col]:.0f}",
+            f"{peak_name} {second_result.best_values[center_col]:.0f}",
             xy=(
                 second_result.best_values[center_col] * 0.97,
                 0.8 * second_result.params[_component.prefix + "height"].value,
@@ -314,7 +314,7 @@ def plot_special_si_components(ax, first_model):
         )
         if si_result.params[si_comp.prefix + "fwhm"] > 1:
             ax.annotate(
-                "Si_substrate:\n %.0f" % si_result.params["Si1_center"].value,
+                "Si_substrate: %.0f" % si_result.params["Si1_center"].value,
                 xy=(
                     si_result.params["Si1_center"].value * 0.97,
                     0.8 * si_result.params["Si1_height"].value,

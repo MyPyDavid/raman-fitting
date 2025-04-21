@@ -15,7 +15,7 @@ def validate_numeric_data_in_dataset_from_file(data: Dataset) -> Dataset | None:
     ]
     len_numeric_per_row = [len(i) for n, i in numeric_joined_per_row]
     if not len_numeric_per_row or mean(len_numeric_per_row) < VALID_MIN_ROWS:
-        msg = f"There is nearly no numeric data in the rows:\n{'\n'.join(map(str,len_numeric_per_row))}"
+        msg = f"There is nearly no numeric data in the rows:{''.join(map(str,len_numeric_per_row))}"
         logger.error(msg)
         raise ValueError("Insufficient numeric data")
 

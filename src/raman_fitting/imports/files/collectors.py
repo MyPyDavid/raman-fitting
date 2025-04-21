@@ -90,8 +90,8 @@ async def create_raman_file_info(
         return info, None
     except Exception as exc:
         logger.warning(
-            f"{__name__} create_raman_file_info unexpected error for calling RamanFileInfo on\n"
-            f"{file}.\n{exc}"
+            f"{__name__} create_raman_file_info unexpected error for calling RamanFileInfo on"
+            f"{file}. {exc}"
         )
         return None, {"file": file, "error": exc}
 

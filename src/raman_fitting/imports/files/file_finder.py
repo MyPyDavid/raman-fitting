@@ -19,7 +19,7 @@ class FileFinder(BaseModel):
         )
         if not files:
             logger.warning(
-                f"FileFinder warning: no files were found in the chosen data file dir.\n{self.directory}\nPlease choose another directory which contains your data files."
+                f"FileFinder warning: no files were found in the chosen data file dir.{self.directory}. Please choose another directory which contains your data files."
             )
         return files
 
@@ -33,17 +33,17 @@ def find_files(
         files = list(directory.rglob(f"**/*{suffix}"))
         if not files:
             logger.debug(
-                f"find_files warning: no files were found for the suffix {suffix} in the chosen data file dir.\n{directory}\nPlease choose another directory which contains your data files."
+                f"find_files warning: no files were found for the suffix {suffix} in the chosen data file dir. {directory}. Please choose another directory which contains your data files."
             )
         else:
             logger.info(
-                f"find_files {len(files)} files were found for the suffix {suffix} in the chosen data dir:\n\t{directory}"
+                f"find_files {len(files)} files were found for the suffix {suffix} in the chosen data dir: {directory}"
             )
         raman_files += files
 
     if not raman_files:
         logger.debug(
-            f"find_files warning: no files were found in the chosen data file dir.\n{directory}\nPlease choose another directory which contains your data files."
+            f"find_files warning: no files were found in the chosen data file dir.{directory}. Please choose another directory which contains your data files."
         )
 
     # Filter out files that have any Path.parts that start with an exclusion
@@ -59,9 +59,9 @@ def find_files(
 
     if raman_files and not filtered_files:
         logger.warning(
-            f"find_files warning: the files were excluded because they contain the following exclusions:\n\t{exclusions}"
+            f"find_files warning: the files were excluded because they contain the following exclusions:{exclusions}"
         )
     logger.info(
-        f"find_files {len(filtered_files)} files were found in the chosen data dir:\n\t{directory}"
+        f"find_files {len(filtered_files)} files were found in the chosen data dir: {directory}"
     )
     return filtered_files

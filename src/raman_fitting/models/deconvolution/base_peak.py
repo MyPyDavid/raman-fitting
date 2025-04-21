@@ -231,6 +231,6 @@ def get_peaks_from_peak_definitions(
         try:
             peak_models[peak_name] = BasePeak(**peak_data)
         except ValidationError as e:
-            logger.error(f"Skipped definition for {peak_name}:\n{peak_data}\n{e}")
+            logger.error(f"Skipped definition for {peak_name}:{peak_data}, {e}")
 
     return peak_models

@@ -48,7 +48,7 @@ def load_config_from_toml_files(config_dir: Path | None = None) -> MappingProxyT
         config_definitions["spectrum"]
     except KeyError:
         raise KeyError(
-            f"Could not find key 'spectrum' in the config from files:\n{toml_files}"
+            f"Could not find key 'spectrum' in the config from files:{toml_files}"
         )
     return MappingProxyType(config_definitions)
 

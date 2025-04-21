@@ -96,7 +96,7 @@ def __repr__(self):
     if self.selected_models:
         _selmods = f", {len(self.selected_models)} models from: " + "\n\t- "
         _repr += _selmods
-        _joinmods = "\n\t- ".join(
+        _joinmods = ", ".join(
             [f"{i.peak_group}: {i.model_inst} \t" for i in self.selected_models]
         )
         _repr += _joinmods

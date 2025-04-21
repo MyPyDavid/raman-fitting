@@ -38,5 +38,5 @@ def version_callback(value: bool):
     if value:
         package_version = get_package_version()
         typer_cli_version = f"Awesome Typer CLI Version: {__version__}"
-        print(f"{package_version}\n{typer_cli_version}")
+        print(f"{package_version} {typer_cli_version}")
         raise typer.Exit()

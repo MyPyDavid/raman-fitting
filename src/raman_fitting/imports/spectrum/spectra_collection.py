@@ -14,7 +14,7 @@ def aggregate_mean_spectrum_from_spectra(spectra: list[SpectrumData]) -> Spectru
     region_name = list(set(i.region for i in spectra))
     if len(region_name) > 1:
         raise ValueError(
-            f"The spectra have different region names where they should be the same.\n\t{region_name}"
+            f"The spectra have different region names where they should be the same.{region_name}"
         )
     region_name = region_name[0]
 
@@ -66,11 +66,11 @@ class SpectraDataCollection(BaseModel):
         unique_lengths_int = set(len(i.intensity) for i in self.spectra)
         if len(unique_lengths_rs) > 1:
             raise ValidationError(
-                f"The spectra have different ramanshift lengths where they should be the same.\n\t{unique_lengths_rs}"
+                f"The spectra have different ramanshift lengths where they should be the same.{unique_lengths_rs}"
             )
         if len(unique_lengths_int) > 1:
             raise ValidationError(
-                f"The spectra have different intensity lengths where they should be the same.\n\t{unique_lengths_int}"
+                f"The spectra have different intensity lengths where they should be the same. {unique_lengths_int}"
             )
 
         return self

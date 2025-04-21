@@ -100,7 +100,7 @@ def run_command(
         kwargs["index"] = index_file
 
     typer.echo(
-        f"Starting raman_fitting with CLI\nrun mode: {run_mode}\nand kwargs:\n{kwargs}"
+        f"Starting raman_fitting with CLI. run mode: {run_mode} and kwargs: {kwargs}"
     )
 
     try:

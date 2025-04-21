@@ -14,7 +14,7 @@ def check_and_make_dirs(destdir: Path) -> None:
     if not destdir.is_dir():
         destdir.mkdir(exist_ok=True, parents=True)
         logger.info(
-            f"check_and_make_dirs the results directory did not exist and was created at:\n{destdir}\n"
+            f"check_and_make_dirs the results directory did not exist and was created at: {destdir}"
         )
 
 
@@ -24,7 +24,7 @@ def create_dir_or_ask_user_input(destdir: Path, ask_user=True):
         answer = "y"
         if ask_user:
             answer = input(
-                f"Directory to store files raman_fitting:\n{destdir}\nCan this be folder be created? (y/n)"
+                f"Directory to store files raman_fitting:{destdir} Can this be folder be created? (y/n)"
             )
             if "y" in answer.lower():
                 destdir.mkdir(exist_ok=True, parents=True)

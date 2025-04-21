@@ -128,6 +128,6 @@ def raw_data_spectra_plot(
     )
     plt.close()
 
-    _msg = f"raw_data_spectra_plot saved:\n{destfile}"
+    _msg = f"raw_data_spectra_plot saved:{destfile}"
     logger.debug(_msg)
     return ExportResult(target=destfile, message=_msg)
