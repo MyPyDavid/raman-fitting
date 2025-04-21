@@ -38,14 +38,11 @@ def run_fit_over_selected_models(
     prepared_spectra = prepare_aggregated_spectrum_from_files(raman_files)
 
     if not prepared_spectra:
-        logger.error(
-            "These files do not contain any valid data.\n"
-            f"{', '.join(
-                    map(str,processing_errors.get_errors_for_files(raman_files)
-                    )
-                )
-            }"
+        errors = "\n".join(
+            map(str, processing_errors.get_errors_for_files(raman_files))
         )
+
+        logger.error("These files do not contain any valid data.\n" f"{errors}")
         return None
 
     for region, models_for_region in models.items():
