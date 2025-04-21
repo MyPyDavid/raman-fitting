@@ -40,7 +40,7 @@ def run_fit_over_selected_models(
     if not prepared_spectra:
         logger.error(
             "These files do not contain any valid data."
-            f"\n{'\n'.join(
+            f"\n{', '.join(
                     map(str,processing_errors.get_errors_for_files(raman_files)
                     )
                 )
